@@ -54,3 +54,9 @@ PasswordTextStore/**/*.suo
 PasswordTextStore/**/*.user
 PasswordTextStore/*/bin
 PasswordTextStore/*/obj
+
+.vs/
+*.7z
+bin/
+obj/
+packages/
