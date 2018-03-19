@@ -8,6 +8,8 @@ namespace PasswordTextStore
 {
     public class StoreException : Exception
     {
+        public bool Terminate { get; set; }
+
         public StoreException()
             : base()
         {
@@ -18,9 +20,15 @@ namespace PasswordTextStore
         {
         }
 
-        public StoreException(Exception innerException, string msg, params string[] format)
-            : base(string.Format(msg, format), innerException)
+        public StoreException(bool terminate, string msg, params string[] format)
+            : base(string.Format(msg, format))
         {
+            Terminate = terminate;
         }
+
+        //public StoreException(Exception innerException, string msg, params string[] format)
+        //    : base(string.Format(msg, format), innerException)
+        //{
+        //}
     }
 }

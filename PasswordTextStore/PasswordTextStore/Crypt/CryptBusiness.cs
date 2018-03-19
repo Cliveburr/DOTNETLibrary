@@ -11,34 +11,31 @@ namespace PasswordTextStore.Crypt
     {
         public static bool OpenFile()
         {
-            while (true)
+            var open = new OpenWindow();
+            var result = open.ShowDialog();
+
+            if (result ?? false)
             {
-                var open = new OpenWindow();
-                var result = open.ShowDialog();
-
-                if (result.HasValue && result.Value)
+                var file = CryptFile.Open(open.GetPassword);
+                if (file == null)
                 {
-                    var file = CryptFile.Open(open.GetPassword);
-                    if (file == null)
-                    {
-                        Program.Warning("Permission denied!");
-                    }
-                    else
-                    {
-                        if (!file.Data.IsCreated)
-                        {
-                            file.Save(open.GetPassword);
-                        }
-
-                        Program.File = file;
-                        Program.PasswordUsed = open.GetPassword;
-
-                        return true;
-                    }
+                    Program.Warning("Permission denied!");
                 }
                 else
-                    return false;
+                {
+                    if (!file.Data.IsCreated)
+                    {
+                        file.Save(open.GetPassword);
+                    }
+
+                    Program.File = file;
+                    Program.PasswordUsed = open.GetPassword;
+
+                    return true;
+                }
             }
+
+            return false;
         }
     }
 }

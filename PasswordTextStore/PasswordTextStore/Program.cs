@@ -14,24 +14,49 @@ namespace PasswordTextStore
         public static Application App { get; private set; }
         public static string PasswordUsed { get; set; }
         public static CryptFile File { get; set; }
+        public static MainWindow MainWindow { get; set; }
 
         [STAThread]
         static void Main()
         {
-            if (!Crypt.CryptBusiness.OpenFile())
-                return;
-
-            var main = new MainWindow();
-            main.Show();
-
             App = new Application();
             App.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-            App.Run();
+            Application.Current.DispatcherUnhandledException += Current_DispatcherUnhandledException;
+
+            if (CryptBusiness.OpenFile())
+            {
+                MainWindow = new MainWindow();
+                MainWindow.Show();
+
+                App.Exit += App_Exit;
+                App.Run();
+            }
+        }
+
+        private static void App_Exit(object sender, ExitEventArgs e)
+        {
+            File.Save(PasswordUsed);
+        }
+
+        private static void Current_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            if (e.Exception is StoreException)
+            {
+                var storeException = e.Exception as StoreException;
+
+                Warning(storeException.Message);
+
+                e.Handled = !storeException.Terminate;
+            }
+            else
+            {
+                ErrorHandle(e.Exception);
+                e.Handled = false;
+            }
         }
 
         public static void Close()
         {
-            File.Save(PasswordUsed);
             App.Shutdown();
         }
 

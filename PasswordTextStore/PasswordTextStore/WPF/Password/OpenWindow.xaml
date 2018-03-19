@@ -1,12 +1,9 @@
 ﻿<Window x:Class="PasswordTextStore.WPF.Password.OpenWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Passwords Authentication" Height="200" Width="400" FontSize="14" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" FontFamily="Constantia">
+        Title="Passwords Authentication" Height="137.978" Width="400" FontSize="14" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" FontFamily="Constantia">
   <Grid>
     <StackPanel Margin="3">
-
-      <Label Margin="3">User:</Label>
-      <TextBox x:Name="txUser" Margin="3" IsReadOnly="True"></TextBox>
 
       <Label Margin="3">Password:</Label>
       <PasswordBox x:Name="txPassword" Margin="3" KeyUp="txPassword_KeyUp"></PasswordBox>

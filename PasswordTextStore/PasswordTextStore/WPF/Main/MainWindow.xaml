@@ -6,11 +6,38 @@
   <Grid>
     <DockPanel>
       
-      <!--<ToolBar DockPanel.Dock="Top" />-->
+            <ToolBarTray DockPanel.Dock="Top">
+                <ToolBar>
+                    <Button Content="New" Click="barNew_Click" />
+                    <Button Content="Delete" Click="barDelete_Click" />
+                    <Button Content="Rename" Click="barRename_Click" />
+                    <Button Command="Search" Content="Search" />
+                </ToolBar>
+            </ToolBarTray>
 
-      <TextBox TextWrapping="Wrap" AcceptsReturn="True" Text="{Binding Text}"></TextBox>
-      
-      <!--<RichTextBox x:Name="rtbText">
+            <TabControl x:Name="tabTexts"  Margin="3" ItemsSource="{Binding Texts}">
+                <TabControl.Resources>
+                    <Style TargetType="TabItem">
+                        <Setter Property="AllowDrop" Value="True"/>
+                        <EventSetter Event="PreviewMouseMove" Handler="TabItem_PreviewMouseMove"/>
+                        <EventSetter Event="Drop" Handler="TabItem_Drop"/>
+                    </Style>
+                </TabControl.Resources>
+                <TabControl.ItemTemplate>
+                    <DataTemplate>
+                        <Label Content="{Binding Name}" />
+                    </DataTemplate>
+                </TabControl.ItemTemplate>
+                <TabControl.ContentTemplate>
+                    <DataTemplate>
+                        <DockPanel>
+                            <TextBox Margin="3" TextWrapping="Wrap" AcceptsReturn="True" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" FontSize="14" FontFamily="Courier New" ScrollViewer.VerticalScrollBarVisibility="Visible"></TextBox>
+                        </DockPanel>
+                    </DataTemplate>
+                </TabControl.ContentTemplate>
+            </TabControl>
+
+            <!--<RichTextBox x:Name="rtbText">
         <FlowDocument>
           <Paragraph>
             <Run Text="RichTextBox"/>
