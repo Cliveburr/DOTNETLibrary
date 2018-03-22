@@ -14,6 +14,7 @@ namespace LearnAOP.AOP
         public PipelineList Resolvers { get; private set; }
         public IFactory<ILifetime> DefaultLifetime { get; set; }
         public IFactory<IBuilder> DefaultBuilder { get; set; }
+        public IList<InterceptionQuery> Interception { get; private set; }
 
         private IDictionary<string, ContainerType> _types;
         private Object _lockResolve;
@@ -24,6 +25,7 @@ namespace LearnAOP.AOP
             Resolvers = new PipelineList();
             DefaultLifetime = new SingletonFactory<ILifetime, TransientLifetime>();
             DefaultBuilder = new TransientFactory<IBuilder, InterfaceBuilder>();
+            Interception = new List<InterceptionQuery>();
             _types = new Dictionary<string, ContainerType>();
             _lockResolve = new Object();
             _containerTypesIndex = 0;

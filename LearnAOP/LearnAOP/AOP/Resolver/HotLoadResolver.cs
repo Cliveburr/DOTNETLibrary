@@ -1,4 +1,8 @@
-﻿using LearnAOP.AOP.Pipeline;
+﻿using LearnAOP.AOP.Builder;
+using LearnAOP.AOP.Factory;
+using LearnAOP.AOP.Helpers;
+using LearnAOP.AOP.Lifetime;
+using LearnAOP.AOP.Pipeline;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,12 +17,9 @@ namespace LearnAOP.AOP.Resolver
     {
         public HotLoadAssemblyPathDelegate HotLoadAssemblyPath { get; set; }
 
-        private IDictionary<string, ResolvedType> _resolveds;
-        
         public HotLoadResolver(HotLoadAssemblyPathDelegate hotLoadAssemblyPath)
         {
             HotLoadAssemblyPath = hotLoadAssemblyPath;
-            _resolveds = new Dictionary<string, ResolvedType>();
         }
 
         public void Execution(object data, NextPipelineDelegate next)
@@ -26,26 +27,30 @@ namespace LearnAOP.AOP.Resolver
             var context = data as ResolverContext;
             var name = context.ToResolveType.FullName;
 
-            if (_resolveds.ContainsKey(name))
+            context.ResolvedType = DoHotLoad(context);
+
+            if (context.ResolvedType != null)
             {
-                context.ResolvedType = _resolveds[name];
+                var typeInterface = context.ResolvedType.InterfaceType;
+                var typeClass = context.ResolvedType.ClassType;
+
+                var lifetimeAttribute = AttributeHelper.GetOneFromFirstAttribute<LifetimeAttribute>(typeClass, typeInterface);
+                if (lifetimeAttribute != null)
+                {
+                    context.ResolvedLifetime = new StaticFactory<ILifetime>((ILifetime)Activator.CreateInstance(lifetimeAttribute.LifetimeType));
+                }
+
+                var builderAttribute = AttributeHelper.GetOneFromFirstAttribute<BuilderAttribute>(typeClass, typeInterface);
+                if (builderAttribute != null)
+                {
+                    context.ResolvedBuilder = new StaticFactory<IBuilder>((IBuilder)Activator.CreateInstance(builderAttribute.BuilderType));
+                }
 
                 next(true);
             }
             else
             {
-                context.ResolvedType = DoHotLoad(context);
-
-                if (context.ResolvedType != null)
-                {
-                    _resolveds[name] = context.ResolvedType;
-
-                    next(true);
-                }
-                else
-                {
-                    next(false);
-                }
+                next(false);
             }
         }
 

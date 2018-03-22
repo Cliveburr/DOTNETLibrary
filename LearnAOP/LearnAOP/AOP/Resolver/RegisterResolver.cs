@@ -1,5 +1,6 @@
 ﻿using LearnAOP.AOP.Builder;
 using LearnAOP.AOP.Factory;
+using LearnAOP.AOP.Helpers;
 using LearnAOP.AOP.Lifetime;
 using LearnAOP.AOP.Pipeline;
 using System;
@@ -25,23 +26,43 @@ namespace LearnAOP.AOP.Resolver
 
         public RegisterResolver RegisterType<Tinterface, Tclass>(ILifetime lifetime = null, IBuilder builder = null)
         {
-            var type = typeof(Tinterface);
-            var name = type.FullName;
+            var typeInterface = typeof(Tinterface);
+            var nameInterface = typeInterface.FullName;
+            var typeClass = typeof(Tclass);
 
-            if (_register.ContainsKey(name))
+            if (_register.ContainsKey(nameInterface))
             {
-                throw new Exception($"Already have this type \"{name}\" registred!");
+                throw new Exception($"Already have this type \"{nameInterface}\" registred!");
             }
             else
             {
                 var newRecord = new RegistredType
                 {
-                    InterfaceType = type,
+                    InterfaceType = typeInterface,
                     ClassType = typeof(Tclass),
                     PreferedLifetime = lifetime,
                     PreferedBuilder = builder
                 };
-                _register[name] = newRecord;
+
+                if (newRecord.PreferedLifetime == null)
+                {
+                    var lifetimeAttribute = AttributeHelper.GetOneFromFirstAttribute<LifetimeAttribute>(typeClass, typeInterface);
+                    if (lifetimeAttribute != null)
+                    {
+                        newRecord.PreferedLifetime = (ILifetime)Activator.CreateInstance(lifetimeAttribute.LifetimeType);
+                    }
+                }
+
+                if (newRecord.PreferedBuilder == null)
+                {
+                    var builderAttribute = AttributeHelper.GetOneFromFirstAttribute<BuilderAttribute>(typeClass, typeInterface);
+                    if (builderAttribute != null)
+                    {
+                        newRecord.PreferedBuilder = (IBuilder)Activator.CreateInstance(builderAttribute.BuilderType);
+                    }
+                }
+
+                _register[nameInterface] = newRecord;
             }
 
             return this;
