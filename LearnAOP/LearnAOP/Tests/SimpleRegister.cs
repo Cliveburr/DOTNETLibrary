@@ -36,6 +36,8 @@ namespace LearnAOP.Tests
     public class TestInterception : InterceptionQuery
     {
         public override bool HasPreExecute => true;
+        public override bool HasPosExecute => true;
+        public override bool HasErrorExecute => true;
 
         public override bool IsApply(MethodInfo method)
         {
@@ -44,30 +46,45 @@ namespace LearnAOP.Tests
 
         public override void PreExecute(InterceptionRunContext context)
         {
-            Console.WriteLine("hit");
+            Console.WriteLine("pre");
+        }
+
+        public override void PosExecute(InterceptionRunContext context)
+        {
+            Console.WriteLine("pos: " + context.Return);
+        }
+
+        public override void ErrorExecute(InterceptionRunContext context)
+        {
+            Console.WriteLine("Error: " + context.Exception?.ToString());
+            //context.RaiseException = true;
         }
     }
 
     //[SingletonLifetime]
     public interface ITestOne
     {
-        void WriteText(string text);
+        int WriteText(string text);
     }
 
     //[Lifetime(typeof(ThreadLifetime))]
     public class TestOne : ITestOne
     {
-        //private IOneDep _oneDep;
+        //public static int id = 0;
+        private IOneDep _oneDep;
 
-        //public TestOne(IOneDep oneDep)
-        //{
-        //    _oneDep = oneDep;
-        //}
-
-        public void WriteText(string text)
+        public TestOne(IOneDep oneDep)
         {
-            //Console.WriteLine($"{text} - {_oneDep.Name} - hit {_oneDep.Hit}");
-            Console.WriteLine("TestOne simple text method");
+            _oneDep = oneDep;
+        }
+
+        public int WriteText(string text)
+        {
+            Console.WriteLine($"{text} - {_oneDep.Name} - hit {_oneDep.Hit}");
+            //Console.WriteLine("TestOne simple text method");
+            //throw new Exception("testing");
+            //return id++;
+            return (int)_oneDep.Hit;
         }
     }
 

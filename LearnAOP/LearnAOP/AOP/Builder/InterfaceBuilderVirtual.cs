@@ -24,13 +24,8 @@ namespace LearnAOP.AOP.Builder
             var code = GenerateCode(containerType);
             var syntaxTree = CSharpSyntaxTree.ParseText(code);
 
-            //var references = new MetadataReference[]
-            //{
-            //    //MetadataReference.CreateFromFile(typeof(System.Runtime.GCSettings).Assembly.Location),
-            //    MetadataReference.CreateFromFile(typeof(Object).Assembly.Location),
-            //    MetadataReference.CreateFromFile(typeof(Container).Assembly.Location)
-            //};
             var references = AppDomain.CurrentDomain.GetAssemblies()
+                .Where(a => !string.IsNullOrEmpty(a.Location))
                 .Select(a => MetadataReference.CreateFromFile(a.Location))
                 .ToArray();
 
@@ -66,9 +61,15 @@ namespace LearnAOP.AOP.Builder
 
         private string GenerateCode(ContainerType containerType)
         {
-            var interfaceType = containerType.ResolvedType.InterfaceType;
+            var helper = new ClassHelper(containerType.ResolvedType.InterfaceType);
 
-            return string.Format(@"
+            if (helper.HasGeneric)
+            {
+                return "";
+            }
+            else
+            {
+                return string.Format(@"
 using System;
 using System.Collections.Generic;
 //using System.IO;
@@ -92,16 +93,28 @@ namespace AOP.Virtual
         {2}
     }}
 }}
-", interfaceType.Name, interfaceType.FullName, GenerateMethods(containerType));
+", helper.Name, helper.FullName, GenerateBody(containerType));
+            }
         }
 
-        private string GenerateMethods(ContainerType containerType)
+        private string GenerateBody(ContainerType containerType)
         {
             var interfaceType = containerType.ResolvedType.InterfaceType;
             var container = containerType.Container;
-
             var ret = new StringBuilder();
-            foreach (var method in interfaceType.GetMethods())
+
+            foreach (var prop in interfaceType.GetProperties())
+            {
+                ret.Append(GenerateProperty(prop));
+            }
+
+            var onlyMethods = interfaceType.GetMethods()
+                     .Where(m => {
+                         var method = m as MethodBase;
+                         return method == null || !method.IsSpecialName;
+                     });
+
+            foreach (var method in onlyMethods)
             {
                 var interceptions = AttributeHelper.GetAttributes<InterceptionAttribute>(method)
                     .Cast<IInterception>()
@@ -131,7 +144,7 @@ namespace AOP.Virtual
                         pos.Add(index);
                 }
 
-                var helper = new MethodHelper(interfaceType, method, pre.ToArray(), error.ToArray(), pos.ToArray());
+                var helper = new MethodHelper(method, pre.ToArray(), error.ToArray(), pos.ToArray());
 
                 ret.Append(GenerateMethod(helper));
             }
@@ -155,10 +168,10 @@ namespace AOP.Virtual
             var ret = new StringBuilder();
             if (method.HasReturn)
             {
-                ret.AppendLine($"{method.ReturnTypeString} ret = null;");
+                ret.AppendLine($"{method.ReturnTypeString} ret = default({method.ReturnTypeString});");
             }
 
-            if (method.HasPreExecution)
+            if (method.HasPreExecution || method.HasErrorExecution || method.HasPosExecution)
             {
                 ret.AppendLine(string.Format(@"
             var context = new InterceptionRunContext
@@ -178,6 +191,10 @@ namespace AOP.Virtual
             var execut = method.HasReturn ?
                 string.Format(@"ret = _proxy.{0}({1});", method.Name, method.Params) :
                 string.Format(@"_proxy.{0}({1});", method.Name, method.Params);
+
+            if (method.HasReturn && method.HasPosExecution)
+                execut += @"
+            context.Return = ret;";
 
             if (method.HasErrorExecution)
             {
@@ -206,21 +223,104 @@ namespace AOP.Virtual
             var ret = new StringBuilder();
             if (method.HasPosExecution)
             {
-                ret.AppendLine(string.Format(@"
-                _virtual.RunPosExecute(context, new int[] {{ {0} }});",
+                ret.Append(string.Format(@"
+            _virtual.RunPosExecute(context, new int[] {{ {0} }});",
                 string.Join(", ", method.PosExecution)));
             }
 
             if (method.HasReturn)
             {
-                return string.Format(@"
-                return ret;");
+                ret.Append(@"
+            return ret;");
             }
             return ret.ToString();
         }
+        public int a
+        {
+            get
+            {
+                return 1;
+            }
+            set
+            {
+
+            }
+        }
+
+        private string GenerateProperty(PropertyInfo prop)
+        {
+            var helper = new PropertyHelper(prop);
+
+            var setMethod = "";
+            if (helper.HasSet)
+            {
+                setMethod = string.Format(@"
+            set
+            {{
+                _proxy.{0} = value;
+            }}", helper.Name);
+            }
+
+            var getMethod = "";
+            if (helper.HasGet)
+            {
+                getMethod = string.Format(@"
+            get
+            {{
+                return _proxy.{0};
+            }}", helper.Name);
+            }
+
+            return string.Format(@"
+        public {0} {1}
+        {{
+            {2}
+            {3}
+        }}
+", helper.ReturnTypeString, helper.Name, setMethod, getMethod);
+        }
     }
 
-    class MethodHelper
+    class TypeHelper
+    {
+        protected string GetSafeType(Type type)
+        {
+            if (type.Equals(typeof(void)))
+                return "void";
+            else
+                return type.FullName;
+        }
+
+        protected string GetParameterType(ParameterInfo parameter)
+        {
+            var t = parameter.ParameterType;
+
+            if (t.AssemblyQualifiedName.StartsWith("System.Collections.Generic.List") && t.IsGenericType)
+            {
+                return string.Format("List<{0}>", string.Join(", ", t.GetGenericArguments().Select(g => GetSafeType(g))));
+            }
+            else
+            {
+                return t.FullName;
+            }
+        }
+    }
+
+    class ClassHelper : TypeHelper
+    {
+        public string Name { get; set; }
+        public string FullName { get; set; }
+        public bool HasGeneric { get; set; }
+
+        public ClassHelper(Type type)
+        {
+            Name = type.Name;
+            FullName = type.FullName;
+            HasGeneric = type.IsGenericType;
+        }
+    }
+
+    class MethodHelper : TypeHelper
     {
         public string Name { get; set; }
         public bool HasReturn { get; set; }
@@ -234,7 +334,7 @@ namespace AOP.Virtual
         public bool HasPosExecution { get; set; }
         public int[] PosExecution { get; set; }
 
-        public MethodHelper(Type type, MethodInfo method, int[] preExecution, int[] errorExecution, int[] posExecution)
+        public MethodHelper(MethodInfo method, int[] preExecution, int[] errorExecution, int[] posExecution)
         {
             Name = method.Name;
             HasReturn = !method.ReturnType.Equals(typeof(void));
@@ -248,27 +348,21 @@ namespace AOP.Virtual
             HasPosExecution = posExecution.Any();
             PosExecution = posExecution;
         }
+    }
 
-        private string GetSafeType(Type type)
+    class PropertyHelper : TypeHelper
+    {
+        public string Name { get; set; }
+        public bool HasGet { get; set; }
+        public bool HasSet { get; set; }
+        public string ReturnTypeString { get; set; }
+
+        public PropertyHelper(PropertyInfo prop)
         {
-            if (type.Equals(typeof(void)))
-                return "void";
-            else
-                return type.FullName;
-        }
-
-        private string GetParameterType(ParameterInfo parameter)
-        {
-            var t = parameter.ParameterType;
-
-            if (t.AssemblyQualifiedName.StartsWith("System.Collections.Generic.List") && t.IsGenericType)
-            {
-                return string.Format("List<{0}>", string.Join(", ", t.GetGenericArguments().Select(g => GetSafeType(g))));
-            }
-            else
-            {
-                return t.FullName;
-            }
+            Name = prop.Name;
+            HasGet = prop.GetMethod != null;
+            HasSet = prop.SetMethod != null;
+            ReturnTypeString = prop.PropertyType.FullName;
         }
     }
 }

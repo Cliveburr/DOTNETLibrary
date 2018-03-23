@@ -10,7 +10,6 @@ namespace LearnAOP
         {
             Console.WriteLine("Aspect Oriented Programming!");
 
-
             Tests.SimpleRegister.Run();
 
             //Tests.ThreadLifetimeTest.Run();
