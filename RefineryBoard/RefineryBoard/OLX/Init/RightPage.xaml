@@ -1,0 +1,77 @@
+﻿<Page x:Class="RefineryBoard.OLX.Init.RightPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:RefineryBoard.OLX.Init"
+      mc:Ignorable="d"
+      Title="RightPage" MinHeight="316.18" MinWidth="503.596">
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top"></StackPanel>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="300" />
+                <RowDefinition Height="5" />
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <ScrollViewer>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition MinHeight="100" />
+                    </Grid.RowDefinitions>
+
+                    <Label Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Code:</Label>
+                    <TextBox Grid.Row="0" Grid.Column="1" Margin="4" VerticalAlignment="Center" IsReadOnly="true"
+                     Text="{Binding Selected.Code}"></TextBox>
+
+                    <Label Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Title:</Label>
+                    <TextBox Grid.Row="1" Grid.Column="1" Margin="4" VerticalAlignment="Center" IsReadOnly="true"
+                     Text="{Binding Selected.Title}"></TextBox>
+
+                    <Label Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Href:</Label>
+                    <TextBox Grid.Row="2" Grid.Column="1" Margin="4" VerticalAlignment="Center" IsReadOnly="true"
+                     Text="{Binding Selected.Href}"></TextBox>
+
+                    <Label Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Region:</Label>
+                    <TextBox Grid.Row="3" Grid.Column="1" Margin="4" VerticalAlignment="Center" IsReadOnly="true"
+                     Text="{Binding Selected.Region}"></TextBox>
+
+                    <Label Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Category:</Label>
+                    <TextBox Grid.Row="4" Grid.Column="1" Margin="4" VerticalAlignment="Center" IsReadOnly="true"
+                     Text="{Binding Selected.Category}"></TextBox>
+
+                    <Label Grid.Row="5" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Price:</Label>
+                    <TextBox Grid.Row="5" Grid.Column="1" Margin="4" VerticalAlignment="Center"
+                     Text="{Binding Selected.Price}" KeyDown="RefreshValuePerGram_KeyDown"></TextBox>
+
+                    <Label Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Weight:</Label>
+                    <TextBox Grid.Row="6" Grid.Column="1" Margin="4" VerticalAlignment="Center"
+                     Text="{Binding Selected.Weight}" KeyDown="RefreshValuePerGram_KeyDown"></TextBox>
+
+                    <Label Grid.Row="7" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Value per gram:</Label>
+                    <TextBox x:Name="tbValuePerGram" Grid.Row="7" Grid.Column="1" Margin="4" VerticalAlignment="Center"
+                        Text="" IsReadOnly="True"></TextBox>
+                    
+                    <Label Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">Description:</Label>
+                    <TextBlock Grid.Row="8" Grid.Column="1" Margin="4" Background="White"
+                     Text="{Binding Selected.Description}"></TextBlock>
+
+                </Grid>
+            </ScrollViewer>
+            <GridSplitter Grid.Column="1" Width="5" VerticalAlignment="Stretch" />
+        </Grid>
+    </DockPanel>
+</Page>
