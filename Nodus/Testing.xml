@@ -1,0 +1,25 @@
+<Process>
+	<Message value="testing" />
+</Process>
+
+<Set name="variable1" value="valor da variavel 1" />
+
+<Tag name="EspecialTag">
+	<Message value="running the especial tag" />
+</Tag>
+
+<EspecialTag />
+
+<!-- <namespace name="something">
+	<process>
+		<import file="funcions.dll" />
+		
+		<multitask>
+			<node machine="sbrraobld02">
+				<process>
+					
+				</process>
+			</node>
+		</multitask>
+	</process>
+</namespace> -->
