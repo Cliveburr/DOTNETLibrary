@@ -50,10 +50,8 @@ Temporary Items
 # Password Text Store
 # =========================
 
-PasswordTextStore/**/*.suo
-PasswordTextStore/**/*.user
-PasswordTextStore/*/bin
-PasswordTextStore/*/obj
+*.suo
+*.user
 
 .vs/
 *.7z

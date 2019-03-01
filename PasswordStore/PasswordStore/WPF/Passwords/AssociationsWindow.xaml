@@ -1,0 +1,50 @@
+﻿<Page x:Class="PasswordStore.WPF.Passwords.AssociationsWindow"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      mc:Ignorable="d" 
+      d:DesignHeight="350" d:DesignWidth="400">
+  <Grid Margin="3">
+    <DockPanel>
+
+      <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Orientation="Horizontal">
+        <Button x:Name="btClose" Margin="3" Width="80" Click="btClose_Click">Close</Button>
+        <Button x:Name="btOk" Margin="3" Width="80" Click="btOk_Click">Ok</Button>
+      </StackPanel>
+      
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="33" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        
+        <ListView x:Name="lvAssociations" Grid.Column="0">
+          <ListView.View>
+            <GridView>
+              <GridViewColumn Header="Associations" Width="Auto" DisplayMemberBinding="{Binding Name}" />
+            </GridView>
+          </ListView.View>
+        </ListView>
+        
+        <ListView x:Name="lvSelecteds" Grid.Column="2">
+          <ListView.View>
+            <GridView>
+              <GridViewColumn Header="Selecteds" Width="Auto" DisplayMemberBinding="{Binding Name}"/>
+            </GridView>
+          </ListView.View>
+        </ListView>
+        
+          <StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Center">
+            <Button x:Name="btSelect" Content="&gt;" Margin="3" Click="btSelect_Click"/>
+            <Button x:Name="btSelectAll" Content="&gt;&gt;" Margin="3" Click="btSelectAll_Click"/>
+            <Button x:Name="btDeselectAll" Content="&lt;&lt;" Margin="3" Click="btDeselectAll_Click"/>
+            <Button x:Name="btDeselect" Content="&lt;" Margin="3" Click="btDeselect_Click" />
+          </StackPanel>
+        
+      </Grid>
+      
+    </DockPanel>
+  </Grid>
+</Page>
