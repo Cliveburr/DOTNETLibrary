@@ -9,17 +9,13 @@ namespace PasswordStore.Config
     {
         public bool DontShowAboutAnymore { get; set; }
         public string UserFilePath { get; set; }
-        public List<ConfigWindowData> Windows { get; set; } = new List<ConfigWindowData>();
+        public List<ConfigWindowData> Windows { get; set; }
         public List<ConfigHotKeyData> HotKeys { get; set; }
 
-        public ConfigData()
+        public void InitializeData()
         {
-            DefaultHotKeys();
-        }
-
-        public void DefaultHotKeys()
-        {
-            HotKeys = new List<ConfigHotKeyData>
+            Windows = Windows ?? new List<ConfigWindowData>();
+            HotKeys = HotKeys ?? new List<ConfigHotKeyData>
             {
                 new ConfigHotKeyData
                 {

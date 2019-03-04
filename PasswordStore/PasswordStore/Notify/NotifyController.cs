@@ -58,10 +58,10 @@ namespace PasswordStore.Notify
 
         private void mnuPasswords_Click(object sender, EventArgs e)
         {
-            //Program.Session.CheckOpen(() =>
-            //{
-            //    WPF.WindowBase.Show<WPF.Passwords.PasswordsWindow>();
-            //});
+            Program.Session.CheckOpen(() =>
+            {
+                WPF.WindowBase.Show<WPF.Password.PasswordWindow>();
+            });
         }
 
         public void Close()

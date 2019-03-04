@@ -34,87 +34,68 @@ namespace PasswordStore.WPF.Domain
         {
             var context = new DomainContext
             {
-                Domains = new ObservableCollection<DomainItemContext>(Program.Session.User.Domains
-                    .Select(d =>
-                    {
-                        var item = new DomainItemContext
-                        {
-                            DomainId = d.DomainId,
-                            Alias = d.Alias,
-                            Group = d.Group,
-                            Info = d.Info,
-                            History = d.History
-                                .Select(h => new DomainItemHistoryContext
-                                {
-                                    Value = h.Value,
-                                    CreatedDateTime = h.CreatedDateTime
-                                })
-                                .ToList()
-                        };
-
-                        var password = Program.Session.User.Passwords
-                            .FirstOrDefault(p => p.PasswordId == d.PasswordId);
-                        if (password != null)
-                        {
-                            item.PasswordId = password.PasswordId;
-                            item.PasswordAlias = password.Alias;
-                            item.PasswordValue = password.Value;
-                        }
-
-                        return item;
-                    }))
+                Domains = new ObservableCollection<DomainItemContext>(Program.Session.User.Data.Domains
+                    .Select(DomainMapper.FromData))
             };
 
             _context = context;
             DataContext = _context;
         }
 
-        private void SaveContext()
+        private void AddNewHistory(UserDomainData data, uint passwordId)
         {
-            //var data = new ConfigData
-            //{
-            //    DontShowAboutAnymore = _context.DontShowAboutAnymore,
-            //    UserFilePath = _context.UserFilePath
-            //};
+            var password = Program.Session.User.Data.Passwords
+                .First(p => p.PasswordId == passwordId);
 
-            //ConfigFile.Save(data);
-
-            //Program.Config = data;
+            data.History.Add(new UserDomainHistoryData
+            {
+                Value = password.Value,
+                CreatedDateTime = DateTime.Now
+            });
         }
 
         private void btAdd_Click(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                AddAction();
+            }
+            catch (Exception err)
+            {
+                Program.ErrorHandle(err);
+            }
+        }
+
+        private void AddAction()
+        { 
             var newItem = new DomainItemContext();
             using (var edit = new DomainEditWindow(newItem))
             {
                 if (edit.ShowDialog() ?? false)
                 {
-                    newItem.DomainId = Program.Session.User.DomainsIndex++;
-
-                    _context.Domains.Add(newItem);
-
-                    var domain = new UserDomainData
-                    {
-                        DomainId = newItem.DomainId,
-                        Alias = newItem.Alias,
-                        Group = newItem.Group,
-                        Info = newItem.Info,
-                        PasswordId = newItem.PasswordId,
-                        History = newItem.History
-                            .Select(h => new UserDomainHistoryData
-                            {
-                                Value = h.Value,
-                                CreatedDateTime = h.CreatedDateTime
-                            })
-                            .ToList()
-                    };
-                    Program.Session.User.Domains.Add(domain);
+                    newItem.DomainId = ++Program.Session.User.Data.DomainsIndex;
+                    var domain = DomainMapper.FromContext(newItem);
+                    AddNewHistory(domain, newItem.PasswordId);
+                    Program.Session.User.Data.Domains.Add(domain);
                     Program.Session.Save();
+                    _context.Domains.Add(newItem);
                 }
             }
         }
 
         private void btEdit_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                EditAction();
+            }
+            catch (Exception err)
+            {
+                Program.ErrorHandle(err);
+            }
+        }
+
+        private void EditAction()
         {
             var selected = dgDomains.SelectedItem as DomainItemContext;
             if (selected == null)
@@ -122,42 +103,70 @@ namespace PasswordStore.WPF.Domain
                 return;
             }
 
-            var cloneItem = new DomainItemContext
+            var data = Program.Session.User.Data.Domains
+                .First(d => d.DomainId == selected.DomainId);
+
+            var context = DomainMapper.FromData(data);
+
+            using (var edit = new DomainEditWindow(context))
             {
-                DomainId = selected.DomainId,
-                Alias = selected.Alias,
-                Group = selected.Group,
-                Info = selected.Info,
-                PasswordId = selected.PasswordId,
-                PasswordAlias = selected.PasswordAlias,
-                PasswordValue = selected.PasswordValue,
-                History = selected.History
-                    .Select(h => new DomainItemHistoryContext
+                if (edit.ShowDialog() ?? false)
+                {
+                    data.Alias = context.Alias;
+                    data.Group = context.Group;
+                    data.Info = context.Info;
+                    data.History = context.History
+                        .Select(h => DomainMapper.FromHistoryContext(h))
+                        .ToList();
+                    if (data.PasswordId != context.PasswordId)
                     {
-                        Value = h.Value,
-                        CreatedDateTime = h.CreatedDateTime
-                    })
-                    .ToList()
-            };
+                        data.PasswordId = context.PasswordId;
+                        AddNewHistory(data, context.PasswordId);
+                    }
+                    
+                    Program.Session.Save();
+                    var index = _context.Domains.IndexOf(selected);
+                    _context.Domains[index] = context;
+                }
+            }
         }
 
         private void btRemove_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                RemoveAction();
+            }
+            catch (Exception err)
+            {
+                Program.ErrorHandle(err);
+            }
+        }
+
+        private void RemoveAction()
         {
             var selected = dgDomains.SelectedItem as DomainItemContext;
             if (selected != null)
             {
                 _context.Domains.Remove(selected);
 
-                var domain = Program.Session.User.Domains
+                var domain = Program.Session.User.Data.Domains
                     .First(d => d.DomainId == selected.DomainId);
-                Program.Session.User.Domains.Remove(domain);
+                Program.Session.User.Data.Domains.Remove(domain);
                 Program.Session.Save();
             }
         }
 
         private void btClose_Click(object sender, RoutedEventArgs e)
         {
-            Close();
+            try
+            {
+                Close();
+            }
+            catch (Exception err)
+            {
+                Program.ErrorHandle(err);
+            }
         }
 
         private void WindowBase_Closed(object sender, EventArgs e)

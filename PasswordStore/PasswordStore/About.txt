@@ -8,33 +8,33 @@
 
 <done> - Criar a tela de configurações
 	<done> - Voltar a exibir About na inicialização
-	- Trocar o caminho do arquivo de passwords do usuário
+	<done> - Trocar o caminho do arquivo de passwords do usuário
 	- Adicionar aba para configuração das teclas atalho
 	- Permitir a troca da senha do arquivo de passwords
 	- ativar ou desativar o inicio no windows
 
 - No sistema de senha adicionar outra forma de validar, tipo de touch
-	- nas configurações, adicionar controle de sessão
+	<done> - nas configurações, adicionar controle de sessão
 		- sessão sem expiração
 		- sessão com tempo
 
 
 
 
-- criar outra tela para cadastrar os passwords
-	- id
-	- alias
-	- value
+<done> - criar outra tela para cadastrar os passwords
+	<done> - id
+	<done> - alias
+	<done> - value
 
-- criar tela de Domains
-	- id
-	- alias
-	- info
-	- grupo - (tela para manipular os grupos)
-	- password
-	- history
+<done> - criar tela de Domains
+	<done> - id
+	<done> - alias
+	<done> - info
+	<done> - grupo - (tela para manipular os grupos)
+	<done> - password
+	<done> - history
 
-- alterar a tela de vizualição das senhas para uso ChosenPassword
+<done> - alterar a tela de vizualição das senhas para uso ChosenPassword
 	- tela centralizada
 	- poder filtrar
 		- filtra alias dos password

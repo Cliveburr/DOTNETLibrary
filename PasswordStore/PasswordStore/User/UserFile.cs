@@ -9,7 +9,10 @@ namespace PasswordStore.User
     [Serializable()]
     public class UserFile : ISerializable
     {
-        public UserData Data;
+        public UserData Data { get; private set; }
+
+        [NonSerialized]
+        private string _path;
 
         public UserFile()
         {
@@ -33,9 +36,9 @@ namespace PasswordStore.User
             info.AddValue("Data", Data);
         }
 
-        public void Save(string fileName, string password)
+        public void Save(string password)
         {
-            var path = Path.GetDirectoryName(fileName);
+            var path = Path.GetDirectoryName(_path);
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
@@ -62,7 +65,7 @@ namespace PasswordStore.User
                 cs = new CryptoStream(me, alg.CreateEncryptor(), CryptoStreamMode.Write);
                 cs.Write(buffer, 0, buffer.Length);
 
-                File.WriteAllBytes(fileName, me.GetBuffer());
+                File.WriteAllBytes(_path, me.GetBuffer());
             }
             catch (Exception err)
             {
@@ -86,43 +89,47 @@ namespace PasswordStore.User
 
         public static UserFile Open(string fileName, string password)
         {
+            UserFile passwords = null;
+
             if (!File.Exists(fileName))
             {
-                var userFile = new UserFile();
-                userFile.Save(fileName, password);
-                return userFile;
+                passwords = new UserFile();
+                passwords._path = fileName;
+                passwords.Save(password);
             }
-
-            UserFile passwords = null;
-            MemoryStream ms = new MemoryStream();
-            CryptoStream cs = null;
-            byte[] buffer = null;
-
-            var binary = new BinaryFormatter();
-            binary.Binder = new AllowAllAssemblyVersionsDeserializationBinder();
-            try
+            else
             {
-                buffer = File.ReadAllBytes(fileName);
+                MemoryStream ms = new MemoryStream();
+                CryptoStream cs = null;
+                byte[] buffer = null;
 
-                var pdb2 = new Rfc2898DeriveBytes(password, Salt());
-                var alg = Rijndael.Create();
-                alg.Key = pdb2.GetBytes(32);
-                alg.IV = pdb2.GetBytes(16);
+                var binary = new BinaryFormatter();
+                binary.Binder = new AllowAllAssemblyVersionsDeserializationBinder();
+                try
+                {
+                    buffer = File.ReadAllBytes(fileName);
 
-                cs = new CryptoStream(ms, alg.CreateDecryptor(), CryptoStreamMode.Write);
-                cs.Write(buffer, 0, buffer.Length);
+                    var pdb2 = new Rfc2898DeriveBytes(password, Salt());
+                    var alg = Rijndael.Create();
+                    alg.Key = pdb2.GetBytes(32);
+                    alg.IV = pdb2.GetBytes(16);
 
-                ms.Seek(0, SeekOrigin.Begin);
-                passwords = (UserFile)binary.Deserialize(ms);
-            }
-            catch
-            {
-                passwords = null;
-            }
-            finally
-            {
-                cs = null;
-                ms = null;
+                    cs = new CryptoStream(ms, alg.CreateDecryptor(), CryptoStreamMode.Write);
+                    cs.Write(buffer, 0, buffer.Length);
+
+                    ms.Seek(0, SeekOrigin.Begin);
+                    passwords = (UserFile)binary.Deserialize(ms);
+                    passwords._path = fileName;
+                }
+                catch
+                {
+                    passwords = null;
+                }
+                finally
+                {
+                    cs = null;
+                    ms = null;
+                }
             }
             return passwords;
         }

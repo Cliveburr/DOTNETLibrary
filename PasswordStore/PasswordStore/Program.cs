@@ -2,8 +2,6 @@
 using PasswordStore.HotKeys;
 using PasswordStore.Notify;
 using PasswordStore.Session;
-using PasswordStore.User;
-using PasswordStore.WPF.Passwords;
 using System;
 using System.Windows;
 
@@ -14,7 +12,6 @@ namespace PasswordStore
         public static Application App { get; private set; }
         public static NotifyController Notify { get; set; }
         public static HotKeysController HotKeys { get; set; }
-        public static ConfigData Config { get; set; }
         public static UserSession Session { get; set; }
 
         [STAThread]
@@ -22,7 +19,7 @@ namespace PasswordStore
         {
             Session = new UserSession();
 
-            Config = ConfigFile.Load();
+            ConfigFile.Load();
 
             CheckDontShowAboutAnymore();
 
@@ -41,7 +38,7 @@ namespace PasswordStore
 
         private static void CheckDontShowAboutAnymore()
         {
-            if (!Config.DontShowAboutAnymore)
+            if (!ConfigFile.Data.DontShowAboutAnymore)
             {
                 var about = new WPF.About.AboutWindow();
                 about.ShowDialog();
@@ -50,7 +47,7 @@ namespace PasswordStore
 
         private static void CheckForUserFilePath()
         {
-            if (string.IsNullOrEmpty(Config.UserFilePath))
+            if (string.IsNullOrEmpty(ConfigFile.Data.UserFilePath))
             {
                 WPF.WindowBase.Show<WPF.Configuration.ConfigurationWindow>();
             }
@@ -58,7 +55,6 @@ namespace PasswordStore
 
         public static void Close()
         {
-            //Config.Save();
             Notify.Close();
             App.Shutdown();
         }

@@ -3,10 +3,18 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PasswordStore.WPF.Domain"                
         xmlns:src="clr-namespace:PasswordStore.WPF"
         mc:Ignorable="d"
-        Title="Domain " Height="450" Width="800" WindowStartupLocation="CenterScreen" FontFamily="Constantia" FontSize="14">
+        Title="Domain Edit" Height="450" Width="800" WindowStartupLocation="CenterScreen" FontFamily="Constantia" FontSize="14">
+
+    <Window.Resources>
+        <local:PasswordValueConverter x:Key="PasswordValueConverter" />
+        <!--<local:PasswordValueConverter x:Key="PasswordValueConverter" HidePassword="{Binding IsShow}" />-->
+    </Window.Resources>
+    
     <DockPanel>
+
         <Grid DockPanel.Dock="Bottom">
 
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
@@ -27,6 +35,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition />
                     </Grid.RowDefinitions>
 
@@ -34,15 +43,33 @@
                     <TextBox Margin="3" Grid.Row="0" Grid.Column="1" Text="{Binding Alias}"></TextBox>
 
                     <Label Margin="3" Grid.Row="1" Grid.Column="0">Group</Label>
-                    <TextBox Margin="3" Grid.Row="1" Grid.Column="1" Text="{Binding Group}"></TextBox>
+                    <ComboBox Margin="3" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding GroupList}" Text="{Binding Group}" IsEditable="True"></ComboBox>
 
-                    <Label Margin="3" Grid.Row="2" Grid.Column="0">Info</Label>
-                    <TextBox Margin="3" Grid.Row="2" Grid.Column="1" Text="{Binding Info}" TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True"></TextBox>
+                    <Label Margin="3" Grid.Row="2" Grid.Column="0">Password</Label>
+                    <ComboBox Margin="3" Grid.Row="2" Grid.Column="1" ItemsSource="{Binding PasswordList}" Text="{Binding PasswordAlias}"></ComboBox>
+
+                    <Label Margin="3" Grid.Row="3" Grid.Column="0">Info</Label>
+                    <TextBox Margin="3" Grid.Row="3" Grid.Column="1" Text="{Binding Info}" TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True"></TextBox>
 
                 </Grid>
             </TabItem>
             <TabItem Header="History">
+                <DockPanel>
 
+                    <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Left" Orientation="Horizontal">
+                        <Button Margin="3" Width="80" Click="btRemoveHistory_Click">Remove</Button>
+                        <CheckBox Margin="3" Checked="cbShowPasswordText_Change" Unchecked="cbShowPasswordText_Change">Show password text</CheckBox>
+                    </StackPanel>
+
+                    <DataGrid x:Name="dgHistory" ItemsSource="{Binding History}" GridLinesVisibility="None" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn SortDirection="Descending" Header="Created DateTime" Width="200" Binding="{Binding CreatedDateTime}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Value" Width="300" Binding="{Binding Converter={StaticResource PasswordValueConverter}, ConverterParameter='Value'}">
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                </DockPanel>
             </TabItem>
         </TabControl>
     </DockPanel>

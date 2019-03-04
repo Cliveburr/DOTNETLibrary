@@ -4,6 +4,9 @@
     {
         Configuration = 0,
         Domain = 1,
-        DomainEdit = 2
+        DomainEdit = 2,
+        Password = 3,
+        PasswordEdit = 4,
+        Selection = 5
     }
 }

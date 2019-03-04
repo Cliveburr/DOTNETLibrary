@@ -6,27 +6,25 @@
         xmlns:src="clr-namespace:PasswordStore.WPF"
         mc:Ignorable="d"
         Title="Domains" Height="452.034" Width="798.715" WindowStartupLocation="CenterScreen" FontFamily="Constantia" FontSize="14" Closed="WindowBase_Closed">
-    <Grid>
-        <DockPanel Margin="3">
+    <DockPanel Margin="3">
 
-            <Grid DockPanel.Dock="Bottom">
-                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
-                    <Button Margin="3" Width="80" Click="btAdd_Click">Add</Button>
-                    <Button Margin="3" Width="80" Click="btEdit_Click">Edit</Button>
-                    <Button Margin="3" Width="80" Click="btRemove_Click">Remove</Button>
-                </StackPanel>
-                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                    <Button Margin="3" Width="80" Click="btClose_Click">Close</Button>
-                </StackPanel>
-            </Grid>
+        <Grid DockPanel.Dock="Bottom">
+            <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                <Button Margin="3" Width="80" Click="btAdd_Click">Add</Button>
+                <Button Margin="3" Width="80" Click="btEdit_Click">Edit</Button>
+                <Button Margin="3" Width="80" Click="btRemove_Click">Remove</Button>
+            </StackPanel>
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                <Button Margin="3" Width="80" Click="btClose_Click">Close</Button>
+            </StackPanel>
+        </Grid>
 
-            <DataGrid x:Name="dgDomains"  ItemsSource="{Binding Domains}" GridLinesVisibility="None" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False" SelectionMode="Single">
-                <DataGrid.Columns>
-                    <DataGridTextColumn SortDirection="Ascending" Header="Alias" Width="300" Binding="{Binding Alias}"></DataGridTextColumn>
-                    <DataGridTextColumn Header="Group" Width="300" Binding="{Binding Group}"></DataGridTextColumn>
-                </DataGrid.Columns>
-            </DataGrid>
+        <DataGrid x:Name="dgDomains"  ItemsSource="{Binding Domains}" GridLinesVisibility="None" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False" SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTextColumn SortDirection="Ascending" Header="Alias" Width="300" Binding="{Binding Alias}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Group" Width="300" Binding="{Binding Group}"></DataGridTextColumn>
+            </DataGrid.Columns>
+        </DataGrid>
 
-        </DockPanel>
-    </Grid>
+    </DockPanel>
 </src:WindowBase>

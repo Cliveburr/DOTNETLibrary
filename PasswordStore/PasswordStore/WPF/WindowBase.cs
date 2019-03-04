@@ -14,7 +14,7 @@ namespace PasswordStore.WPF
 
         protected override void OnInitialized(EventArgs e)
         {
-            var hasWindowConfig = Program.Config.Windows
+            var hasWindowConfig = ConfigFile.Data.Windows
                 ?.FirstOrDefault(w => w.ID == ID);
             if (hasWindowConfig != null)
             {
@@ -31,19 +31,22 @@ namespace PasswordStore.WPF
 
         protected override void OnClosed(EventArgs e)
         {
-            var windowConfig = Program.Config.Windows
+            var windowConfig = ConfigFile.Data.Windows
                 ?.FirstOrDefault(w => w.ID == ID);
             if (windowConfig == null)
             {
-                windowConfig = new ConfigWindowData();
-                Program.Config.Windows.Add(windowConfig);
+                windowConfig = new ConfigWindowData
+                {
+                    ID = ID
+                };
+                ConfigFile.Data.Windows.Add(windowConfig);
             }
             windowConfig.WindowState = WindowState;
             windowConfig.Top = Top;
             windowConfig.Left = Left;
             windowConfig.Height = Height;
             windowConfig.Width = Width;
-            ConfigFile.Save(Program.Config);
+            ConfigFile.Save();
 
             base.OnClosed(e);
         }

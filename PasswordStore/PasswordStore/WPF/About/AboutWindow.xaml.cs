@@ -1,4 +1,5 @@
 ﻿using PasswordStore.Config;
+using System;
 using System.Windows;
 
 namespace PasswordStore.WPF.About
@@ -18,7 +19,7 @@ namespace PasswordStore.WPF.About
         {
             var context = new AboutContext
             {
-                DontShowAboutAnymore = Program.Config.DontShowAboutAnymore
+                DontShowAboutAnymore = ConfigFile.Data.DontShowAboutAnymore
             };
 
             _context = context;
@@ -27,19 +28,33 @@ namespace PasswordStore.WPF.About
 
         private void SaveContext()
         {
-            Program.Config.DontShowAboutAnymore = _context.DontShowAboutAnymore;
+            ConfigFile.Data.DontShowAboutAnymore = _context.DontShowAboutAnymore;
 
-            ConfigFile.Save(Program.Config);
+            ConfigFile.Save();
         }
 
         private void btClose_Click(object sender, RoutedEventArgs e)
         {
-            Close();
+            try
+            {
+                Close();
+            }
+            catch (Exception err)
+            {
+                Program.ErrorHandle(err);
+            }
         }
 
         private void chDontShowAnymore_CheckedUnchecked(object sender, RoutedEventArgs e)
         {
-            SaveContext();
+            try
+            {
+                SaveContext();
+            }
+            catch (Exception err)
+            {
+                Program.ErrorHandle(err);
+            }
         }
     }
 }

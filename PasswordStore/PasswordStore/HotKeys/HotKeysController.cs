@@ -42,7 +42,7 @@ namespace PasswordStore.HotKeys
 
         private void RegisterAll()
         {
-            foreach (var data in Program.Config.HotKeys)
+            foreach (var data in ConfigFile.Data.HotKeys)
             {
                 var item = new KeyItem
                 {
@@ -75,10 +75,10 @@ namespace PasswordStore.HotKeys
 
         private void DoChosenPasswords()
         {
-            //Program.Session.CheckOpen(() =>
-            //{
-            //    WPF.WindowBase.Show<WPF.ChosenPassword.ChosenPassword>();
-            //});
+            Program.Session.CheckOpen(() =>
+            {
+                WPF.WindowBase.Show<WPF.Selection.SelectionWindow>();
+            });
         }
     }
 }

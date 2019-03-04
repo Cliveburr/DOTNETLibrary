@@ -23,8 +23,8 @@ namespace PasswordStore.WPF.Configuration
         {
             var context = new ConfigurationContext
             {
-                DontShowAboutAnymore = Program.Config.DontShowAboutAnymore,
-                UserFilePath = Program.Config.UserFilePath
+                DontShowAboutAnymore = ConfigFile.Data.DontShowAboutAnymore,
+                UserFilePath = ConfigFile.Data.UserFilePath
             };
 
             _context = context;
@@ -33,19 +33,26 @@ namespace PasswordStore.WPF.Configuration
 
         private void SaveContext()
         {
-            var data = new ConfigData
-            {
-                DontShowAboutAnymore = _context.DontShowAboutAnymore,
-                UserFilePath = _context.UserFilePath
-            };
+            ConfigFile.Data.DontShowAboutAnymore = _context.DontShowAboutAnymore;
+            ConfigFile.Data.UserFilePath = _context.UserFilePath;
 
-            ConfigFile.Save(data);
-
-            Program.Config = data;
+            ConfigFile.Save();
         }
 
         private void btOpenPasswordFile_Click(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                OpenPasswordFileAction();
+            }
+            catch (Exception err)
+            {
+                Program.ErrorHandle(err);
+            }
+        }
+
+        private void OpenPasswordFileAction()
+        { 
             using (var open = new OpenFileDialog())
             {
                 open.CheckFileExists = false;
@@ -78,7 +85,19 @@ namespace PasswordStore.WPF.Configuration
 
         private void btDefaultPasswordFile_Click(object sender, RoutedEventArgs e)
         {
-            _context.UserFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CrypStore.data");
+            try
+            {
+                DefaultPasswordAction();
+            }
+            catch (Exception err)
+            {
+                Program.ErrorHandle(err);
+            }
+        }
+
+        private void DefaultPasswordAction()
+        {
+            _context.UserFilePath = @".\CrypStore.data";
             _context.RaiseNotify("UserFilePath");
 
             SaveContext();
@@ -88,7 +107,14 @@ namespace PasswordStore.WPF.Configuration
 
         private void cbDontshow_Checked(object sender, RoutedEventArgs e)
         {
-            SaveContext();
+            try
+            {
+                SaveContext();
+            }
+            catch (Exception err)
+            {
+                Program.ErrorHandle(err);
+            }
         }
     }
 }

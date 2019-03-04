@@ -6,6 +6,8 @@ namespace PasswordStore.Config
 {
     public static class ConfigFile
     {
+        public static ConfigData Data { get; private set; }
+
         private static string FilePath
         {
             get
@@ -15,26 +17,27 @@ namespace PasswordStore.Config
         }
 
 
-        public static ConfigData Load()
+        public static void Load()
         {
             if (!File.Exists(FilePath))
             {
-                return new ConfigData();
+                Data = new ConfigData();
             }
 
             using (var stream = File.OpenRead(FilePath))
             {
                 var serializer = new XmlSerializer(typeof(ConfigData));
-                return serializer.Deserialize(stream) as ConfigData;
+                Data = serializer.Deserialize(stream) as ConfigData;
+                Data.InitializeData();
             }
         }
 
-        public static void Save(ConfigData model)
+        public static void Save()
         {
             using (var writer = new StreamWriter(FilePath))
             {
                 var serializer = new XmlSerializer(typeof(ConfigData));
-                serializer.Serialize(writer, model);
+                serializer.Serialize(writer, Data);
                 writer.Flush();
             }
         }

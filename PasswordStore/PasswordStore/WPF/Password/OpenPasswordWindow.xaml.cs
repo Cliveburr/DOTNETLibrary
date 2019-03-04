@@ -1,16 +1,18 @@
-﻿using PasswordStore.User;
+﻿using PasswordStore.Config;
+using PasswordStore.User;
 using System;
+using System.IO;
 using System.Windows;
 using System.Windows.Input;
 
-namespace PasswordStore.WPF.Passwords
+namespace PasswordStore.WPF.Password
 {
-    public partial class OpenPasswordsWindow : Window, IDisposable
+    public partial class OpenPasswordWindow : Window, IDisposable
     {
         public string MainPassword { get; private set; }
-        public UserData User { get; private set; }
+        public UserFile User { get; private set; }
 
-        public OpenPasswordsWindow()
+        public OpenPasswordWindow()
         {
             InitializeComponent();
 
@@ -19,20 +21,36 @@ namespace PasswordStore.WPF.Passwords
 
         private void Open()
         {
-            var file = UserFile.Open(Program.Config.UserFilePath, txPassword.Password);
-            if (file == null)
+            User = UserFile.Open(GetFilePath(), txPassword.Password);
+            if (User == null)
             {
                 Program.Warning("Permission denied!");
             }
             else
             {
                 MainPassword = txPassword.Password;
-                User = file.Data;
 
                 DialogResult = true;
             }
 
             Close();
+        }
+
+        private string GetFilePath()
+        {
+            if (string.IsNullOrEmpty(ConfigFile.Data.UserFilePath))
+            {
+                return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PasswordStore.config");
+            }
+            else if (ConfigFile.Data.UserFilePath.StartsWith(@".\"))
+            {
+                var fileName = ConfigFile.Data.UserFilePath.Substring(2);
+                return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+            }
+            else
+            {
+                return ConfigFile.Data.UserFilePath;
+            }
         }
 
         private void btOpen_Click(object sender, RoutedEventArgs e)

@@ -1,17 +1,13 @@
 ﻿using PasswordStore.User;
-using PasswordStore.WPF.Passwords;
+using PasswordStore.WPF.Password;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PasswordStore.Session
 {
     public class UserSession
     {
         public string MainPassword { get; set; }
-        public UserData User { get; private set; }
+        public UserFile User { get; private set; }
 
         private DateTime _sessionOpened;
         private uint _windowUsing;
@@ -38,7 +34,7 @@ namespace PasswordStore.Session
 
         private void Open(Action callBack)
         {
-            using (var open = new OpenPasswordsWindow())
+            using (var open = new OpenPasswordWindow())
             {
                 if (open.ShowDialog() ?? false)
                 {
@@ -60,8 +56,7 @@ namespace PasswordStore.Session
 
         public void Save()
         {
-            var file = new UserFile(User);
-            file.Save(Program.Config.UserFilePath, MainPassword);
+            User.Save(MainPassword);
         }
     }
 }
