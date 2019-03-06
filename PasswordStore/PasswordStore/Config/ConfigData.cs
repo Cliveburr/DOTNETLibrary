@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PasswordStore.Session;
+using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 
@@ -9,6 +10,8 @@ namespace PasswordStore.Config
     {
         public bool DontShowAboutAnymore { get; set; }
         public string UserFilePath { get; set; }
+        public SessionType SessionType { get; set; }
+        public int SessionExpireTime { get; set; }
         public List<ConfigWindowData> Windows { get; set; }
         public List<ConfigHotKeyData> HotKeys { get; set; }
 

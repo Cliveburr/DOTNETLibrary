@@ -1,4 +1,5 @@
-﻿using PasswordStore.User;
+﻿using PasswordStore.Config;
+using PasswordStore.User;
 using PasswordStore.WPF.Password;
 using System;
 
@@ -9,26 +10,27 @@ namespace PasswordStore.Session
         public string MainPassword { get; set; }
         public UserFile User { get; private set; }
 
-        private DateTime _sessionOpened;
+        private DateTime _sessionLiveDate;
         private uint _windowUsing;
 
         public void Clean()
         {
-            _sessionOpened = new DateTime();
+            _sessionLiveDate = new DateTime();
             User = null;
             MainPassword = null;
         }
 
         public void CheckOpen(Action callBack)
         {
+            CheckSessionExpire();
+
             if (User == null)
             {
                 Open(callBack);
             }
             else
             {
-                _windowUsing++;
-                callBack();
+                SetNewSessionAccess(callBack);
             }
         }
 
@@ -38,15 +40,38 @@ namespace PasswordStore.Session
             {
                 if (open.ShowDialog() ?? false)
                 {
-                    _sessionOpened = DateTime.Now;
-
                     MainPassword = open.MainPassword;
                     User = open.User;
 
-                    _windowUsing++;
-                    callBack();
+                    SetNewSessionAccess(callBack);
                 }
             }
+        }
+
+        private void CheckSessionExpire()
+        {
+            if (ConfigFile.Data.SessionType == SessionType.Always)
+            {
+                if (_windowUsing == 0)
+                {
+                    Clean();
+                }
+            }
+            else if (ConfigFile.Data.SessionType == SessionType.Timer)
+            {
+                var expireDate = _sessionLiveDate.AddMinutes(ConfigFile.Data.SessionExpireTime);
+                if (DateTime.Now > expireDate)
+                {
+                    Clean();
+                }
+            }
+        }
+
+        private void SetNewSessionAccess(Action callBack)
+        {
+            _sessionLiveDate = DateTime.Now;
+            _windowUsing++;
+            callBack();
         }
 
         public void FreeWindow()

@@ -24,17 +24,23 @@ namespace PasswordStore.WPF.Configuration
             var context = new ConfigurationContext
             {
                 DontShowAboutAnymore = ConfigFile.Data.DontShowAboutAnymore,
-                UserFilePath = ConfigFile.Data.UserFilePath
+                UserFilePath = ConfigFile.Data.UserFilePath,
+                SessionType = ConfigFile.Data.SessionType,
+                SessionExpireTime = ConfigFile.Data.SessionExpireTime
             };
 
             _context = context;
             DataContext = _context;
+
+            tbSessionTime.IsEnabled = _context.SessionType == Session.SessionType.Timer;
         }
 
         private void SaveContext()
         {
             ConfigFile.Data.DontShowAboutAnymore = _context.DontShowAboutAnymore;
             ConfigFile.Data.UserFilePath = _context.UserFilePath;
+            ConfigFile.Data.SessionType = _context.SessionType;
+            ConfigFile.Data.SessionExpireTime = _context.SessionExpireTime;
 
             ConfigFile.Save();
         }
@@ -105,7 +111,17 @@ namespace PasswordStore.WPF.Configuration
             Program.Session.Clean();
         }
 
-        private void cbDontshow_Checked(object sender, RoutedEventArgs e)
+        private void rbSessionType_Click(object sender, RoutedEventArgs e)
+        {
+            tbSessionTime.IsEnabled = false;
+        }
+
+        private void rbSessionTypeTimer_Click(object sender, RoutedEventArgs e)
+        {
+            tbSessionTime.IsEnabled = true;
+        }
+
+        private void WindowBase_Closed(object sender, EventArgs e)
         {
             try
             {

@@ -91,5 +91,10 @@ namespace PasswordStore.WPF.Selection
         {
             Close();
         }
+
+        private void WindowBase_Closed(object sender, EventArgs e)
+        {
+            Program.Session.FreeWindow();
+        }
     }
 }

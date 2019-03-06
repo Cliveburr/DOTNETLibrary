@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:PasswordStore.WPF.Selection"
         xmlns:src="clr-namespace:PasswordStore.WPF"
         mc:Ignorable="d"
-        Title="Password Store Selection" Height="450" Width="800" WindowStartupLocation="CenterScreen" FontFamily="Constantia" FontSize="14">
+        Title="Password Store Selection" Height="450" Width="800" WindowStartupLocation="CenterScreen" FontFamily="Constantia" FontSize="14" Closed="WindowBase_Closed">
     <DockPanel>
 
         <Grid DockPanel.Dock="Top">
