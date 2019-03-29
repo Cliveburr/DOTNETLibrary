@@ -42,7 +42,7 @@ namespace PasswordStore.WPF.Domain
             DataContext = _context;
         }
 
-        private void AddNewHistory(UserDomainData data, uint passwordId)
+        public static void AddNewHistory(UserDomainData data, uint passwordId)
         {
             var password = Program.Session.User.Data.Passwords
                 .First(p => p.PasswordId == passwordId);
@@ -127,6 +127,31 @@ namespace PasswordStore.WPF.Domain
                     Program.Session.Save();
                     var index = _context.Domains.IndexOf(selected);
                     _context.Domains[index] = context;
+                }
+            }
+        }
+
+        public static void ShowDomainEditWindow(UserDomainData data)
+        {
+            var context = DomainMapper.FromData(data);
+
+            using (var edit = new DomainEditWindow(context))
+            {
+                if (edit.ShowDialog() ?? false)
+                {
+                    data.Alias = context.Alias;
+                    data.Group = context.Group;
+                    data.Info = context.Info;
+                    data.History = context.History
+                        .Select(h => DomainMapper.FromHistoryContext(h))
+                        .ToList();
+                    if (data.PasswordId != context.PasswordId)
+                    {
+                        data.PasswordId = context.PasswordId;
+                        AddNewHistory(data, context.PasswordId);
+                    }
+
+                    Program.Session.Save();
                 }
             }
         }

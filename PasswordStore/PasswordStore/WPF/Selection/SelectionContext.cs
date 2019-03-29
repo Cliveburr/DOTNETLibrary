@@ -1,4 +1,5 @@
 ﻿using PasswordStore.Helpers;
+using PasswordStore.WPF.Domain;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -37,6 +38,15 @@ namespace PasswordStore.WPF.Selection
         {
             ObjectFocus.Instance.Set();
             KeySender.SendKeys(Password);
+        }
+
+        public SimpleClickCommand OpenEdit_Click { get { return new SimpleClickCommand(OpenEdit_Click_Do); } }
+        public void OpenEdit_Click_Do()
+        {
+            var data = Program.Session.User.Data.Domains
+                .First(d => d.DomainId == DomainId);
+
+            DomainWindow.ShowDomainEditWindow(data);
         }
     }
 }

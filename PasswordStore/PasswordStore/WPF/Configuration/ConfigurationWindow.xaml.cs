@@ -1,4 +1,5 @@
 ﻿using PasswordStore.Config;
+using PasswordStore.Helpers;
 using System;
 using System.IO;
 using System.Windows;
@@ -15,6 +16,8 @@ namespace PasswordStore.WPF.Configuration
         public ConfigurationWindow()
         {
             InitializeComponent();
+
+            chStartup.IsChecked = StartupLink.IsStartupEnabled;
 
             SetContext();
         }
@@ -103,7 +106,7 @@ namespace PasswordStore.WPF.Configuration
 
         private void DefaultPasswordAction()
         {
-            _context.UserFilePath = @".\CrypStore.data";
+            _context.UserFilePath = @".\PasswordStore.data";
             _context.RaiseNotify("UserFilePath");
 
             SaveContext();
@@ -131,6 +134,16 @@ namespace PasswordStore.WPF.Configuration
             {
                 Program.ErrorHandle(err);
             }
+        }
+
+        private void CheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            StartupLink.EnableStartup();
+        }
+
+        private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            StartupLink.DisableStartup();
         }
     }
 }

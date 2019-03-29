@@ -40,7 +40,7 @@ namespace PasswordStore.WPF.Password
         {
             if (string.IsNullOrEmpty(ConfigFile.Data.UserFilePath))
             {
-                return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PasswordStore.config");
+                return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PasswordStore.data");
             }
             else if (ConfigFile.Data.UserFilePath.StartsWith(@".\"))
             {

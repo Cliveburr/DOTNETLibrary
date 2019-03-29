@@ -1,8 +1,11 @@
 ﻿
 
+<done> - procurar as configurações no caminho local, se não encontrar procurar no caminho padrão do usuario e se não encontrar criar no caminho padrão
+<done> - abrir o edit domain ao clicar no nome na tela ChosenPassword
+
 
 <done> - criar o arquivo PasswordStore.config
-	<done> - DataPath = caminho do arquivo de senhas CrypStore.data
+	<done> - DataPath = caminho do arquivo de senhas PasswordStore.data
 	<done> - preferencias como posicionamento das telas e modo de visualições
 
 
@@ -35,7 +38,8 @@
 	<done> - history
 
 <done> - alterar a tela de vizualição das senhas para uso ChosenPassword
-	- tela centralizada
+	<done> - tela centralizada
+	- poder alterar a ordem dos grupos
 	- poder filtrar
 		- filtra alias dos password
 		- filtra alias dos domains

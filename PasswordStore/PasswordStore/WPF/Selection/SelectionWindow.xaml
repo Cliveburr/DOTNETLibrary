@@ -36,10 +36,10 @@
                                     <DataTemplate>
                                         <Border Margin="8" Background="GhostWhite" BorderBrush="Gainsboro" BorderThickness="1" Width="180">
                                             <DockPanel>
-                                                <Label Margin="3" DockPanel.Dock="Top" Content="{Binding Alias}" />
+                                                <Button Margin="3" DockPanel.Dock="Top" Content="{Binding Alias}" Cursor="Hand" BorderBrush="Transparent" Background="Transparent" Command="{Binding OpenEdit_Click}" Click="ActionButtons_Click" />
                                                 <StackPanel DockPanel.Dock="Right" MinWidth="80">
-                                                    <Button Margin="3,3,3,0" Height="26" Command="{Binding Clipboard_Click}" Click="ActionButtons_Click" BorderThickness="0">Clipboard</Button>
-                                                    <Button Margin="3,0,3,3" Height="26" Command="{Binding Typing_Click}" Click="ActionButtons_Click" BorderThickness="0">Typing</Button>
+                                                    <Button Margin="3,3,3,0" Height="26" Command="{Binding Clipboard_Click}" Cursor="Hand" Click="ActionButtons_Click" BorderThickness="0">Clipboard</Button>
+                                                    <Button Margin="3,0,3,3" Height="26" Command="{Binding Typing_Click}" Cursor="Hand" Click="ActionButtons_Click" BorderThickness="0">Typing</Button>
                                                 </StackPanel>
                                             </DockPanel>
                                         </Border>

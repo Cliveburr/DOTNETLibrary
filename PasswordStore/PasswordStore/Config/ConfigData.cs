@@ -8,6 +8,7 @@ namespace PasswordStore.Config
     [Serializable]
     public class ConfigData
     {
+        public int Version { get; set; }
         public bool DontShowAboutAnymore { get; set; }
         public string UserFilePath { get; set; }
         public SessionType SessionType { get; set; }
@@ -16,6 +17,14 @@ namespace PasswordStore.Config
         public List<ConfigHotKeyData> HotKeys { get; set; }
 
         public void InitializeData()
+        {
+            switch (Version)
+            {
+                case 0: ToVersion1(); break;
+            }
+        }
+
+        private void ToVersion1()
         {
             Windows = Windows ?? new List<ConfigWindowData>();
             HotKeys = HotKeys ?? new List<ConfigHotKeyData>
@@ -26,6 +35,8 @@ namespace PasswordStore.Config
                     Type = ConfigHotKeyType.ChosenPasswords
                 }
             };
+            UserFilePath = @".\PasswordStore.data";
+            Version = 1;
         }
     }
 }

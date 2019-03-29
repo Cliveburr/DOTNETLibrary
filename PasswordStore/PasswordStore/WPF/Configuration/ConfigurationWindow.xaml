@@ -14,6 +14,7 @@
         <Grid>
           <StackPanel>
             <CheckBox Margin="5" IsChecked="{Binding DontShowAboutAnymore}">Don't Show About Anymore</CheckBox>
+            <CheckBox x:Name="chStartup" Margin="5" Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked">Start the password store with windows startup</CheckBox>
             <DockPanel>
               <Label DockPanel.Dock="Left">Passwords file:</Label>
               <Button Margin="5" DockPanel.Dock="Right" Click="btOpenPasswordFile_Click">Open</Button>
