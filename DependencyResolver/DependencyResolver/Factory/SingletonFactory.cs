@@ -19,7 +19,7 @@ namespace DependencyResolver.Factory
         {
             if (!Instances.ContainsKey(serviceType))
             {
-                Instances[serviceType] = resolvedType.Builder.Instantiate(resolvedType.ImplementationType, context, false);
+                Instances[serviceType] = resolvedType.Builder.Instantiate(serviceType, resolvedType.ImplementationType, context, false);
             }
             return Instances[serviceType];
         }

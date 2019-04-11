@@ -17,7 +17,7 @@ namespace DependencyResolver.Factory
 
                 return scopeInstances.GetOrAdd(serviceType, s =>
                 {
-                    return resolvedType.Builder.Instantiate(resolvedType.ImplementationType, context, false);
+                    return resolvedType.Builder.Instantiate(serviceType, resolvedType.ImplementationType, context, true);
                 });
             }
             else

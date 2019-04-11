@@ -15,7 +15,7 @@ namespace DependencyResolver.Builder.Common
             _constructors = new ConcurrentDictionary<Type, GenericBuilderConstructor>();
         }
 
-        public object Instantiate(Type implementationType, ResolveContext context, bool cachedBuilder)
+        public object Instantiate(Type serviceType, Type implementationType, ResolveContext context, bool cachedBuilder)
         {
             if (cachedBuilder)
             {

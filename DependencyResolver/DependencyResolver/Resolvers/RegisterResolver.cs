@@ -1,6 +1,7 @@
 ﻿using DependencyResolver.Builder;
 using DependencyResolver.Containers;
 using DependencyResolver.Factory;
+using DependencyResolver.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -28,8 +29,37 @@ namespace DependencyResolver.Resolvers
             }
         }
 
-        private void Register(Type serviceType, ResolvedType resolved)
+        private void Register(Type serviceType, Type implementationType, IFactory factory, IBuilder builder)
         {
+            if (factory == null)
+            {
+                var factoryAttribute = AttributeHelper.GetFirstAttribute<FactoryAttribute>(implementationType, serviceType);
+                if (factoryAttribute != null)
+                {
+                    factory = factoryAttribute.GetFactory;
+                }
+                else
+                {
+                    throw new ArgumentNullException($"Factory invalid for ServiceType: \"{serviceType.FullName}\"!");
+                }
+            }
+
+            if (builder == null)
+            {
+                var builderAttribute = AttributeHelper.GetFirstAttribute<BuilderAttribute>(implementationType, serviceType);
+                if (builderAttribute != null)
+                {
+                    builder = builderAttribute.GetBuilder;
+                }
+            }
+
+            var resolved = new ResolvedType
+            {
+                ImplementationType = implementationType,
+                Factory = factory,
+                Builder = builder
+            };
+
             if (Types.ContainsKey(serviceType))
             {
                 Types[serviceType].Add(resolved);
@@ -43,53 +73,29 @@ namespace DependencyResolver.Resolvers
             }
         }
 
-        public void RegisterType<Tservice, Timplementation>(IFactory factory, IBuilder builder) where Timplementation : Tservice
+        public void RegisterType<Tservice, Timplementation>(IFactory factory = null, IBuilder builder = null) where Timplementation : Tservice
         {
             var tService = typeof(Tservice);
             var tImplementation = typeof(Timplementation);
 
-            var type = new ResolvedType
-            {
-                ImplementationType = tImplementation,
-                Factory = factory,
-                Builder = builder
-            };
-            Register(tService, type);
+            Register(tService, tImplementation, factory, builder);
         }
 
-        public void RegisterType<Tservice>(IFactory factory, IBuilder builder)
+        public void RegisterType<Tservice>(IFactory factory = null, IBuilder builder = null)
         {
             var tService = typeof(Tservice);
 
-            var type = new ResolvedType
-            {
-                ImplementationType = tService,
-                Factory = factory,
-                Builder = builder
-            };
-            Register(tService, type);
+            Register(tService, tService, factory, builder);
         }
 
-        public void RegisterType(Type serviceType, Type implementationType, IFactory factory, IBuilder builder)
+        public void RegisterType(Type serviceType, Type implementationType, IFactory factory = null, IBuilder builder = null)
         {
-            var type = new ResolvedType
-            {
-                ImplementationType = implementationType,
-                Factory = factory,
-                Builder = builder
-            };
-            Register(serviceType, type);
+            Register(serviceType, implementationType, factory, builder);
         }
 
-        public void RegisterType(Type implementationType, IFactory factory, IBuilder builder)
+        public void RegisterType(Type implementationType, IFactory factory = null, IBuilder builder = null)
         {
-            var type = new ResolvedType
-            {
-                ImplementationType = implementationType,
-                Factory = factory,
-                Builder = builder
-            };
-            Register(implementationType, type);
+            Register(implementationType, implementationType, factory, builder);
         }
     }
 }

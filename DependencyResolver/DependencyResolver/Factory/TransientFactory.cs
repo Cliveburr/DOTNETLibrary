@@ -10,12 +10,12 @@ namespace DependencyResolver.Factory
     {
         public object Get(Type serviceType, ResolvedType resolvedType, ResolveContext context)
         {
-            return resolvedType.Builder.Instantiate(resolvedType.ImplementationType, context, true);
+            return resolvedType.Builder.Instantiate(serviceType, resolvedType.ImplementationType, context, true);
         }
 
         public IEnumerable<object> GetAll(Type serviceType, ResolvedType resolvedType, ResolveContext context)
         {
-            return new List<object> { resolvedType.Builder.Instantiate(resolvedType.ImplementationType, context, true) };
+            return new List<object> { resolvedType.Builder.Instantiate(serviceType, resolvedType.ImplementationType, context, true) };
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DependencyResolver.Web.Extensions;
+using DependencyResolver.Web.Provider;
 using DependencyResolver.WebTests.Subjects;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -35,7 +36,8 @@ namespace DependencyResolver.WebTests
 
             var provider = services
                //.BuildServiceProvider();
-               .BuildDependencyResolver();
+               .BuildDependencyResolver()
+               .SetResolver(new Resolvers.NameResolver());
 
 
             //var a0 = provider.GetService(typeof(IEnumerable<IConfigureOptions<ConsoleLoggerOptions>>));
@@ -48,6 +50,8 @@ namespace DependencyResolver.WebTests
             //TestType(services, provider, typeof(Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Builder.IISServerOptions>));
 
             //TestType(services, provider, typeof(Microsoft.AspNetCore.Http.IHttpContextAccessor));
+
+            //TestType(services, provider, typeof(INameSubject));
 
             return provider;
         }

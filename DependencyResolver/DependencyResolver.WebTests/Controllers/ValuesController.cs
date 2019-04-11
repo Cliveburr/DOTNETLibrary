@@ -21,7 +21,7 @@ namespace DependencyResolver.WebTests.Controllers
 
             var subject1 = provider.GetService(typeof(SubjectTest)) as SubjectTest;
 
-            return new string[] { "value1", "value2", "subject0 id", subject0.Id.ToString(), "subject1 id", subject0.Id.ToString() };
+            return new string[] { "value1", "value2", "subject0 id", subject0.Id.ToString(), "subject1 id", subject1.Id.ToString() };
         }
 
         // GET api/values/5

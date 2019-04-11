@@ -13,33 +13,33 @@ namespace DependencyResolver.Web.Provider
 {
     public class DependencyResolverProvider : IServiceProvider
     {
-        private readonly Container _container;
-        private readonly TransientFactory _transientFactory;
-        private readonly ConstantFactory _constantFactory;
-        private readonly ScopeFactory _scopeFactory;
-        private readonly SingletonFactory _singletonFactory;
-        private readonly ImplementationFactory _implementationFactory;
+        public Container Container { get; }
+        public TransientFactory TransientFactory { get; }
+        public ConstantFactory ConstantFactory { get; }
+        public ScopeFactory ScopeFactory { get; }
+        public SingletonFactory SingletonFactory { get; }
+        public ImplementationFactory ImplementationFactory { get; }
 
         public DependencyResolverProvider(IServiceCollection collection)
         {
-            _container = new Container();
+            Container = new Container();
             var resolver = new RegisterResolver();
-            _container.Resolvers.Add(resolver);
-            _container.Resolvers.Add(new EnumerableResolver());
-            _container.Resolvers.Add(new GenericResolver());
+            Container.Resolvers.Add(resolver);
+            Container.Resolvers.Add(new EnumerableResolver());
+            Container.Resolvers.Add(new GenericResolver());
 
             var builder = new CommonBuilder();
-            _transientFactory = new TransientFactory();
-            _constantFactory = new ConstantFactory();
-            _scopeFactory = new ScopeFactory();
-            _singletonFactory = new SingletonFactory();
-            _implementationFactory = new ImplementationFactory();
+            TransientFactory = new TransientFactory();
+            ConstantFactory = new ConstantFactory();
+            ScopeFactory = new ScopeFactory();
+            SingletonFactory = new SingletonFactory();
+            ImplementationFactory = new ImplementationFactory();
 
-            _constantFactory.Set<IServiceProvider>(this);
-            resolver.RegisterType<IServiceProvider>(_constantFactory, null);
+            ConstantFactory.Set<IServiceProvider>(this);
+            resolver.RegisterType<IServiceProvider>(ConstantFactory, null);
 
-            _constantFactory.Set<IServiceScopeFactory>(new DependencyResolverScopeFactory(_container));
-            resolver.RegisterType<IServiceScopeFactory>(_constantFactory, null);
+            ConstantFactory.Set<IServiceScopeFactory>(new DependencyResolverScopeFactory(Container));
+            resolver.RegisterType<IServiceScopeFactory>(ConstantFactory, null);
 
             Register(resolver, builder, collection);
         }
@@ -50,26 +50,26 @@ namespace DependencyResolver.Web.Provider
             {
                 if (service.ImplementationInstance != null)
                 {
-                    _constantFactory.Set(service.ServiceType, service.ImplementationInstance);
-                    register.RegisterType(service.ServiceType, _constantFactory, null);
+                    ConstantFactory.Set(service.ServiceType, service.ImplementationInstance);
+                    register.RegisterType(service.ServiceType, ConstantFactory, null);
                     continue;
                 }
                 else if (service.ImplementationFactory != null)
                 {
-                    _implementationFactory.Set(service.ServiceType, (container) =>
+                    ImplementationFactory.Set(service.ServiceType, (container) =>
                     {
                         return service.ImplementationFactory(this);
                     });
-                    register.RegisterType(service.ServiceType, _implementationFactory, null);
+                    register.RegisterType(service.ServiceType, ImplementationFactory, null);
                     continue;
                 }
                 else if (service.ImplementationType != null)
                 {
                     switch (service.Lifetime)
                     {
-                        case ServiceLifetime.Singleton: register.RegisterType(service.ServiceType, service.ImplementationType, _singletonFactory, builder); break;
-                        case ServiceLifetime.Scoped: register.RegisterType(service.ServiceType, service.ImplementationType, _scopeFactory, builder); break;
-                        case ServiceLifetime.Transient: register.RegisterType(service.ServiceType, service.ImplementationType, _transientFactory, builder); break;
+                        case ServiceLifetime.Singleton: register.RegisterType(service.ServiceType, service.ImplementationType, SingletonFactory, builder); break;
+                        case ServiceLifetime.Scoped: register.RegisterType(service.ServiceType, service.ImplementationType, ScopeFactory, builder); break;
+                        case ServiceLifetime.Transient: register.RegisterType(service.ServiceType, service.ImplementationType, TransientFactory, builder); break;
                     }
                     continue;
                 }
@@ -80,7 +80,7 @@ namespace DependencyResolver.Web.Provider
 
         public object GetService(Type serviceType)
         {
-            return _container.Resolve(serviceType);
+            return Container.Resolve(serviceType);
         }
     }
 }
