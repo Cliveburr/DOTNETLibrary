@@ -8,12 +8,12 @@ using System.Text;
 
 namespace DependencyResolver.Builder.Common
 {
-    public class GenericBuilderConstructor
+    public class CommonBuilderConstructor
     {
         private ConstructorInfo _constructor;
         private ParametersResolved[] _params;
 
-        public void Initialize(Type implementationType, ResolveContext context)
+        private void Initialize(Type implementationType, ResolveContext context)
         {
             if (_constructor != null)
             {
@@ -120,13 +120,22 @@ namespace DependencyResolver.Builder.Common
             return result;
         }
 
-        public object Instantiate(Type serviceType, ResolveContext context)
+        public object Instantiate(Type implementationType, ResolveContext context)
         {
-            Initialize(serviceType, context);
+            Initialize(implementationType, context);
 
-            var paramsObjs = ResolveParameters(context);
+            try
+            {
+                context.Chain.CheckCircularDependency(implementationType);
 
-            return _constructor.Invoke(paramsObjs);
+                var paramsObjs = ResolveParameters(context);
+
+                return _constructor.Invoke(paramsObjs);
+            }
+            finally
+            {
+                context.Chain.Release(implementationType);
+            }
         }
     }
 }

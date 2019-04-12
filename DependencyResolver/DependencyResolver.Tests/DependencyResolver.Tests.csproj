@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DependencyResolver.Proxy\DependencyResolver.Proxy.csproj" />
     <ProjectReference Include="..\DependencyResolver\DependencyResolver.csproj" />
   </ItemGroup>
 

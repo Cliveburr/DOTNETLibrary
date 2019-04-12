@@ -16,15 +16,20 @@ namespace DependencyResolver.Proxy.Builder
         private readonly ConcurrentDictionary<Type, IBuilder> _builders;
 
         private IBuilder _commonBuilder;
-        private IBuilder _proxyBuilder;
-
-        public List<IInterceptionQuery> Interceptions { get; }
+        private ProxyBuilder _proxyBuilder;
 
         public InterceptionBuilder()
         {
             _builders = new ConcurrentDictionary<Type, IBuilder>();
             _proxyBuilder = new ProxyBuilder();
-            Interceptions = new List<IInterceptionQuery>();
+        }
+
+        public List<IInterceptionQuery> Interceptions
+        {
+            get
+            {
+                return _proxyBuilder.Interceptions;
+            }
         }
 
         public IBuilder CommonBuilder

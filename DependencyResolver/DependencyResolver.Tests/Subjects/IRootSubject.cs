@@ -8,5 +8,8 @@ namespace DependencyResolver.Tests.Subjects
     {
         string Name { get; set; }
         int Id { get; set; }
+        void CallMethod0();
+        string CallMethod1();
+        string CallMethod2(string arg);
     }
 }

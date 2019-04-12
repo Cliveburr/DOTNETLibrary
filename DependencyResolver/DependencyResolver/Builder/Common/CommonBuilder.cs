@@ -8,11 +8,11 @@ namespace DependencyResolver.Builder.Common
 {
     public class CommonBuilder : IBuilder
     {
-        private readonly ConcurrentDictionary<Type, GenericBuilderConstructor> _constructors;
+        private readonly ConcurrentDictionary<Type, CommonBuilderConstructor> _constructors;
 
         public CommonBuilder()
         {
-            _constructors = new ConcurrentDictionary<Type, GenericBuilderConstructor>();
+            _constructors = new ConcurrentDictionary<Type, CommonBuilderConstructor>();
         }
 
         public object Instantiate(Type serviceType, Type implementationType, ResolveContext context, bool cachedBuilder)
@@ -29,9 +29,9 @@ namespace DependencyResolver.Builder.Common
             }
         }
 
-        private GenericBuilderConstructor GenerateConstructor(Type implementationType)
+        private CommonBuilderConstructor GenerateConstructor(Type implementationType)
         {
-            return new GenericBuilderConstructor();
+            return new CommonBuilderConstructor();
         }
     }
 }

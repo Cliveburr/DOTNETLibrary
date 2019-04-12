@@ -13,19 +13,19 @@ namespace DependencyResolver.Containers
             _chain = new List<Type>();
         }
 
-        public void CheckCircularDependency(Type serviceType)
+        public void CheckCircularDependency(Type type)
         {
-            if (_chain.Contains(serviceType))
+            if (_chain.Contains(type))
             {
-                throw new InvalidOperationException($"Circular dependency detected on \"{serviceType.FullName}\"");
+                throw new InvalidOperationException($"Circular dependency detected on \"{type.FullName}\"");
             }
 
-            _chain.Add(serviceType);
+            _chain.Add(type);
         }
 
-        public void Release(Type serviceType)
+        public void Release(Type type)
         {
-            _chain.Remove(serviceType);
+            _chain.Remove(type);
         }
     }
 }

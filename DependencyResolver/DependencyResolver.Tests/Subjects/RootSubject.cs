@@ -15,5 +15,24 @@ namespace DependencyResolver.Tests.Subjects
         {
             Id = _ids++;
         }
+
+        public void CallMethod0()
+        {
+            Console.WriteLine("CallMethod0");
+        }
+
+        public string CallMethod1()
+        {
+            Console.WriteLine("CallMethod1");
+
+            return "CallMethod1 done";
+        }
+
+        public string CallMethod2(string arg)
+        {
+            Console.WriteLine("CallMethod2");
+
+            return $"CallMethod2 \"{arg}\" done";
+        }
     }
 }
