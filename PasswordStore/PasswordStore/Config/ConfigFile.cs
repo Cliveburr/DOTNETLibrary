@@ -41,6 +41,12 @@ namespace PasswordStore.Config
 
         public static void Save()
         {
+            var folder = Path.GetDirectoryName(_filePath);
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
             using (var writer = new StreamWriter(_filePath))
             {
                 var serializer = new XmlSerializer(typeof(ConfigData));

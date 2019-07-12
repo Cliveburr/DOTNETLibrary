@@ -26,6 +26,9 @@ namespace GameSimulation
         {
             InitializeComponent();
 
+            TestOldResults();
+            return;
+
             var lotoFacil = new GameLotoFacil();
             var gen = new RandomGenerator(lotoFacil);
             var prob = new ProbabilitOneGenerator(lotoFacil);
@@ -106,6 +109,62 @@ namespace GameSimulation
             }
 
             tbResult.Text = sb.ToString();
+        }
+
+        public void TestOldResults()
+        {
+            var history = new int[][]
+            {
+                new int[] { 1, 4, 5, 6, 7, 8, 9, 11, 14, 16, 17, 19, 21, 23, 25 },
+                new int[] { 1, 3, 4, 5, 6, 7, 12, 16, 17, 18, 20, 21, 22, 23, 24 },
+                new int[] { 1, 2, 4, 6, 7, 10, 11, 12, 14, 18, 19, 20, 21, 23, 25 },
+                new int[] { 1, 2, 6, 7, 9, 10, 11, 13, 14,  15, 17, 18, 19, 20, 23 },
+                new int[] { 25  ,21 ,9  ,17 ,8  ,13 ,3  ,24 ,15 ,1  ,22 ,19 ,11 ,14 ,5  },
+                new int[] { 21  ,6  ,3  ,2  ,24 ,11 ,12 ,25 ,23 ,8  ,18 ,15 ,13 ,1  ,17 },
+                new int[] { 7   ,2  ,13 ,18 ,15 ,1  ,22 ,20 ,24 ,5  ,10 ,19 ,4  ,8  ,17 },
+                new int[] { 9   ,15 ,13 ,6  ,7  ,24 ,10 ,25 ,14 ,22 ,3  ,2  ,16 ,17 ,21 },
+                new int[] { 20  ,10 ,3  ,13 ,18 ,5  ,19 ,1  ,11 ,16 ,24 ,6  ,2  ,23 ,21 },
+                new int[] { 13  ,16 ,10 ,18 ,21 ,19 ,5  ,11 ,3  ,4  ,24 ,8  ,25 ,22 ,7  },
+                new int[] { 10  ,8  ,4  ,19 ,17 ,16 ,22 ,13 ,25 ,18 ,2  ,24 ,7  ,9  ,23 },
+                new int[] { 15  ,19 ,20 ,18 ,5  ,25 ,1  ,12 ,16 ,3  ,23 ,21 ,10 ,24 ,9  },
+                new int[] { 19  ,6  ,5  ,7  ,24 ,11 ,18 ,9  ,14 ,3  ,15 ,25 ,17 ,10 ,16 },
+                new int[] { 20  ,9  ,3  ,2  ,13 ,12 ,16 ,14 ,23 ,21 ,15 ,4  ,19 ,7  ,5  },
+                new int[] { 23  ,5  ,4  ,11 ,2  ,18 ,25 ,22 ,15 ,20 ,10 ,12 ,3  ,24 ,8  },
+                new int[] { 8   ,7  ,14 ,20 ,21 ,2  ,5  ,16 ,10 ,1  ,15 ,6  ,13 ,12 ,22 },
+                new int[] { 5   ,1  ,23 ,7  ,24 ,10 ,17 ,18 ,12 ,22 ,13 ,20 ,19 ,4  ,15 },
+                new int[] { 11  ,12 ,2  ,21 ,5  ,16 ,25 ,15 ,20 ,8  ,24 ,23 ,19 ,14 ,1  },
+                new int[] { 23  ,9  ,3  ,5  ,7  ,21 ,18 ,6  ,20 ,17 ,19 ,11 ,4  ,24 ,15 },
+                new int[] { 17  ,13 ,10 ,20 ,22 ,5  ,9  ,19 ,15 ,1  ,24 ,25 ,14 ,8  ,11 },
+                new int[] { 16  ,18 ,24 ,1  ,15 ,22 ,10 ,23 ,2  ,20 ,4  ,5  ,14 ,9  ,6  },
+                new int[] { 21  ,2  ,14 ,15 ,16 ,19 ,20 ,25 ,4  ,5  ,7  ,11 ,9  ,1  ,23 },
+                new int[] { 24  ,7  ,13 ,5  ,1  ,25 ,3  ,8  ,17 ,18 ,20 ,9  ,19 ,14 ,2  },
+                new int[] { 16  ,24 ,5  ,7  ,11 ,18 ,13 ,22 ,12 ,8  ,3  ,20 ,15 ,19 ,25 },
+            };
+
+            var lotoFacil = new GameLotoFacil();
+            var count = new int[25];
+
+            var addCount = new Action<int[]>(delegate (int[] nums)
+            {
+                for (var n = 0; n < 25; n++)
+                {
+                    var has = nums.Contains(n + 1);
+                    if (has)
+                    {
+                        count[n]++;
+                    }
+                    else
+                    {
+                        count[n]--;
+                    }
+                }
+            });
+
+
+            for (var i = 0; i < history.Length; i++)
+            {
+
+            }
         }
     }
 }
