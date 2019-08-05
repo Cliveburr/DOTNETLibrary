@@ -46,7 +46,18 @@
                     <ComboBox Margin="3" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding GroupList}" Text="{Binding Group}" IsEditable="True"></ComboBox>
 
                     <Label Margin="3" Grid.Row="2" Grid.Column="0">Password</Label>
-                    <ComboBox Margin="3" Grid.Row="2" Grid.Column="1" ItemsSource="{Binding PasswordList}" Text="{Binding PasswordAlias}"></ComboBox>
+                    <Grid Grid.Row="2" Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="80" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <ComboBox Margin="3" Grid.Column="0" SelectedValue="{Binding PasswordTypeInt}" SelectedValuePath="Tag" SelectionChanged="cbPassType_Changed">
+                            <ComboBoxItem Tag="0">Shared</ComboBoxItem>
+                            <ComboBoxItem Tag="1">Unique</ComboBoxItem>
+                        </ComboBox>
+                        <Button x:Name="btUniquePassword" Margin="3" Grid.Column="1" Click="btUniquePassword_Click">Edit</Button>
+                        <ComboBox x:Name="cbSharedPassword" Margin="3" Grid.Column="1" ItemsSource="{Binding PasswordList}" Text="{Binding PasswordAlias}" Visibility="Collapsed"></ComboBox>
+                    </Grid>
 
                     <Label Margin="3" Grid.Row="3" Grid.Column="0">Info</Label>
                     <TextBox Margin="3" Grid.Row="3" Grid.Column="1" Text="{Binding Info}" TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True"></TextBox>

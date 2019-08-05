@@ -70,8 +70,12 @@ namespace PasswordStore.WPF.Selection
 
         private SelectionDomainContext MapperDomainToContext(UserDomainData data)
         {
-            var password = Program.Session.User.Data.Passwords
-                .FirstOrDefault(p => p.PasswordId == data.PasswordId);
+            var password = data.IsUniquePassword ?
+                data.UniquePasswordValue :
+                    Program.Session.User.Data.Passwords
+                        .Where(p => p.PasswordId == data.PasswordId)
+                        .Select(p => p.Value)
+                        .FirstOrDefault();
             if (password == null)
             {
                 return null;
@@ -82,7 +86,7 @@ namespace PasswordStore.WPF.Selection
                 {
                     DomainId = data.DomainId,
                     Alias = data.Alias,
-                    Password = password.Value
+                    Password = password
                 };
             }
         }

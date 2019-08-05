@@ -12,5 +12,7 @@ namespace PasswordStore.User
         public string Group { get; set; }
         public uint PasswordId { get; set; }
         public List<UserDomainHistoryData> History { get; set; }
+        public bool IsUniquePassword { get; set; }
+        public string UniquePasswordValue { get; set; }
     }
 }

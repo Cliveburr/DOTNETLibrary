@@ -7,6 +7,7 @@
         DomainEdit = 2,
         Password = 3,
         PasswordEdit = 4,
-        Selection = 5
+        Selection = 5,
+        UniquePasswordEdit = 6
     }
 }

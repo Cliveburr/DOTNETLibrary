@@ -32,6 +32,7 @@ namespace PasswordStore.WPF.Domain
             _context = item;
             SetGroup();
             SetPassword();
+            ShowFieldForPassType();
             DataContext = _context;
         }
 
@@ -66,16 +67,27 @@ namespace PasswordStore.WPF.Domain
 
         private bool Validate()
         {
-            if (string.IsNullOrEmpty(_context.PasswordAlias))
+            if (_context.PasswordType == DomainItemPasswordType.Unique)
             {
-                Program.Warning("Need to select one password!");
-                return false;
+                if (string.IsNullOrEmpty(_context.UniquePasswordValue))
+                {
+                    Program.Warning("Need to select one password!");
+                    return false;
+                }
             }
             else
             {
-                var password = Program.Session.User.Data.Passwords
-                    .FirstOrDefault(p => p.Alias == _context.PasswordAlias);
-                _context.PasswordId = password.PasswordId;
+                if (string.IsNullOrEmpty(_context.PasswordAlias))
+                {
+                    Program.Warning("Need to select one password!");
+                    return false;
+                }
+                else
+                {
+                    var password = Program.Session.User.Data.Passwords
+                        .FirstOrDefault(p => p.Alias == _context.PasswordAlias);
+                    _context.PasswordId = password.PasswordId;
+                }
             }
 
             return true;
@@ -125,6 +137,33 @@ namespace PasswordStore.WPF.Domain
             _context.RaiseNotify("History");
             _context.History = temp;
             _context.RaiseNotify("History");
+        }
+
+        private void cbPassType_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            if (_context != null)
+            {
+                var cbPassType = (ComboBox)e.Source;
+                _context.PasswordType = (DomainItemPasswordType)cbPassType.SelectedIndex;
+                ShowFieldForPassType();
+            }
+        }
+
+        private void ShowFieldForPassType()
+        {
+            btUniquePassword.Visibility = _context.PasswordType == DomainItemPasswordType.Unique ? Visibility.Visible : Visibility.Collapsed;
+            cbSharedPassword.Visibility = _context.PasswordType == DomainItemPasswordType.Unique ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        private void btUniquePassword_Click(object sender, RoutedEventArgs e)
+        {
+            using (var edit = new DomainEditPasswordWindow())
+            {
+                if (edit.ShowDialog() ?? false)
+                {
+                    _context.UniquePasswordValue = edit.Value;
+                }
+            }
         }
     }
 

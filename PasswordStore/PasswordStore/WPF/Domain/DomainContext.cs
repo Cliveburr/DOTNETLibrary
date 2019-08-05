@@ -22,6 +22,26 @@ namespace PasswordStore.WPF.Domain
         public string PasswordAlias { get; set; }
         public List<string> PasswordList { get; set; }
         public ObservableCollection<DomainItemHistoryContext> History { get; set; }
+        public DomainItemPasswordType PasswordType { get; set; }
+        public string UniquePasswordValue { get; set; }
+
+        public int PasswordTypeInt
+        {
+            get
+            {
+                return (int)PasswordType;
+            }
+            set
+            {
+                PasswordType = (DomainItemPasswordType)value;
+            }
+        }
+    }
+
+    public enum DomainItemPasswordType : byte
+    {
+        Shared = 0,
+        Unique = 1
     }
 
     public class DomainItemHistoryContext : ContextBase
@@ -42,7 +62,9 @@ namespace PasswordStore.WPF.Domain
                 PasswordId = data.PasswordId,
                 Info = data.Info,
                 History = new ObservableCollection<DomainItemHistoryContext>(data.History
-                    .Select(FromHistoryData))
+                    .Select(FromHistoryData)),
+                PasswordType = data.IsUniquePassword ? DomainItemPasswordType.Unique : DomainItemPasswordType.Shared,
+                UniquePasswordValue = data.UniquePasswordValue
             };
         }
 
@@ -66,7 +88,9 @@ namespace PasswordStore.WPF.Domain
                 Info = context.Info,
                 History = (context.History ?? new ObservableCollection<DomainItemHistoryContext>())
                     .Select(FromHistoryContext)
-                    .ToList()
+                    .ToList(),
+                IsUniquePassword = context.PasswordType == DomainItemPasswordType.Unique,
+                UniquePasswordValue = context.UniquePasswordValue
             };
         }
 

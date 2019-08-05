@@ -75,7 +75,18 @@ namespace PasswordStore.WPF.Domain
                 {
                     newItem.DomainId = ++Program.Session.User.Data.DomainsIndex;
                     var domain = DomainMapper.FromContext(newItem);
-                    AddNewHistory(domain, newItem.PasswordId);
+                    if (domain.IsUniquePassword)
+                    {
+                        domain.History.Add(new UserDomainHistoryData
+                        {
+                            Value = domain.UniquePasswordValue,
+                            CreatedDateTime = DateTime.Now
+                        });
+                    }
+                    else
+                    {
+                        AddNewHistory(domain, newItem.PasswordId);
+                    }
                     Program.Session.User.Data.Domains.Add(domain);
                     Program.Session.Save();
                     _context.Domains.Add(newItem);
@@ -118,12 +129,29 @@ namespace PasswordStore.WPF.Domain
                     data.History = context.History
                         .Select(h => DomainMapper.FromHistoryContext(h))
                         .ToList();
-                    if (data.PasswordId != context.PasswordId)
+                    if (context.PasswordType == DomainItemPasswordType.Unique)
                     {
-                        data.PasswordId = context.PasswordId;
-                        AddNewHistory(data, context.PasswordId);
+                        if (data.UniquePasswordValue != context.UniquePasswordValue)
+                        {
+                            data.IsUniquePassword = true;
+                            data.UniquePasswordValue = context.UniquePasswordValue;
+                            data.History.Add(new UserDomainHistoryData
+                            {
+                                Value = data.UniquePasswordValue,
+                                CreatedDateTime = DateTime.Now
+                            });
+                        }
                     }
-                    
+                    else
+                    {
+                        data.IsUniquePassword = false;
+                        if (data.PasswordId != context.PasswordId)
+                        {
+                            data.PasswordId = context.PasswordId;
+                            AddNewHistory(data, context.PasswordId);
+                        }
+                    }
+
                     Program.Session.Save();
                     var index = _context.Domains.IndexOf(selected);
                     _context.Domains[index] = context;
