@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.902
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KnotApi", "KnotApi\KnotApi.csproj", "{75CB6F85-671C-4863-8162-7CC2B215A905}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knot", "Knot\Knot.csproj", "{B4051B16-8564-48AA-91E6-5DBDA9C08A5E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knot.Tests", "Knot.Tests\Knot.Tests.csproj", "{401B73A1-C644-45A0-B99C-0EB1117E9AF0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{75CB6F85-671C-4863-8162-7CC2B215A905}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75CB6F85-671C-4863-8162-7CC2B215A905}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75CB6F85-671C-4863-8162-7CC2B215A905}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75CB6F85-671C-4863-8162-7CC2B215A905}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4051B16-8564-48AA-91E6-5DBDA9C08A5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4051B16-8564-48AA-91E6-5DBDA9C08A5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4051B16-8564-48AA-91E6-5DBDA9C08A5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4051B16-8564-48AA-91E6-5DBDA9C08A5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{401B73A1-C644-45A0-B99C-0EB1117E9AF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{401B73A1-C644-45A0-B99C-0EB1117E9AF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{401B73A1-C644-45A0-B99C-0EB1117E9AF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{401B73A1-C644-45A0-B99C-0EB1117E9AF0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {85471A25-D6EA-4242-8EC4-151D9B9B4EA9}
+	EndGlobalSection
+EndGlobal

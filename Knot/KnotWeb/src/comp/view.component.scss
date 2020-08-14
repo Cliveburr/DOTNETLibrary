@@ -1,0 +1,33 @@
+
+.itemView {
+    height: 100%;
+    width: 100%;
+    flex-grow: 1;
+    overflow: auto;
+}
+
+
+.item {
+    min-width: 250px;
+    margin-bottom: 18px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    padding-right: 1rem;
+    padding-left: 1rem;
+
+    .i-item {
+        margin-right: .5rem;
+        cursor: pointer;
+    }
+
+    .i-exp {
+        line-height: inherit;
+        cursor: pointer;
+        color: #71a3ca;
+    }
+
+    border: 1px solid #71a3ca;
+    border-radius: 5px;
+
+    background: linear-gradient(to bottom, #ebf1f6 0%, #c1d8e72e 64%, #acd0e942 71%, #c7e5fa 115%);
+}
