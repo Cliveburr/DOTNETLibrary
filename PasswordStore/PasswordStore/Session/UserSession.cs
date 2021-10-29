@@ -24,12 +24,17 @@ namespace PasswordStore.Session
         {
             CheckSessionExpire();
 
-            if (User == null)
+            if (MainPassword == null)
             {
                 Open(callBack);
             }
             else
             {
+                if (User == null)
+                {
+                    User = UserFile.Open(MainPassword);
+                }
+
                 SetNewSessionAccess(callBack);
             }
         }
@@ -77,6 +82,10 @@ namespace PasswordStore.Session
         public void FreeWindow()
         {
             _windowUsing--;
+            if (_windowUsing == 0)
+            {
+                User = null;
+            }
         }
 
         public void Save()

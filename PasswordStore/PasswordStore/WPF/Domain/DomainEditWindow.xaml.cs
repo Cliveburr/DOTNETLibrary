@@ -31,8 +31,6 @@ namespace PasswordStore.WPF.Domain
             IsShow = false;
             _context = item;
             SetGroup();
-            SetPassword();
-            ShowFieldForPassType();
             DataContext = _context;
         }
 
@@ -44,50 +42,12 @@ namespace PasswordStore.WPF.Domain
                 .ToList();
         }
 
-        private void SetPassword()
-        {
-            if (_context.PasswordId > 0)
-            {
-                var password = Program.Session.User.Data.Passwords
-                    .FirstOrDefault(p => p.PasswordId == _context.PasswordId);
-                if (password == null)
-                {
-                    _context.PasswordId = 0;
-                }
-                else
-                {
-                    _context.PasswordAlias = password.Alias;
-                }
-            }
-
-            _context.PasswordList = Program.Session.User.Data.Passwords
-                .Select(p => p.Alias)
-                .ToList();
-        }
-
         private bool Validate()
         {
-            if (_context.PasswordType == DomainItemPasswordType.Unique)
+            if (string.IsNullOrEmpty(_context.ActualPassword))
             {
-                if (string.IsNullOrEmpty(_context.UniquePasswordValue))
-                {
-                    Program.Warning("Need to select one password!");
-                    return false;
-                }
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(_context.PasswordAlias))
-                {
-                    Program.Warning("Need to select one password!");
-                    return false;
-                }
-                else
-                {
-                    var password = Program.Session.User.Data.Passwords
-                        .FirstOrDefault(p => p.Alias == _context.PasswordAlias);
-                    _context.PasswordId = password.PasswordId;
-                }
+                Program.Warning("Need to select one password!");
+                return false;
             }
 
             return true;
@@ -139,43 +99,36 @@ namespace PasswordStore.WPF.Domain
             _context.RaiseNotify("History");
         }
 
-        private void cbPassType_Changed(object sender, SelectionChangedEventArgs e)
-        {
-            if (_context != null)
-            {
-                var cbPassType = (ComboBox)e.Source;
-                _context.PasswordType = (DomainItemPasswordType)cbPassType.SelectedIndex;
-                ShowFieldForPassType();
-            }
-        }
-
-        private void ShowFieldForPassType()
-        {
-            btUniquePassword.Visibility = _context.PasswordType == DomainItemPasswordType.Unique ? Visibility.Visible : Visibility.Collapsed;
-            cbSharedPassword.Visibility = _context.PasswordType == DomainItemPasswordType.Unique ? Visibility.Collapsed : Visibility.Visible;
-        }
-
         private void btUniquePassword_Click(object sender, RoutedEventArgs e)
         {
             using (var edit = new DomainEditPasswordWindow())
             {
                 if (edit.ShowDialog() ?? false)
                 {
-                    _context.UniquePasswordValue = edit.Value;
+                    _context.ActualPassword = edit.Value;
+                    _context.History.Add(new DomainItemHistoryContext
+                    {
+                        Value = _context.ActualPassword,
+                        CreatedDateTime = DateTime.Now
+                    });
+                }
+            }
+        }
+
+        private void btSubHotkey_Click(object sender, RoutedEventArgs e)
+        {
+            using (var edit = new DomainSubHotkeyWindow(_context.SubHotkey))
+            {
+                if (edit.ShowDialog() ?? false)
+                {
+                    _context.SubHotkey = edit.Value;
                 }
             }
         }
     }
 
-    public class PasswordValueConverter : IValueConverter     // : DependencyObject, IValueConverter
+    public class PasswordValueConverter : IValueConverter
     {
-        //public static readonly DependencyProperty HidePasswordProperty = DependencyProperty.Register("HidePassword", typeof(bool), typeof(PasswordValueConverter));
-        //public bool HidePassword
-        //{
-        //    get { return (bool)GetValue(HidePasswordProperty); }
-        //    set { SetValue(HidePasswordProperty, value); }
-        //}
-
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             var item = value as DomainItemHistoryContext;

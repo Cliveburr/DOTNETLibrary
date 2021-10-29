@@ -12,7 +12,7 @@ namespace PasswordStore.WPF.Selection
 {
     public class SelectionContext : ContextBase
     {
-        public ObservableCollection<SelectionGroupContext> AGroups { get; set; }
+        public ObservableCollection<SelectionGroupContext> Groups { get; set; }
     }
 
     public class SelectionGroupContext : ContextBase
@@ -26,6 +26,9 @@ namespace PasswordStore.WPF.Selection
         public uint DomainId { get; set; }
         public string Alias { get; set; }
         public string Password { get; set; }
+        public string Login { get; set; }
+        public string URL { get; set; }
+        public string SubHotkey { get; set; }
 
         public SimpleClickCommand Clipboard_Click { get { return new SimpleClickCommand(Clipboard_Click_Do); } }
         public void Clipboard_Click_Do()
@@ -43,10 +46,25 @@ namespace PasswordStore.WPF.Selection
         public SimpleClickCommand OpenEdit_Click { get { return new SimpleClickCommand(OpenEdit_Click_Do); } }
         public void OpenEdit_Click_Do()
         {
-            var data = Program.Session.User.Data.Domains
-                .First(d => d.DomainId == DomainId);
+            Program.Session.CheckOpen(() =>
+            {
+                var data = Program.Session.User.Data.Domains
+                    .First(d => d.DomainId == DomainId);
 
-            DomainWindow.ShowDomainEditWindow(data);
+                DomainWindow.ShowDomainEditWindow(data);
+            });
+        }
+
+        public SimpleClickCommand URL_Click { get { return new SimpleClickCommand(URL_Click_Do); } }
+        public void URL_Click_Do()
+        {
+            Clipboard.SetText(URL);
+        }
+
+        public SimpleClickCommand Login_Click { get { return new SimpleClickCommand(Login_Click_Do); } }
+        public void Login_Click_Do()
+        {
+            Clipboard.SetText(Login);
         }
     }
 }

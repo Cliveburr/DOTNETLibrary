@@ -29,10 +29,6 @@ namespace PasswordStore.Notify
             mnuDomains.Click += mnuDomains_Click;
             Menu.MenuItems.Add(mnuDomains);
 
-            var mnuPasswords = new MenuItem("&Passwords");
-            mnuPasswords.Click += mnuPasswords_Click;
-            Menu.MenuItems.Add(mnuPasswords);
-
             Menu.MenuItems.Add("-");
 
             var mnuExit = new MenuItem("E&xit");
@@ -54,14 +50,6 @@ namespace PasswordStore.Notify
         private void mnuConfiguration_Click(object sender, EventArgs e)
         {
             WPF.WindowBase.Show<WPF.Configuration.ConfigurationWindow>();
-        }
-
-        private void mnuPasswords_Click(object sender, EventArgs e)
-        {
-            Program.Session.CheckOpen(() =>
-            {
-                WPF.WindowBase.Show<WPF.Password.PasswordWindow>();
-            });
         }
 
         public void Close()

@@ -8,6 +8,7 @@
         Password = 3,
         PasswordEdit = 4,
         Selection = 5,
-        UniquePasswordEdit = 6
+        UniquePasswordEdit = 6,
+        DomainSubHotkey = 7
     }
 }

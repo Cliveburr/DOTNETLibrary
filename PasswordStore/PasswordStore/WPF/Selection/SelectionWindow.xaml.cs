@@ -22,7 +22,6 @@ namespace PasswordStore.WPF.Selection
         public override ConfigWindowIDEnum ID => ConfigWindowIDEnum.Selection;
 
         private SelectionContext _context;
-        private bool _isGroupByPassword;
 
         public SelectionWindow()
         {
@@ -35,60 +34,65 @@ namespace PasswordStore.WPF.Selection
         {
             var context = new SelectionContext
             {
-                AGroups = GetAGroups()
+                Groups = GetAGroupByGroups()
             };
 
             _context = context;
             DataContext = _context;
         }
 
-        private ObservableCollection<SelectionGroupContext> GetAGroups()
-        {
-            if (_isGroupByPassword)
-            {
-                return null;
-            }
-            else
-            {
-                return GetAGroupByGroups();
-            }
-        }
-
         private ObservableCollection<SelectionGroupContext> GetAGroupByGroups()
         {
-            return new ObservableCollection<SelectionGroupContext>(Program.Session.User.Data.Domains
+            var list = Program.Session.User.Data.GroupOrder
+                .Select(g =>
+                {
+                    var items = Program.Session.User.Data.Domains
+                        .Where(d => d.Group == g)
+                        .Select(MapperDomainToContext);
+
+                    if (items.Any())
+                    {
+                        return new SelectionGroupContext
+                        {
+                            Header = g,
+                            Items = new ObservableCollection<SelectionDomainContext>(items)
+                        };
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                })
+                .Where(g => g != null)
+                .ToList();
+
+            var listedGroups = list
+                .Select(g => g.Header)
+                .ToArray();
+
+            list.AddRange(Program.Session.User.Data.Domains
                 .GroupBy(d => d.Group)
+                .Where(g => !listedGroups.Contains(g.Key))
                 .Select(g => new SelectionGroupContext
                 {
                     Header = g.Key,
-                    Items = new ObservableCollection<SelectionDomainContext>(
-                        g
-                            .Select(MapperDomainToContext)
-                            .Where(d => d != null))
+                    Items = new ObservableCollection<SelectionDomainContext>(g.Select(MapperDomainToContext))
                 }));
+
+            return new ObservableCollection<SelectionGroupContext>(list);
         }
 
         private SelectionDomainContext MapperDomainToContext(UserDomainData data)
         {
-            var password = data.IsUniquePassword ?
-                data.UniquePasswordValue :
-                    Program.Session.User.Data.Passwords
-                        .Where(p => p.PasswordId == data.PasswordId)
-                        .Select(p => p.Value)
-                        .FirstOrDefault();
-            if (password == null)
+            return new SelectionDomainContext
             {
-                return null;
-            }
-            else
-            {
-                return new SelectionDomainContext
-                {
-                    DomainId = data.DomainId,
-                    Alias = data.Alias,
-                    Password = password
-                };
-            }
+                DomainId = data.DomainId,
+                Alias = data.Alias,
+                Password = data.ActualPassword,
+                URL = data.URL,
+                Login = data.Login,
+                SubHotkey = data.SubHotkey
+            };
         }
 
         private void ActionButtons_Click(object sender, RoutedEventArgs e)
@@ -99,6 +103,67 @@ namespace PasswordStore.WPF.Selection
         private void WindowBase_Closed(object sender, EventArgs e)
         {
             Program.Session.FreeWindow();
+        }
+
+        private void WindowBase_KeyDown(object sender, KeyEventArgs e)
+        {
+            var key = e.Key.ToString();
+            var has = _context.Groups
+                .SelectMany(g => g.Items)
+                .FirstOrDefault(i => i.SubHotkey == key);
+            if (has != null)
+            {
+                has.Clipboard_Click_Do();
+                Close();
+            }
+        }
+
+        private void btGroupOrderRaise_Click(object sender, RoutedEventArgs e)
+        {
+            var button = (Button)e.Source;
+            var group = (SelectionGroupContext)button.DataContext;
+
+            var order = _context.Groups
+                .Select(g => g.Header)
+                .ToList();
+
+            var index = order.IndexOf(group.Header);
+            if (index > 0)
+            {
+                order.RemoveAt(index);
+                index--;
+                order.Insert(index, group.Header);
+
+                Program.Session.User.Data.GroupOrder = order;
+                Program.Session.Save();
+
+                _context.Groups = GetAGroupByGroups();
+                _context.RaiseNotify("Groups");
+            }
+        }
+
+        private void btGroupOrderDown_Click(object sender, RoutedEventArgs e)
+        {
+            var button = (Button)e.Source;
+            var group = (SelectionGroupContext)button.DataContext;
+
+            var order = _context.Groups
+                .Select(g => g.Header)
+                .ToList();
+
+            var index = order.IndexOf(group.Header);
+            if (index < _context.Groups.Count - 1)
+            {
+                order.RemoveAt(index);
+                index++;
+                order.Insert(index, group.Header);
+
+                Program.Session.User.Data.GroupOrder = order;
+                Program.Session.Save();
+
+                _context.Groups = GetAGroupByGroups();
+                _context.RaiseNotify("Groups");
+            }
         }
     }
 }

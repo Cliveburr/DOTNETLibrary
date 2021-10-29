@@ -21,7 +21,7 @@ namespace PasswordStore.WPF.Password
 
         private void Open()
         {
-            User = UserFile.Open(GetFilePath(), txPassword.Password);
+            User = UserFile.Open(txPassword.Password);
             if (User == null)
             {
                 Program.Warning("Permission denied!");
@@ -29,28 +29,10 @@ namespace PasswordStore.WPF.Password
             else
             {
                 MainPassword = txPassword.Password;
-
                 DialogResult = true;
             }
 
             Close();
-        }
-
-        private string GetFilePath()
-        {
-            if (string.IsNullOrEmpty(ConfigFile.Data.UserFilePath))
-            {
-                return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PasswordStore.data");
-            }
-            else if (ConfigFile.Data.UserFilePath.StartsWith(@".\"))
-            {
-                var fileName = ConfigFile.Data.UserFilePath.Substring(2);
-                return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
-            }
-            else
-            {
-                return ConfigFile.Data.UserFilePath;
-            }
         }
 
         private void btOpen_Click(object sender, RoutedEventArgs e)

@@ -1,8 +1,10 @@
-﻿using System;
+﻿using PasswordStore.Config;
+using System;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
+using System.Xml.Serialization;
 
 namespace PasswordStore.User
 {
@@ -23,6 +25,23 @@ namespace PasswordStore.User
         public UserFile(UserData data)
         {
             Data = data;
+        }
+
+        private static string GetFilePath()
+        {
+            if (string.IsNullOrEmpty(ConfigFile.Data.UserFilePath))
+            {
+                return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PasswordStore.data");
+            }
+            else if (ConfigFile.Data.UserFilePath.StartsWith(@".\"))
+            {
+                var fileName = ConfigFile.Data.UserFilePath.Substring(2);
+                return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+            }
+            else
+            {
+                return ConfigFile.Data.UserFilePath;
+            }
         }
 
         public UserFile(SerializationInfo info, StreamingContext context)
@@ -87,8 +106,9 @@ namespace PasswordStore.User
             }
         }
 
-        public static UserFile Open(string fileName, string password)
+        public static UserFile Open(string password)
         {
+            var fileName = GetFilePath();
             UserFile passwords = null;
 
             if (!File.Exists(fileName))
@@ -138,6 +158,21 @@ namespace PasswordStore.User
         {
             return new byte[] {0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 
             0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76, 0x54};
+        }
+
+        public static UserFile LoadXml(string fileName)
+        {
+            var reader = new XmlSerializer(typeof(UserData));
+
+            using (var file = new StreamReader(fileName))
+            {
+                var data = (UserData)reader.Deserialize(file);
+                return new UserFile
+                {
+                    Data = data,
+                    _path = fileName
+                };
+            }
         }
     }
 }

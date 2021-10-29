@@ -18,30 +18,11 @@ namespace PasswordStore.WPF.Domain
         public string Info { get; set; }
         public string Group { get; set; }
         public List<string> GroupList { get; set; }
-        public uint PasswordId { get; set; }
-        public string PasswordAlias { get; set; }
-        public List<string> PasswordList { get; set; }
         public ObservableCollection<DomainItemHistoryContext> History { get; set; }
-        public DomainItemPasswordType PasswordType { get; set; }
-        public string UniquePasswordValue { get; set; }
-
-        public int PasswordTypeInt
-        {
-            get
-            {
-                return (int)PasswordType;
-            }
-            set
-            {
-                PasswordType = (DomainItemPasswordType)value;
-            }
-        }
-    }
-
-    public enum DomainItemPasswordType : byte
-    {
-        Shared = 0,
-        Unique = 1
+        public string ActualPassword { get; set; }
+        public string Login { get; set; }
+        public string URL { get; set; }
+        public string SubHotkey { get; set; }
     }
 
     public class DomainItemHistoryContext : ContextBase
@@ -59,12 +40,13 @@ namespace PasswordStore.WPF.Domain
                 DomainId = data.DomainId,
                 Alias = data.Alias,
                 Group = data.Group,
-                PasswordId = data.PasswordId,
                 Info = data.Info,
                 History = new ObservableCollection<DomainItemHistoryContext>(data.History
                     .Select(FromHistoryData)),
-                PasswordType = data.IsUniquePassword ? DomainItemPasswordType.Unique : DomainItemPasswordType.Shared,
-                UniquePasswordValue = data.UniquePasswordValue
+                ActualPassword = data.ActualPassword,
+                Login = data.Login,
+                URL = data.URL,
+                SubHotkey = data.SubHotkey
             };
         }
 
@@ -84,13 +66,14 @@ namespace PasswordStore.WPF.Domain
                 DomainId = context.DomainId,
                 Alias = context.Alias,
                 Group = context.Group,
-                PasswordId = context.PasswordId,
                 Info = context.Info,
                 History = (context.History ?? new ObservableCollection<DomainItemHistoryContext>())
                     .Select(FromHistoryContext)
                     .ToList(),
-                IsUniquePassword = context.PasswordType == DomainItemPasswordType.Unique,
-                UniquePasswordValue = context.UniquePasswordValue
+                ActualPassword = context.ActualPassword,
+                Login = context.Login,
+                URL = context.URL,
+                SubHotkey = context.SubHotkey
             };
         }
 
@@ -102,5 +85,10 @@ namespace PasswordStore.WPF.Domain
                 CreatedDateTime = context.CreatedDateTime
             };
         }
+    }
+
+    public class DomainSubhotkeyContext : ContextBase
+    {
+        public string SubHotKey { get; set; }
     }
 }

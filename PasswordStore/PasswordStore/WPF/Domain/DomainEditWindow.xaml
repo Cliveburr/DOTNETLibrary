@@ -10,18 +10,21 @@
 
     <Window.Resources>
         <local:PasswordValueConverter x:Key="PasswordValueConverter" />
-        <!--<local:PasswordValueConverter x:Key="PasswordValueConverter" HidePassword="{Binding IsShow}" />-->
     </Window.Resources>
     
     <DockPanel>
 
         <Grid DockPanel.Dock="Bottom">
-
-            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                <Button Margin="3" Width="80" Click="btSave_Click">Save</Button>
-                <Button Margin="3" Width="80" Click="btCancel_Click">Cancel</Button>
-            </StackPanel>
-
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Left" HorizontalAlignment="Left" Orientation="Horizontal">
+                    <Button Margin="3" Width="120" Click="btUniquePassword_Click">Edit Password</Button>
+                    <Button Margin="3" Width="120" Click="btSubHotkey_Click">SubHotkey</Button>
+                </StackPanel>
+                <StackPanel DockPanel.Dock="Right" HorizontalAlignment="Right" Orientation="Horizontal">
+                    <Button Margin="3" Width="80" Click="btSave_Click">Save</Button>
+                    <Button Margin="3" Width="80" Click="btCancel_Click">Cancel</Button>
+                </StackPanel>
+            </DockPanel>
         </Grid>
         <TabControl Margin="3">
             <TabItem Header="Data">
@@ -36,31 +39,24 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition />
                     </Grid.RowDefinitions>
 
                     <Label Margin="3" Grid.Row="0" Grid.Column="0">Alias</Label>
                     <TextBox Margin="3" Grid.Row="0" Grid.Column="1" Text="{Binding Alias}"></TextBox>
 
-                    <Label Margin="3" Grid.Row="1" Grid.Column="0">Group</Label>
-                    <ComboBox Margin="3" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding GroupList}" Text="{Binding Group}" IsEditable="True"></ComboBox>
+                    <Label Margin="3" Grid.Row="1" Grid.Column="0">Login</Label>
+                    <TextBox Margin="3" Grid.Row="1" Grid.Column="1" Text="{Binding Login}"></TextBox>
 
-                    <Label Margin="3" Grid.Row="2" Grid.Column="0">Password</Label>
-                    <Grid Grid.Row="2" Grid.Column="1">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="80" />
-                            <ColumnDefinition />
-                        </Grid.ColumnDefinitions>
-                        <ComboBox Margin="3" Grid.Column="0" SelectedValue="{Binding PasswordTypeInt}" SelectedValuePath="Tag" SelectionChanged="cbPassType_Changed">
-                            <ComboBoxItem Tag="0">Shared</ComboBoxItem>
-                            <ComboBoxItem Tag="1">Unique</ComboBoxItem>
-                        </ComboBox>
-                        <Button x:Name="btUniquePassword" Margin="3" Grid.Column="1" Click="btUniquePassword_Click">Edit</Button>
-                        <ComboBox x:Name="cbSharedPassword" Margin="3" Grid.Column="1" ItemsSource="{Binding PasswordList}" Text="{Binding PasswordAlias}" Visibility="Collapsed"></ComboBox>
-                    </Grid>
+                    <Label Margin="3" Grid.Row="2" Grid.Column="0">URL</Label>
+                    <TextBox Margin="3" Grid.Row="2" Grid.Column="1" Text="{Binding URL}"></TextBox>
 
-                    <Label Margin="3" Grid.Row="3" Grid.Column="0">Info</Label>
-                    <TextBox Margin="3" Grid.Row="3" Grid.Column="1" Text="{Binding Info}" TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True"></TextBox>
+                    <Label Margin="3" Grid.Row="3" Grid.Column="0">Group</Label>
+                    <ComboBox Margin="3" Grid.Row="3" Grid.Column="1" ItemsSource="{Binding GroupList}" Text="{Binding Group}" IsEditable="True"></ComboBox>
+
+                    <Label Margin="3" Grid.Row="4" Grid.Column="0">Info</Label>
+                    <TextBox Margin="3" Grid.Row="4" Grid.Column="1" Text="{Binding Info}" TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True"></TextBox>
 
                 </Grid>
             </TabItem>

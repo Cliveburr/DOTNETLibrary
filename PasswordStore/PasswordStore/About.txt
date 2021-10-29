@@ -1,47 +1,40 @@
 ﻿
 
-<done> - procurar as configurações no caminho local, se não encontrar procurar no caminho padrão do usuario e se não encontrar criar no caminho padrão
-<done> - abrir o edit domain ao clicar no nome na tela ChosenPassword
+- Configuração file - PasswordStore.config
+	tenta encontrar na pasta da aplicação
+	depois tenta encontrar na pasta ApplicationData (C:\Users\<user>\AppData\Roaming)
 
+- Arquivos da password
+	se na configuração estiver vazio, usa: a pasta da aplicação + PasswordStore.data
+	se começar com .\ usa: a pasta da aplicação + a configuração
+	caso contrario tenta usar como caminho absoluto
 
-<done> - criar o arquivo PasswordStore.config
-	<done> - DataPath = caminho do arquivo de senhas PasswordStore.data
-	<done> - preferencias como posicionamento das telas e modo de visualições
 
 
 <done> - Criar a tela de configurações
-	<done> - Voltar a exibir About na inicialização
-	<done> - Trocar o caminho do arquivo de passwords do usuário
 	- Adicionar aba para configuração das teclas atalho
 	- Permitir a troca da senha do arquivo de passwords
 	- ativar ou desativar o inicio no windows
 
 - No sistema de senha adicionar outra forma de validar, tipo de touch
-	<done> - nas configurações, adicionar controle de sessão
 		- sessão sem expiração
 		- sessão com tempo
 
 
 
-
-<done> - criar outra tela para cadastrar os passwords
-	<done> - id
-	<done> - alias
-	<done> - value
-
-<done> - criar tela de Domains
-	<done> - id
-	<done> - alias
-	<done> - info
-	<done> - grupo - (tela para manipular os grupos)
-	<done> - password
-	<done> - history
-
 <done> - alterar a tela de vizualição das senhas para uso ChosenPassword
-	<done> - tela centralizada
 	- poder alterar a ordem dos grupos
 	- poder filtrar
 		- filtra alias dos password
 		- filtra alias dos domains
 		- filtra info
 		- filtra grupo
+
+
+<done> - ter apenas senha unica
+<done> - corrigir pq n está atualizando
+<done> - fazer carregar sempre o arquivo quando chamado
+<done> - adicionar campo extra para a login e botão no choosen
+<done> - adicionar campo extra para a url e botão no choosen
+<done> - adicionar sub key para senha rapida
+- configurar a posição dos grupos e senhas

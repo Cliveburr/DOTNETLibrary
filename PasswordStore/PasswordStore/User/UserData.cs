@@ -6,15 +6,14 @@ namespace PasswordStore.User
     [Serializable()]
     public class UserData
     {
-        public uint PasswordIndex { get; set; }
-        public List<PasswordData> Passwords { get; set; }
         public uint DomainsIndex { get; set; }
         public List<UserDomainData> Domains { get; set; }
+        public List<string> GroupOrder { get; set; }
 
         public void InitializeData()
         {
-            Passwords = Passwords ?? new List<PasswordData>();
             Domains = Domains ?? new List<UserDomainData>();
+            GroupOrder = GroupOrder ?? new List<string>();
         }
     }
 }

@@ -10,9 +10,10 @@ namespace PasswordStore.User
         public string Alias { get; set; }
         public string Info { get; set; }
         public string Group { get; set; }
-        public uint PasswordId { get; set; }
         public List<UserDomainHistoryData> History { get; set; }
-        public bool IsUniquePassword { get; set; }
-        public string UniquePasswordValue { get; set; }
+        public string ActualPassword { get; set; }
+        public string Login { get; set; }
+        public string URL { get; set; }
+        public string SubHotkey { get; set; }
     }
 }

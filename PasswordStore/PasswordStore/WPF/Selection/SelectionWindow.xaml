@@ -6,7 +6,11 @@
         xmlns:local="clr-namespace:PasswordStore.WPF.Selection"
         xmlns:src="clr-namespace:PasswordStore.WPF"
         mc:Ignorable="d"
-        Title="Password Store Selection" Height="450" Width="800" WindowStartupLocation="CenterScreen" FontFamily="Constantia" FontSize="14" Closed="WindowBase_Closed">
+        d:DataContext="{DynamicResource ResourceKey=SelectionContextMock}"
+        Title="Password Store Selection" Height="450" Width="800" WindowStartupLocation="CenterScreen" FontFamily="Constantia" FontSize="14" Closed="WindowBase_Closed" KeyDown="WindowBase_KeyDown">
+    <src:WindowBase.Resources>
+        <local:SelectionContextMock x:Key="SelectionContextMock"/>
+    </src:WindowBase.Resources>
     <DockPanel>
 
         <Grid DockPanel.Dock="Top">
@@ -18,18 +22,20 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBox Margin="3" Grid.Row="0" Grid.Column="0"></TextBox>
-            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
-                <RadioButton Margin="3" IsChecked="True" >Group View</RadioButton>
-                <RadioButton Margin="3" IsChecked="True" >Password View</RadioButton>
-            </StackPanel>
         </Grid>
 
         <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding AGroups}">
+            <ItemsControl ItemsSource="{Binding Groups}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <DockPanel>
-                            <Label Margin="3" DockPanel.Dock="Top" Content="{Binding Header}" FontWeight="Bold" FontSize="16"></Label>
+                            <DockPanel DockPanel.Dock="Top">
+                                <Label Margin="3" DockPanel.Dock="Left" Content="{Binding Header}" FontWeight="Bold" FontSize="16"></Label>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Width="32" Click="btGroupOrderRaise_Click" DataContext="{Binding}">Δ</Button>
+                                    <Button Margin="0,0,3,0" Width="32" Click="btGroupOrderDown_Click" DataContext="{Binding}">V</Button>
+                                </StackPanel>
+                            </DockPanel>
                             <Rectangle Margin="3" DockPanel.Dock="Top" Fill="Black" Height="1" />
                             <ItemsControl ItemsSource="{Binding Items}" Margin="5">
                                 <ItemsControl.ItemTemplate>
@@ -38,8 +44,31 @@
                                             <DockPanel>
                                                 <Button Margin="3" DockPanel.Dock="Top" Content="{Binding Alias}" Cursor="Hand" BorderBrush="Transparent" Background="Transparent" Command="{Binding OpenEdit_Click}" Click="ActionButtons_Click" />
                                                 <StackPanel DockPanel.Dock="Right" MinWidth="80">
-                                                    <Button Margin="3,3,3,0" Height="26" Command="{Binding Clipboard_Click}" Cursor="Hand" Click="ActionButtons_Click" BorderThickness="0">Clipboard</Button>
-                                                    <Button Margin="3,0,3,3" Height="26" Command="{Binding Typing_Click}" Cursor="Hand" Click="ActionButtons_Click" BorderThickness="0">Typing</Button>
+                                                    <Button Margin="3,3,3,0" Height="22" Content="{Binding URL}" Command="{Binding URL_Click}" Cursor="Hand" Click="ActionButtons_Click" BorderThickness="0">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <TextBlock TextDecorations="Underline">
+                                                                    <ContentPresenter />
+                                                                </TextBlock>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                        <Button.Style>
+                                                            <Style TargetType="Button">
+                                                                <Setter Property="Foreground" Value="Blue" />
+                                                                <Style.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="true">
+                                                                        <Setter Property="Foreground" Value="Red" />
+                                                                    </Trigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Button.Style>
+                                                    </Button>
+                                                    <Button Margin="3,0,3,0" Height="24" Content="{Binding Login}" Command="{Binding Login_Click}" Cursor="Hand" Click="ActionButtons_Click" BorderThickness="0"></Button>
+                                                    <StackPanel Margin="3,0,3,3" Orientation="Horizontal">
+                                                        <Label Margin="0" Height="24" Width="20" Content="{Binding SubHotkey}" VerticalAlignment="Center"></Label>
+                                                        <Button Margin="0" Height="24" Width="100" Command="{Binding Clipboard_Click}" Cursor="Hand" Click="ActionButtons_Click" BorderThickness="0">Password</Button>
+                                                        <Button Margin="0" Height="24" Width="52" Command="{Binding Typing_Click}" Cursor="Hand" Click="ActionButtons_Click" BorderThickness="0">Typing</Button>
+                                                    </StackPanel>
                                                 </StackPanel>
                                             </DockPanel>
                                         </Border>

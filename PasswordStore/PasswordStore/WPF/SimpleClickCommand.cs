@@ -20,12 +20,12 @@ namespace PasswordStore.WPF
 
         public SimpleClickCommand(SimpleClickHandle click)
         {
-            this._click = click;
+            _click = click;
         }
 
         public void Execute(object parameter)
         {
-            this._click();
+            _click();
         }
     }
 }

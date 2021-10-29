@@ -42,18 +42,6 @@ namespace PasswordStore.WPF.Domain
             DataContext = _context;
         }
 
-        public static void AddNewHistory(UserDomainData data, uint passwordId)
-        {
-            var password = Program.Session.User.Data.Passwords
-                .First(p => p.PasswordId == passwordId);
-
-            data.History.Add(new UserDomainHistoryData
-            {
-                Value = password.Value,
-                CreatedDateTime = DateTime.Now
-            });
-        }
-
         private void btAdd_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -67,29 +55,20 @@ namespace PasswordStore.WPF.Domain
         }
 
         private void AddAction()
-        { 
-            var newItem = new DomainItemContext();
-            using (var edit = new DomainEditWindow(newItem))
+        {
+            var context = new DomainItemContext
+            {
+                History = new ObservableCollection<DomainItemHistoryContext>()
+            };
+            using (var edit = new DomainEditWindow(context))
             {
                 if (edit.ShowDialog() ?? false)
                 {
-                    newItem.DomainId = ++Program.Session.User.Data.DomainsIndex;
-                    var domain = DomainMapper.FromContext(newItem);
-                    if (domain.IsUniquePassword)
-                    {
-                        domain.History.Add(new UserDomainHistoryData
-                        {
-                            Value = domain.UniquePasswordValue,
-                            CreatedDateTime = DateTime.Now
-                        });
-                    }
-                    else
-                    {
-                        AddNewHistory(domain, newItem.PasswordId);
-                    }
+                    context.DomainId = ++Program.Session.User.Data.DomainsIndex;
+                    var domain = DomainMapper.FromContext(context);
                     Program.Session.User.Data.Domains.Add(domain);
                     Program.Session.Save();
-                    _context.Domains.Add(newItem);
+                    _context.Domains.Add(context);
                 }
             }
         }
@@ -114,41 +93,22 @@ namespace PasswordStore.WPF.Domain
                 return;
             }
 
-            var data = Program.Session.User.Data.Domains
+            var domain = Program.Session.User.Data.Domains
                 .First(d => d.DomainId == selected.DomainId);
 
-            var context = DomainMapper.FromData(data);
+            var context = DomainMapper.FromData(domain);
 
             using (var edit = new DomainEditWindow(context))
             {
                 if (edit.ShowDialog() ?? false)
                 {
-                    data.Alias = context.Alias;
-                    data.Group = context.Group;
-                    data.Info = context.Info;
-                    data.History = context.History
-                        .Select(h => DomainMapper.FromHistoryContext(h))
-                        .ToList();
-                    if (context.PasswordType == DomainItemPasswordType.Unique)
+                    var newDomain = DomainMapper.FromContext(context);
+
+                    for (var i = 0; i < Program.Session.User.Data.Domains.Count; i++)
                     {
-                        if (data.UniquePasswordValue != context.UniquePasswordValue)
+                        if (Program.Session.User.Data.Domains[i].DomainId == domain.DomainId)
                         {
-                            data.IsUniquePassword = true;
-                            data.UniquePasswordValue = context.UniquePasswordValue;
-                            data.History.Add(new UserDomainHistoryData
-                            {
-                                Value = data.UniquePasswordValue,
-                                CreatedDateTime = DateTime.Now
-                            });
-                        }
-                    }
-                    else
-                    {
-                        data.IsUniquePassword = false;
-                        if (data.PasswordId != context.PasswordId)
-                        {
-                            data.PasswordId = context.PasswordId;
-                            AddNewHistory(data, context.PasswordId);
+                            Program.Session.User.Data.Domains[i] = newDomain;
                         }
                     }
 
@@ -159,24 +119,22 @@ namespace PasswordStore.WPF.Domain
             }
         }
 
-        public static void ShowDomainEditWindow(UserDomainData data)
+        public static void ShowDomainEditWindow(UserDomainData domain)
         {
-            var context = DomainMapper.FromData(data);
+            var context = DomainMapper.FromData(domain);
 
             using (var edit = new DomainEditWindow(context))
             {
                 if (edit.ShowDialog() ?? false)
                 {
-                    data.Alias = context.Alias;
-                    data.Group = context.Group;
-                    data.Info = context.Info;
-                    data.History = context.History
-                        .Select(h => DomainMapper.FromHistoryContext(h))
-                        .ToList();
-                    if (data.PasswordId != context.PasswordId)
+                    var newDomain = DomainMapper.FromContext(context);
+
+                    for (var i = 0; i < Program.Session.User.Data.Domains.Count; i++)
                     {
-                        data.PasswordId = context.PasswordId;
-                        AddNewHistory(data, context.PasswordId);
+                        if (Program.Session.User.Data.Domains[i].DomainId == domain.DomainId)
+                        {
+                            Program.Session.User.Data.Domains[i] = newDomain;
+                        }
                     }
 
                     Program.Session.Save();
