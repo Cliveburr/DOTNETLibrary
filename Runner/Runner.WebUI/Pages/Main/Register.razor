@@ -1,0 +1,81 @@
+﻿@inject NavigationManager navigationManager
+@inject AuthenticationService authenticationService
+
+<section class="hero is-fullheight">
+    <div class="hero-body">
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column is-5-tablet is-4-desktop is-3-widescreen">
+                    <form action="" class="box">
+                        <div class="field">
+                            <label for="" class="label">Name</label>
+                            <div class="control has-icons-left">
+                                <input type="text" @bind=Name placeholder="bob" class="input" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="" class="label">Full Name</label>
+                            <div class="control has-icons-left">
+                                <input type="text" @bind=FullName placeholder="bob fred" class="input" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="" class="label">Email</label>
+                            <div class="control has-icons-left">
+                                <input type="email" @bind=Email placeholder="e.g. bobsmith@gmail.com" class="input" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="" class="label">Password</label>
+                            <div class="control has-icons-left">
+                                <input type="password" @bind=Password placeholder="*******" class="input" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fa-solid fa-lock"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="" class="label">Confirm Password</label>
+                            <div class="control has-icons-left">
+                                <input type="password" @bind=ConfirmPassword placeholder="*******" class="input" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fa-solid fa-lock"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <button type="button" class="button is-success" @onclick="OnRegister_Click">
+                                Register
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+
+    public string? Name { get; set; }
+    public string? FullName { get; set; }
+    public string? Email { get; set; }
+    public string? Password { get; set; }
+    public string? ConfirmPassword { get; set; }
+
+    public async Task OnRegister_Click()
+    {
+        await authenticationService.Create(Name, FullName, Email, Password, ConfirmPassword);
+
+        navigationManager.NavigateTo("/");
+    }
+}

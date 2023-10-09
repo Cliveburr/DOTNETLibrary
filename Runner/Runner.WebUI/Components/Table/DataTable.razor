@@ -1,0 +1,26 @@
+﻿@typeparam TItem
+
+<table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+    <thead>
+        @Header
+    </thead>
+    <tbody>
+        @foreach (var item in Items)
+        {
+            @Body(item)
+        }
+    </tbody>
+</table>
+
+@code {
+
+
+    [Parameter]
+    public required RenderFragment Header { get; set; }
+
+    [Parameter]
+    public required RenderFragment<TItem> Body { get; set; }
+
+    [Parameter]
+    public required IEnumerable<TItem> Items { get; set; }
+}

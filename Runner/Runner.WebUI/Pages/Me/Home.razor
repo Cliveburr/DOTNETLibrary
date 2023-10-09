@@ -1,0 +1,33 @@
+﻿@inject AuthenticationService authenticationService
+@inject NavigationManager navigationManager
+
+<div class="container">
+
+    <div class="buttons mt-3">
+        <button type="button" class="button is-success" @onclick="OnLogoff_Click">Logoff</button>
+        <button type="button" class="button is-success" @onclick="OnApps_Click">Apps</button>
+    </div>
+
+    <div class="box mt-3">
+       
+    </div>
+</div>
+
+@code {
+
+
+    protected override void OnInitialized()
+    {
+    }
+
+    public async Task OnLogoff_Click()
+    {
+        await authenticationService.Logoff();
+        navigationManager.NavigateTo("/");
+    }
+
+    public void OnApps_Click()
+    {
+        navigationManager.NavigateTo("/me/apps");
+    }
+}

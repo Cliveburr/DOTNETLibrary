@@ -1,0 +1,68 @@
+﻿@using Runner.WebUI.Helpers;
+@inject AuthenticationService authenticationService
+@inject NavigationManager navigationManager
+
+<section class="hero is-fullheight">
+    <div class="hero-body">
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column is-5-tablet is-4-desktop is-3-widescreen">
+                    <form action="" class="box">
+                        <div class="field">
+                            <label for="" class="label">Email</label>
+                            <div class="control has-icons-left">
+                                <input type="text" @bind=Name placeholder="bob" class="input" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="" class="label">Password</label>
+                            <div class="control has-icons-left">
+                                <input type="password" @bind=Password placeholder="*******" class="input" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fa-solid fa-lock"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <p class="is-size-7">
+                                Don't have an account? <a class="has-text-primary" @onclick="OnRegister_Click">Register</a>
+                            </p>
+                        </div>
+                        <div class="field">
+                            <button type="button" class="button is-success" @onclick="OnLogin_Click">
+                                Login
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+
+    public string? Name { get; set; }
+    public string? Password { get; set; }
+
+    public async Task OnLogin_Click()
+    {
+        try
+        {
+            await authenticationService.Login(Name, Password);
+            navigationManager.NavigateTo("/");
+        }
+        catch (Exception err)
+        {
+            
+        }
+    }
+
+    public void OnRegister_Click()
+    {
+        navigationManager.NavigateTo("/register");
+    }
+}

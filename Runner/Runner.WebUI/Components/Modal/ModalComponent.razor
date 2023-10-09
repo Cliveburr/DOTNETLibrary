@@ -1,0 +1,148 @@
+﻿@using Runner.Business.Entities;
+@inject ModalService modalService
+
+@if (isShow && modal != null)
+{
+    @modal
+}
+
+@code {
+
+    private bool isShow;
+    private RenderFragment? modal;
+
+    class ModalData
+    {
+        public string? StringValue { get; set; }
+        public object? ObjectValue { get; set; }
+        public bool OkValue { get; set; }
+        public required ManualResetEvent Resume { get; set; }
+
+        public void ResumeOk()
+        {
+            OkValue = true;
+            Resume.Set();
+        }
+
+        public void ResumeCancel()
+        {
+            OkValue = false;
+            Resume.Set();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        modalService.Component = this;
+    }
+
+    public Task<(bool Ok, string Value)> Question(string question, string defaultValue, string placeholder)
+    {
+        return Task.Run<(bool Ok, string Value)>(() =>
+        {
+            var data = new ModalData
+                {
+                    StringValue = defaultValue,
+                    OkValue = false,
+                    Resume = new ManualResetEvent(false)
+                };
+            modal = BuildQuestion(data, question, placeholder);
+            isShow = true;
+            InvokeAsync(() => StateHasChanged()).Wait();
+
+            data.Resume.WaitOne();
+
+            var ok = data.OkValue;
+            var value = data.StringValue;
+
+            modal = null;
+            isShow = false;
+            InvokeAsync(() => StateHasChanged()).Wait();
+
+            return (ok, value);
+        });
+    }
+
+    private RenderFragment BuildQuestion(ModalData data, string question, string placeholder)
+    {
+        return
+        @<div class="modal is-active">
+            <div class="modal-background" @onclick=data.ResumeCancel></div>
+            <div class="modal-card">
+                <header class="modal-card-head">
+                    <p class="modal-card-title">@question</p>
+                    <button class="delete" aria-label="close" @onclick=data.ResumeCancel></button>
+                </header>
+                <section class="modal-card-body">
+                    <input class="input" type="text" @bind-value=data.StringValue placeholder="@placeholder" autofocus>
+                </section>
+                <footer class="modal-card-foot">
+                    <button class="button is-success" @onclick=data.ResumeOk>Ok</button>
+                    <button class="button" @onclick=data.ResumeCancel>Cancel</button>
+                </footer>
+            </div>
+            <button class="modal-close is-large" aria-label="close" @onclick=data.ResumeCancel></button>
+        </div>
+    ;
+    }
+
+    public Task<(bool Ok, NodeType Value)> NodeTypeSelection()
+    {
+        return Task.Run<(bool Ok, NodeType Value)>(() =>
+        {
+            var data = new ModalData
+            {
+                OkValue = false,
+                Resume = new ManualResetEvent(false)
+            };
+            modal = BuildNodeTypeSelection(data);
+            isShow = true;
+            InvokeAsync(() => StateHasChanged()).Wait();
+
+            data.Resume.WaitOne();
+
+            var ok = data.OkValue;
+            var value = data.ObjectValue == null ? NodeType.App : (NodeType)data.ObjectValue;
+
+            modal = null;
+            isShow = false;
+            InvokeAsync(() => StateHasChanged()).Wait();
+
+            return (ok, value);
+        });
+    }
+
+    private RenderFragment BuildNodeTypeSelection(ModalData data)
+    {
+        var sel = new Action<NodeType>(nodeType =>
+        {
+            data.OkValue = true;
+            data.ObjectValue = nodeType;
+            data.Resume.Set();
+        });
+
+        return
+        @<div class="modal is-active">
+            <div class="modal-background" @onclick=data.ResumeCancel></div>
+            <div class="modal-card">
+                <section class="modal-card-body">
+                    <div class="panel is-primary">
+                        <p class="panel-heading">
+                            Select Node Type
+                        </p>
+                        @foreach (var nodeType in Enum.GetValues<CreableNodeType>())
+                        {
+                            <a class="panel-block is-active" @onclick=@(() => sel((NodeType)nodeType))>
+                                <span class="panel-icon">
+                                    <i class="fas fa-book" aria-hidden="true"></i>
+                                </span>
+                                @nodeType.ToString()
+                            </a>
+                        }
+                    </div>
+                </section>
+            </div>
+            <button class="modal-close is-large" aria-label="close" @onclick=data.ResumeCancel></button>
+        </div>;
+    }
+}

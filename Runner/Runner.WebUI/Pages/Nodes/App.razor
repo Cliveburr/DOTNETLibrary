@@ -1,0 +1,95 @@
+﻿@using Runner.Business.Entities;
+@inject NodeService nodeService
+@inject BaseService baseService
+
+<div class="container">
+
+    <div class="box mt-4">
+        <h3 class="title is-3">App: @Node.Name</h3>
+    </div>
+
+    <div class="buttons mt-3">
+        <button type="button" class="button is-info" @onclick="OnRefresh_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-rotate-right"></i>
+            </span>
+            <span>Refresh</span>
+        </button>
+        <button type="button" class="button is-success" @onclick="OnCreate_Click">Create</button>
+    </div>
+
+    <div class="box mt-3">
+        @if (Items != null)
+        {
+            <DataTable Items="Items">
+                <Header>
+                <tr>
+                    <th class="w20">Open</th>
+                    <th>Name</th>
+                </tr>
+                </Header>
+                <Body Context="Item">
+                <tr>
+                    <td>
+                        <button type="button" class="button is-small" @onclick="@(_ => OnNavigateApp_Click(Item))">
+                            <i class="fa-solid fa-rocket"></i>
+                        </button>
+                    </td>
+                    <td>@Item.Name</td>
+                </tr>
+                </Body>
+            </DataTable>
+        }
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public required NodeBase Node { get; set; }
+
+    public List<NodeBase>? Items { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await OnRefresh_Click();
+    }
+
+    public async Task OnRefresh_Click()
+    {
+        Items = await nodeService.ReadChilds(Node);
+        StateHasChanged();
+    }
+
+    public async Task OnCreate_Click()
+    {
+        var selectNodeType = await baseService.Modal.NodeTypeSelection();
+        if (!selectNodeType.Ok)
+        {
+            return;
+        }
+
+        var questionName = await baseService.Modal.Question("Enter the name of the app", "", "app");
+        if (!questionName.Ok)
+        {
+            return;
+        }
+
+        switch (selectNodeType.Value)
+        {
+            case NodeType.Folder:
+                {
+                    await nodeService.CreateFolder(questionName.Value, Node);
+                    await OnRefresh_Click();
+                    break;
+                }
+            default:
+                throw new Exception("Invalid type!");
+        }
+    }
+
+    public void OnNavigateApp_Click(NodeBase node)
+    {
+        baseService.FowardNode(node.Name);
+    }
+}

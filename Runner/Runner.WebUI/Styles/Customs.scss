@@ -1,0 +1,75 @@
+
+html, body {
+    overflow: hidden !important;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+}
+
+
+.notificationPanel {
+    z-index: 999;
+    right: 14px;
+    top: 68px;
+    display: flex;
+    position: absolute;
+    flex-direction: column;
+    max-width: 40%;
+
+    > .notification {
+        width: 400px;
+    }
+}
+/*
+.main {
+    display: flex;
+    align-items: stretch;
+    height: 100%;
+
+    > aside {
+        max-width: 250px;
+        overflow: auto;
+        background-color: #62a4dd;
+        box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
+
+        > .menu-label {
+            color: white !important;
+        }
+    }
+
+    > .main-container {
+        display: flex;
+        flex-grow: 1;
+        overflow: auto;
+    }
+}
+
+.notificationPanel {
+    z-index: 1;
+    position: absolute;
+    right: 0;
+    top: 3.5rem;
+}
+
+.navbar-center {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.is-gap {
+    gap: 0.75rem;
+}
+
+.dropdown-item {
+
+    > .icon {
+        margin-right: 0.5rem;
+    }
+}*/
+.w20 {
+    width: 20%;
+}
+.w50 {
+    width: 50%;
+}
