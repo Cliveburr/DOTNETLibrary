@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Interfaces\**" />
+    <Compile Remove="Model\**" />
+    <Compile Remove="Services\**" />
+    <EmbeddedResource Remove="Interfaces\**" />
+    <EmbeddedResource Remove="Model\**" />
+    <EmbeddedResource Remove="Services\**" />
+    <None Remove="Interfaces\**" />
+    <None Remove="Model\**" />
+    <None Remove="Services\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="BackCallTests.cs" />
+    <Compile Remove="ConnectionTests.cs" />
+    <Compile Remove="DirectSocket.cs" />
+    <Compile Remove="HostService.cs" />
+    <Compile Remove="SimpleTests.cs" />
+    <Compile Remove="SocketTests.cs" />
+    <Compile Remove="UploadFileTests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
+    <PackageReference Include="coverlet.collector" Version="3.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Runner.Communicator\Runner.Communicator.csproj" />
+  </ItemGroup>
+
+</Project>

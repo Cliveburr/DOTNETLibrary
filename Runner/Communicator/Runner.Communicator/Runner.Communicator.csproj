@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Helpers\**" />
+    <Compile Remove="Model\**" />
+    <EmbeddedResource Remove="Helpers\**" />
+    <EmbeddedResource Remove="Model\**" />
+    <None Remove="Helpers\**" />
+    <None Remove="Model\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Helpers\BitFields.cs" />
+    <Compile Include="Helpers\BytesReader.cs" />
+    <Compile Include="Helpers\BytesWriter.cs" />
+    <Compile Include="Helpers\ControlAsync.cs" />
+    <Compile Include="Helpers\ManuaResetEventAsync.cs" />
+    <Compile Include="Model\Message.cs" />
+    <Compile Include="Model\MessageType.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,191 @@
+﻿@using Runner.Business.Entities;
+@using Runner.WebUI.Pages.Nodes;
+@inherits ErrorBoundaryBase;
+@inject AuthenticationService authenticationService
+@inject NavigationManager navigationManager
+@inject NodeService appService
+@inject NotificationService notificationService
+
+@if (_view == null)
+{
+    <h2>IsLoading</h2>
+}
+else
+{
+    <Navbar />
+    <DynamicComponent Type="_view" Parameters="_viewParameters"  />
+}
+<ModalComponent></ModalComponent>
+<NotificationComponent></NotificationComponent>
+
+@code {
+
+    private class NavigationTask
+    {
+        public Task Task;
+        public bool IsCancelled;
+
+        public NavigationTask(Func<NavigationTask, string?, Task> exec, string? location = null)
+        {
+            Task = exec(this, location);
+        }
+    }
+    private NavigationTask? _navigation;
+    private Type? _view;
+    private Dictionary<string, object?> _viewParameters = new Dictionary<string, object?>();
+    private DynamicComponent din;
+
+    protected override async Task OnErrorAsync(Exception exception)
+    {
+        try
+        {
+            await notificationService.AddError(exception);
+        }
+        catch (Exception ex)
+        {
+            throw; // todo
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            navigationManager.LocationChanged += OnLocationChanged;
+            _navigation = new NavigationTask(FirstRender);
+        }
+        else
+        {
+            _navigation = null;
+        }
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs args)
+    {
+        _view = typeof(Loading);
+        _viewParameters.Clear();
+        StateHasChanged();
+
+        if (_navigation != null)
+        {
+            _navigation.IsCancelled = true;
+        }
+
+        if (authenticationService.IsLogged)
+        {
+            _navigation = new NavigationTask(Logged, args.Location);
+        }
+        else
+        {
+            _navigation = new NavigationTask(NotLogged);
+        }
+    }
+
+    private async Task FirstRender(NavigationTask navigation, string? location)
+    {
+        await authenticationService.CheckAccessToken();
+        if (!navigation.IsCancelled)
+        {
+            if (authenticationService.IsLogged)
+            {
+                await Logged(navigation, navigationManager.Uri);
+            }
+            else
+            {
+                await NotLogged(navigation, location);
+            }
+        }
+    }
+
+    private Task NotLogged(NavigationTask navigation, string? location)
+    {
+        if (!navigation.IsCancelled)
+        {
+            if (navigationManager.Uri.ToLower().EndsWith("register"))
+            {
+                _view = typeof(Register);
+            }
+            else
+            {
+                _view = typeof(Login);
+            }
+            _viewParameters.Clear();
+            StateHasChanged();
+        }
+        return Task.CompletedTask;
+    }
+
+    private async Task Logged(NavigationTask navigation, string? location)
+    {
+        if (navigation.IsCancelled || location == null)
+        {
+            return;
+        }
+
+        var parts = new System.Collections.Queue(location.ToLower().Substring(navigationManager.BaseUri.Length)
+            .Split("/", StringSplitOptions.RemoveEmptyEntries));
+
+        _viewParameters.Clear();
+        //_viewParameters["User"] = authenticationService.UserLogged?.User;
+
+        if (parts.Count == 0)
+        {
+            navigationManager.NavigateTo("/me", false, true);
+        }
+
+        var first = (string)parts.Dequeue()!;
+
+        switch (first)
+        {
+            case "me":
+                {
+                    _view = RouteMe(parts);
+                    break;
+                }
+            case "app":
+                {
+                    var node = await appService.ReadLocation(parts);
+                    if (node == null)
+                    {
+                        // talvez subir aviso
+                        //_view = typeof(Me.Home);
+                        navigationManager.NavigateTo("/me", false, true);
+                    }
+                    else
+                    {
+                        _viewParameters["Node"] = node;
+                        _view = RouteNode(node.Type);
+                    }
+                    break;
+                }
+            default:
+                {
+                    navigationManager.NavigateTo("/me", false, true);
+                    //_view = typeof(Me.Home);
+                    break;
+                }
+        }
+
+        StateHasChanged();
+    }
+
+    private Type RouteMe(System.Collections.Queue parts)
+    {
+        var path = parts.Count > 0 ? (string)parts.Dequeue()! : "";
+        switch (path)
+        {
+            case "apps": return typeof(Me.Apps);
+            default: return typeof(Me.Home); // talvez subir erro
+        }
+    }
+
+    private Type RouteNode(NodeType type)
+    {
+        switch (type)
+        {
+            case NodeType.App: return typeof(Nodes.App);
+            case NodeType.Folder: return typeof(Nodes.Folder);
+            default: return typeof(Me.Home); // talvez subir erro
+        }
+    }
+}
