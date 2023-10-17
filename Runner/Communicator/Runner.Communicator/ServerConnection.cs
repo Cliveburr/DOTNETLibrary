@@ -71,7 +71,7 @@ namespace Runner.Communicator
         internal async Task<ushort> ShakeHand(Func<ushort> getNextId)
         {
             var response = await ReceiveMessage();
-            if (response.Head.Type != MessageType.HandShake)
+            if (response.Head.Type != MessagePort.HandShake)
             {
                 throw new Exception("ShakeHand response wrong!");
             }
@@ -92,7 +92,7 @@ namespace Runner.Communicator
             var writer = new BytesWriter();
             writer.WriteUInt16(id);
             writer.WriteUInt16(1234);
-            var request = new Message(MessageType.HandShake, writer.GetBytes());
+            var request = new Message(MessagePort.HandShake, writer.GetBytes());
             await SendMessage(request);
 
             return id;
@@ -126,7 +126,7 @@ namespace Runner.Communicator
         {
             switch (message.Head.Type)
             {
-                case MessageType.Services:
+                case MessagePort.Services:
                     return GetProcessServices().ProcessRequest(message);
                 //case MessageType.FileUpload:
                 //    return GetProcessFileUpload().ProcessRequest(message);

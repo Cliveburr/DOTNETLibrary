@@ -91,7 +91,7 @@ namespace Runner.Communicator.Tests.Abstract
             };
 
             var dataSend = new byte[] { 10, 11, 12 };
-            await socket.SendMessage(new Message(MessageType.Any, dataSend));
+            await socket.SendMessage(new Message(MessagePort.Any, dataSend));
             var dataReceive = await socket.ReceiveMessage();
 
             Assert.IsTrue(isConnected);

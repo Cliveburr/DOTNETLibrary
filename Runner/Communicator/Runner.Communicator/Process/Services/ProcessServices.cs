@@ -82,7 +82,7 @@ namespace Runner.Communicator.Process.Services
                     Result = resultBuffer
                 };
 
-                return Message.Create(MessageType.Services, response.GetBytes());
+                return Message.Create(MessagePort.Services, response.GetBytes());
             }
             catch (TargetInvocationException err)
             {
@@ -92,7 +92,7 @@ namespace Runner.Communicator.Process.Services
                     Result = Encoding.UTF8.GetBytes(err.InnerException!.ToString())
                 };
 
-                return Message.Create(MessageType.Services, response.GetBytes());
+                return Message.Create(MessagePort.Services, response.GetBytes());
             }
             catch (Exception err)
             {
@@ -102,7 +102,7 @@ namespace Runner.Communicator.Process.Services
                     Result = Encoding.UTF8.GetBytes(err.ToString())
                 };
 
-                return Message.Create(MessageType.Services, response.GetBytes());
+                return Message.Create(MessagePort.Services, response.GetBytes());
             }
         }
 

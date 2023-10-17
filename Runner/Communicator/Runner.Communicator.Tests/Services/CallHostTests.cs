@@ -27,8 +27,6 @@ namespace Runner.Communicator.Tests.Services
 
             var callBuilder = BuildProvider.Build(services =>
             {
-                //services
-                //    .AddScoped<IBasic, BasicService>();
             });
 
             var call = new ServiceCallerImp(callBuilder.Provider.CreateScope(), cancellationToken);

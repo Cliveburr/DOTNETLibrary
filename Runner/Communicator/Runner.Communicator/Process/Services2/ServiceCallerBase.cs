@@ -11,13 +11,17 @@ namespace Runner.Communicator.Process.Services2
 {
     public abstract class ServiceCallerBase : IDisposable
     {
-        private IServiceScope _serviceScope;
-        private CancellationTokenSource _cancellationTokenSource;
+        public CancellationToken CancellationToken { get => _cancellationTokenSource.Token; }
 
-        public ServiceCallerBase(IServiceScope serviceScope, CancellationToken cancellationToken)
+        private IServiceScope? _serviceScope;
+        private CancellationTokenSource _cancellationTokenSource;
+        private bool _configuratedScoped;
+
+        public ServiceCallerBase(IServiceScope? serviceScope, CancellationToken cancellationToken)
         {
             _serviceScope = serviceScope;
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            _configuratedScoped = false;
         }
 
         protected abstract Task<InvokeResponse> SendAndReceive(InvokeRequest request);
@@ -35,14 +39,29 @@ namespace Runner.Communicator.Process.Services2
             var proxyType = typeof(CallProxy<>);
             var proxyGenericType = proxyType.MakeGenericType(interfaceType);
 
-            var proxy = proxyGenericType.InvokeMember("Create", BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Static, null, null, new object[] { SendAndReceive, assemblyQualifiedName })!;
+            var proxy = proxyGenericType.InvokeMember("Create", BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Static, null, null, new object[] { (object)SendAndReceive, assemblyQualifiedName })!;
             return (T)proxy;
+        }
+
+        private void ConfigureScope()
+        {
+            var caller = _serviceScope!.ServiceProvider.GetService<ServiceCallerBackObj> ();
+            if (caller != null)
+            {
+                caller.Service = this;
+            }
+            _configuratedScoped = true;
         }
 
         protected virtual async Task<InvokeResponse> InvokeAsync(InvokeRequest request)
         {
             try
             {
+                if (_serviceScope == null)
+                {
+                    throw new Exception("Need to set IServiceScope to Invoke!");
+                }
+
                 var interfaceFullName = request.AssemblyQualifiedName;
                 if (interfaceFullName == null)
                 {
@@ -53,6 +72,11 @@ namespace Runner.Communicator.Process.Services2
                 if (serviceType == null)
                 {
                     throw new Exception("Interface invalid: " + interfaceFullName);
+                }
+                
+                if (!_configuratedScoped)
+                {
+                    ConfigureScope();
                 }
 
                 var target = _serviceScope.ServiceProvider.GetRequiredService(serviceType);

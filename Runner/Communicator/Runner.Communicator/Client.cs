@@ -10,31 +10,35 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 //using Runner.Communicator.FileUpload;
 using Runner.Communicator.Helpers;
 using Runner.Communicator.Model;
 using Runner.Communicator.Process.Services;
+using Runner.Communicator.Process.Services2;
 
 namespace Runner.Communicator
 {
     public class Client : Abstract.SocketTcp
     {
-        private ClientServices? _clientServices;
+        private ServiceCallerSocket? _serviceCaller;
         private string _hostname;
         private int _port;
         private ushort _id;
+        private IServiceScope? _serviceScope;
 
-        public Client(string hostname, int port, CancellationToken cancellationToken = new CancellationToken())
+        private Client(string hostname, int port, IServiceScope? serviceScope, CancellationToken cancellationToken)
             : base(null, cancellationToken)
         {
             _hostname = hostname;
             _port = port;
+            _serviceScope = serviceScope;
             _id = 0;
         }
 
-        public static async Task<Client> Connect(string hostname, int port)
+        public static async Task<Client> Connect(string hostname, int port, IServiceScope? serviceScope, CancellationToken cancellationToken = new CancellationToken())
         {
-            var client = new Client(hostname, port);
+            var client = new Client(hostname, port, serviceScope, cancellationToken);
             await client.ConnectAsync();
             return client;
         }
@@ -56,7 +60,7 @@ namespace Runner.Communicator
             var writer = new BytesWriter();
             writer.WriteUInt16(_id);
             writer.WriteUInt16(1234);
-            var request = new Message(MessageType.HandShake, writer.GetBytes());
+            var request = new Message(MessagePort.HandShake, writer.GetBytes());
 
             var response = await SendAndReceive(request);
 
@@ -64,7 +68,7 @@ namespace Runner.Communicator
             {
                 throw new Exception("ShakeHand fail!");
             }
-            if (response.Head.Type != MessageType.HandShake)
+            if (response.Head.Type != MessagePort.HandShake)
             {
                 throw new Exception("ShakeHand response wrong!");
             }
@@ -80,15 +84,15 @@ namespace Runner.Communicator
             _id = id;
         }
 
-        public ClientServices Services
+        public ServiceCallerSocket Services
         {
             get
             {
-                if (_clientServices == null)
+                if (_serviceCaller == null)
                 {
-                    _clientServices = new ClientServices();
+                    _serviceCaller = new ServiceCallerSocket(this, _serviceScope, CancellationToken);
                 }
-                return _clientServices;
+                return _serviceCaller;
             }
         }
 

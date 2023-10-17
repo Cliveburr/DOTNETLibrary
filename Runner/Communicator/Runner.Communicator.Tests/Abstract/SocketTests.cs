@@ -58,7 +58,7 @@ namespace Runner.Communicator.Tests
                 {
                     Assert.AreEqual(message.Data[0], 111);
 
-                    return Task.FromResult(Message.Create(MessageType.Any, new byte[] { 222 }));
+                    return Task.FromResult(Message.Create(MessagePort.Any, new byte[] { 222 }));
                 }));
                 con.Start(wait);
             });
@@ -68,7 +68,7 @@ namespace Runner.Communicator.Tests
             wait.WaitOne();
             await Task.Delay(100);
 
-            var result = await conClient.SendAndReceive(Message.Create(MessageType.Any, new byte[] { 111 }));
+            var result = await conClient.SendAndReceive(Message.Create(MessagePort.Any, new byte[] { 111 }));
 
             Assert.AreEqual(result.Data[0], 222);
         }
@@ -90,7 +90,7 @@ namespace Runner.Communicator.Tests
                 {
                     CompareData(message.Data, data);
 
-                    return Task.FromResult(Message.Create(MessageType.Any, new byte[] { 0 }));
+                    return Task.FromResult(Message.Create(MessagePort.Any, new byte[] { 0 }));
                 }));
                 con.Start(wait);
             });
@@ -100,7 +100,7 @@ namespace Runner.Communicator.Tests
             wait.WaitOne();
             await Task.Delay(100);
 
-            var result = await conClient.SendAndReceive(Message.Create(MessageType.Any, data));
+            var result = await conClient.SendAndReceive(Message.Create(MessagePort.Any, data));
         }
 
         [TestMethod]
@@ -132,7 +132,7 @@ namespace Runner.Communicator.Tests
                         {
                             var reverseData = ReverseData(message.Data);
 
-                            return Task.FromResult(Message.Create(MessageType.Any, reverseData));
+                            return Task.FromResult(Message.Create(MessagePort.Any, reverseData));
                         }));
                         con.Start(wait);
                     }
@@ -149,7 +149,7 @@ namespace Runner.Communicator.Tests
                 var data = GenerateData(1);
 
                 Trace.WriteLine($"client {i} start");
-                var result = await conClient.SendAndReceive(Message.Create(MessageType.Any, data));
+                var result = await conClient.SendAndReceive(Message.Create(MessagePort.Any, data));
 
                 var reverseData = ReverseData(data);
                 CompareData(result.Data, reverseData);

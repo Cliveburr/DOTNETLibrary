@@ -24,6 +24,7 @@
     <Compile Include="Helpers\BytesWriter.cs" />
     <Compile Include="Helpers\ControlAsync.cs" />
     <Compile Include="Helpers\ManuaResetEventAsync.cs" />
+    <Compile Include="Helpers\ServiceCallerExtension.cs" />
     <Compile Include="Model\Message.cs" />
     <Compile Include="Model\MessageType.cs" />
   </ItemGroup>

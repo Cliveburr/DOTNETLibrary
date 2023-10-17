@@ -82,10 +82,10 @@ namespace Runner.Communicator.Process.Services
                 Method = method,
                 Args = argsBytes
             };
-            var requestMessage = Message.Create(MessageType.Services, request.GetBytes());
+            var requestMessage = Message.Create(MessagePort.Services, request.GetBytes());
 
             var responseMessage = await _client!.SendAndReceive(requestMessage);
-            if (responseMessage.Head.Type != MessageType.Services)
+            if (responseMessage.Head.Type != MessagePort.Services)
             {
                 throw new Exception("Invalid response MessageType Services!");
             }
@@ -133,10 +133,10 @@ namespace Runner.Communicator.Process.Services
                 Method = method,
                 Args = argsBytes
             };
-            var requestMessage = Message.Create(MessageType.Services, request.GetBytes());
+            var requestMessage = Message.Create(MessagePort.Services, request.GetBytes());
 
             var responseMessage = await _client!.SendAndReceive(requestMessage);
-            if (responseMessage.Head.Type != MessageType.Services)
+            if (responseMessage.Head.Type != MessagePort.Services)
             {
                 throw new Exception("Invalid response MessageType!");
             }

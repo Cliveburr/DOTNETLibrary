@@ -171,7 +171,7 @@ namespace Runner.Communicator.Abstract
                 {
                     IsSuccess = false,
                     IsDisconnected = false,
-                    Data = new byte[head.Lenght],
+                    Data = new byte[head.DataLenght],
                     Attempts = 0,
                     TimeoutDateTime = headCtx.TimeoutDateTime,
                     CancellationToken = headCtx.CancellationToken

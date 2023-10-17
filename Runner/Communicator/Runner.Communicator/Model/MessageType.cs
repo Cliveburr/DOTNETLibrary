@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Runner.Communicator.Model
 {
-    public enum MessageType : ushort
+    public enum MessagePort : ushort
     {
         Any = 0,
         HandShake = 1,
