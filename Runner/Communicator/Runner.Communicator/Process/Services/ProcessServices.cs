@@ -13,13 +13,13 @@ namespace Runner.Communicator.Process.Services
     public class ProcessServices
     {
         private Server _server;
-        private Dictionary<string, ServerConnectionServices> _services;
+        private Dictionary<string, ServerProxy> _services;
         private IServiceScope? _serviceScope;
 
         public ProcessServices(Server server)
         {
             _server = server;
-            _services = new Dictionary<string, ServerConnectionServices>();
+            _services = new Dictionary<string, ServerProxy>();
         }
 
         public async Task<Message> ProcessRequest(Message message)
@@ -36,15 +36,14 @@ namespace Runner.Communicator.Process.Services
 
                 if (!_services.ContainsKey(interfaceFullName))
                 {
-                    var serverService = _server.Services
-                        .FirstOrDefault(s => s.Interface.FullName == interfaceFullName);
+                    var serverService = _server.Services.GetForType(interfaceFullName);
                     if (serverService == null)
                     {
                         throw new Exception("Interface invalid: " + interfaceFullName);
                     }
 
                     var target = Build(serverService.Interface);
-                    var newService = _services[interfaceFullName] = new ServerConnectionServices(target);
+                    var newService = _services[interfaceFullName] = new ServerProxy(target);
                 }
                 var service = _services[interfaceFullName];
 
@@ -55,13 +54,13 @@ namespace Runner.Communicator.Process.Services
                 {
                     await resultTask.WaitAsync(_server.CancellationToken);
                 }
-                else if (resultType.Name.StartsWith("Task"))
-                {
-                    if (!resultTask.IsCompleted)
-                    {
-                        resultTask.RunSynchronously();
-                    }
-                }
+                //else if (resultType.Name.StartsWith("Task"))
+                //{
+                //    if (!resultTask.IsCompleted)
+                //    {
+                //        await resultTask.WaitAsync(_server.CancellationToken);
+                //    }
+                //}
                 else
                 {
                     if (!resultTask.IsCompleted)
@@ -111,8 +110,8 @@ namespace Runner.Communicator.Process.Services
         {
             if (_serviceScope == null)
             {
-                var serviceProvider = _server.ServiceCollection.BuildServiceProvider();
-                _serviceScope = serviceProvider.CreateScope();
+                //var serviceProvider = _server.ServiceCollection.BuildServiceProvider();
+                _serviceScope = _server.Services.GetScope(); // serviceProvider.CreateScope();
             }
             return _serviceScope.ServiceProvider.GetRequiredService(type);
         }

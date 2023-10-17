@@ -10,21 +10,17 @@
 
   <ItemGroup>
     <Compile Remove="Interfaces\**" />
-    <Compile Remove="Model\**" />
-    <Compile Remove="Services\**" />
+    <Compile Remove="Services_old\**" />
     <EmbeddedResource Remove="Interfaces\**" />
-    <EmbeddedResource Remove="Model\**" />
-    <EmbeddedResource Remove="Services\**" />
+    <EmbeddedResource Remove="Services_old\**" />
     <None Remove="Interfaces\**" />
-    <None Remove="Model\**" />
-    <None Remove="Services\**" />
+    <None Remove="Services_old\**" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Remove="BackCallTests.cs" />
     <Compile Remove="ConnectionTests.cs" />
     <Compile Remove="DirectSocket.cs" />
-    <Compile Remove="HostService.cs" />
     <Compile Remove="SimpleTests.cs" />
     <Compile Remove="SocketTests.cs" />
     <Compile Remove="UploadFileTests.cs" />

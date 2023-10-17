@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using Runner.Communicator.Model;
+using Runner.Communicator.Process.Services;
 
 namespace Runner.Communicator
 {
@@ -11,35 +12,20 @@ namespace Runner.Communicator
         public delegate void OnErrorDelegate(Server server, ServerConnection? connection, Exception err);
         public event OnErrorDelegate? OnError;
         public CancellationToken CancellationToken { get; private set; }
-        public List<ServerServices> Services { get; private set; }
-        public IServiceCollection ServiceCollection { get; private set; }
         public List<ServerConnection> Connections { get; private set; }
         public string? FileUploadDirectory { get; set; }
 
         private ushort _nextClientId;
         private TcpListener _listener;
+        private ServerServices? _serverServices;
+        private IServiceCollection _serviceCollection;
 
         public Server(int port, IServiceCollection services)
         {
-            ServiceCollection = services;
+            _serviceCollection = services;
             _listener = new TcpListener(IPAddress.Any, port);
             Connections = new List<ServerConnection>();
-            Services = new List<ServerServices>();
             _nextClientId = 1;
-        }
-
-        public Server Add<I, S>() 
-            where I : class
-            where S : class, I
-        {
-            ServiceCollection
-                .AddScoped<I, S>();
-            Services.Add(new ServerServices
-            {
-                Interface = typeof(I),
-                Implementation = typeof(S)
-            });
-            return this;
         }
 
         public void Dispose()
@@ -70,7 +56,7 @@ namespace Runner.Communicator
             Dispose();
         }
 
-        public ushort GetNextId()
+        private ushort GetNextId()
         {
             if (_nextClientId == ushort.MaxValue)
             {
@@ -96,8 +82,8 @@ namespace Runner.Communicator
                     var tcpClient = await _listener.AcceptTcpClientAsync(CancellationToken);
                     if (tcpClient != null)
                     {
-                        var temp = new ServerConnection(tcpClient, this);
-                        var id = await temp.ShakeHand();
+                        var temp = new ServerConnection(tcpClient, this, CancellationToken);
+                        var id = await temp.ShakeHand(GetNextId);
 
                         var connection = Connections
                             .FirstOrDefault(c => c.Id == id);
@@ -134,6 +120,18 @@ namespace Runner.Communicator
             lock (Connections)
             {
                 Connections.Remove(sender);
+            }
+        }
+
+        public ServerServices Services
+        {
+            get
+            {
+                if (_serverServices == null)
+                {
+                    _serverServices = new ServerServices(_serviceCollection);
+                }
+                return _serverServices;
             }
         }
     }

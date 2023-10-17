@@ -5,13 +5,13 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace Runner.Communicator
+namespace Runner.Communicator.Process.Services
 {
-    public class ServerConnectionServices
+    public class ServerProxy
     {
         private object _target;
 
-        public ServerConnectionServices(object target)
+        public ServerProxy(object target)
         {
             _target = target;
         }

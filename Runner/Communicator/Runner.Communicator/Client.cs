@@ -10,7 +10,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Runner.Communicator.FileUpload;
+//using Runner.Communicator.FileUpload;
 using Runner.Communicator.Helpers;
 using Runner.Communicator.Model;
 using Runner.Communicator.Process.Services;
@@ -37,25 +37,6 @@ namespace Runner.Communicator
             var client = new Client(hostname, port);
             await client.ConnectAsync();
             return client;
-        }
-
-        public void Dispose()
-        {
-            try
-            {
-                _cancellationTokenSource.Cancel();
-            }
-            catch { }
-            try
-            {
-                _tcpClient?.Close();
-            }
-            catch { }
-            try
-            {
-                _tcpClient?.Dispose();
-            }
-            catch { }
         }
 
         protected override async Task DoConnectAsync(CancellationToken cancellationToken)
@@ -99,27 +80,30 @@ namespace Runner.Communicator
             _id = id;
         }
 
-        public T Open<T>()
+        public ClientServices Services
         {
-            if (_clientServices == null)
+            get
             {
-                _clientServices = new ClientServices();
+                if (_clientServices == null)
+                {
+                    _clientServices = new ClientServices();
+                }
+                return _clientServices;
             }
-            return _clientServices.Open<T>(this);
         }
 
-        public ClientFileUpload FileUpload(string localFilePath, string destineFilePath, bool overwrite = false, int partSizeMB = 10)
-        {
-            return new ClientFileUpload(this, localFilePath, destineFilePath, overwrite, partSizeMB);
-        }
+        //public ClientFileUpload FileUpload(string localFilePath, string destineFilePath, bool overwrite = false, int partSizeMB = 10)
+        //{
+        //    return new ClientFileUpload(this, localFilePath, destineFilePath, overwrite, partSizeMB);
+        //}
 
-        public Task DeleteFolder(string folder)
-        {
-            var clientFileUpload = new ClientFileUpload(this, "", "", false);
-            return clientFileUpload.DeleteFolder(new Process.FileUpload.Model.DeleteFolderRequest
-            {
-                Folder = folder
-            });
-        }
+        //public Task DeleteFolder(string folder)
+        //{
+        //    var clientFileUpload = new ClientFileUpload(this, "", "", false);
+        //    return clientFileUpload.DeleteFolder(new Process.FileUpload.Model.DeleteFolderRequest
+        //    {
+        //        Folder = folder
+        //    });
+        //}
     }
 }

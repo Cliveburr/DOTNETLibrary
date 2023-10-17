@@ -8,8 +8,6 @@ namespace Runner.Communicator.Tests.Interfaces
 {
     public interface ITwoToOneInterface
     {
-        Task NormalException();
-        Task NullReferenceException();
         Task Extracheck(string filePath);
     }
 }

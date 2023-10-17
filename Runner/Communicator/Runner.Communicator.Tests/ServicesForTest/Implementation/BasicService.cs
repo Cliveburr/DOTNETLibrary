@@ -1,14 +1,14 @@
-﻿using System;
+﻿using Runner.Communicator.Tests.Model;
+using Runner.Communicator.Tests.ServicesForTest.Interface;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Runner.Communicator.Tests.Interfaces;
-using Runner.Communicator.Tests.Model;
 
-namespace Runner.Communicator.Tests.Services
+namespace Runner.Communicator.Tests.ServicesForTest.Implementation
 {
-    public class OnToTwoService : IOnToTwoInterface
+    public class BasicService : IBasic
     {
         public Task<string> Ping()
         {
@@ -76,6 +76,16 @@ namespace Runner.Communicator.Tests.Services
             process.StartInfo.WorkingDirectory = @"C:\";
             process.Start();
             return process.WaitForExitAsync();
+        }
+
+        public Task NormalException()
+        {
+            throw new Exception("NormalException");
+        }
+
+        public Task NullReferenceException()
+        {
+            throw new NullReferenceException("NullReferenceException");
         }
     }
 }

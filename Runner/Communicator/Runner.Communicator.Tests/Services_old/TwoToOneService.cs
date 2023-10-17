@@ -9,15 +9,6 @@ namespace Runner.Communicator.Tests.Services
 {
     public class TwoToOneService : ITwoToOneInterface
     {
-        public Task NormalException()
-        {
-            throw new Exception("NormalException");
-        }
-
-        public Task NullReferenceException()
-        {
-            throw new NullReferenceException("NullReferenceException");
-        }
 
         public Task Extracheck(string filePath)
         {

@@ -24,11 +24,16 @@ namespace Runner.Communicator.Abstract
             return _tcpClient != null;
         }
 
-        private void DisconnectSocket()
+        protected void DisconnectSocket()
         {
             try
             {
                 _tcpClient?.Close();
+            }
+            catch { }
+            try
+            {
+                _tcpClient?.Dispose();
             }
             catch { }
             _tcpClient = null;

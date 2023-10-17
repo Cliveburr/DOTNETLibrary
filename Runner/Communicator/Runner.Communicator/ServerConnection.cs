@@ -13,12 +13,12 @@ using System.Text.Unicode;
 using System.Threading.Tasks;
 using Runner.Communicator.Helpers;
 using Runner.Communicator.Model;
-using Runner.Communicator.Process.FileUpload;
+//using Runner.Communicator.Process.FileUpload;
 using Runner.Communicator.Process.Services;
 
 namespace Runner.Communicator
 {
-    public class ServerConnection : SocketTcp
+    public class ServerConnection : Abstract.SocketTcp
     {
         public delegate void OnCloseDelegate(ServerConnection sender);
         public event OnCloseDelegate? OnClose;
@@ -30,58 +30,45 @@ namespace Runner.Communicator
         private Server _server;
         private ManualResetEvent? _waitReconnect;
         private ProcessServices? _processServices;
-        private ProcessFileUpload? _processFileUpload;
+        //private ProcessFileUpload? _processFileUpload;
 
-        public ServerConnection(TcpClient tcpClient, Server server, int maxAttempts)
-            : base(maxAttempts)
+        public ServerConnection(TcpClient tcpClient, Server server, CancellationToken cancellationToken)
+            : base(tcpClient, cancellationToken)
         {
-            _tcpClient = tcpClient;
             _server = server;
-            CancellationToken = server.CancellationToken;
-        }
-
-        public ServerConnection(TcpClient tcpClient, Server server)
-            : this(tcpClient, server, 3)
-        {
-        }
-
-        public void Close()
-        {
-            try
-            {
-                _tcpClient?.Close();
-            }
-            catch { }
-            try
-            {
-                _tcpClient?.Dispose();
-            }
-            catch { }
         }
 
         public void ReplaceTcpClient(TcpClient tcpClient)
         {
-            Close();
+            DisconnectSocket();
             _tcpClient = tcpClient;
             _waitReconnect?.Set();
         }
 
-        protected override Task DoConnectAsync(ConnectContext ctx)
+        protected override Task DoConnectAsync(CancellationToken cancellationToken)
         {
             _waitReconnect = new ManualResetEvent(false);
-            if (_waitReconnect.WaitOne(60000))  // 3 * 60 * 1000
+            WaitHandle.WaitAny(new WaitHandle[]
             {
-                ctx.IsConnected = true;
-            }
+                cancellationToken.WaitHandle,
+                _waitReconnect
+            });
+            cancellationToken.ThrowIfCancellationRequested();
+            //cancellationToken.WaitHandle.WaitOne()
+
+            //if (_waitReconnect .WaitOne() .WaitOne(60000))  // 3 * 60 * 1000
+            //{
+            //    ctx.IsConnected = true;
+            //}
             _waitReconnect = null;
-            if (ctx.Attempts >= MaxAttempts)
-            {
-                _ = Task.Run(() => OnClose?.Invoke(this));
-            }
+            //if (ctx.Attempts >= MaxAttempts)
+            //{
+            //    _ = Task.Run(() => OnClose?.Invoke(this));
+            //}
             return Task.CompletedTask;
         }
 
-        public async Task<ushort> ShakeHand()
+        internal async Task<ushort> ShakeHand(Func<ushort> getNextId)
         {
             var response = await ReceiveMessage();
             if (response.Head.Type != MessageType.HandShake)
@@ -99,14 +86,14 @@ namespace Runner.Communicator
 
             if (id == 0)
             {
-                id = _server.GetNextId();
+                id = getNextId();
             }
 
             var writer = new BytesWriter();
             writer.WriteUInt16(id);
             writer.WriteUInt16(1234);
             var request = new Message(MessageType.HandShake, writer.GetBytes());
-            await SendResponse(request);
+            await SendMessage(request);
 
             return id;
         }
@@ -126,7 +113,7 @@ namespace Runner.Communicator
                     var message = await ReceiveMessage();
 
                     var response = await ProcessRequestAsync(message);
-                    await SendResponse(response);
+                    await SendMessage(response);
                 }
                 catch (Exception err)
                 {
@@ -141,8 +128,8 @@ namespace Runner.Communicator
             {
                 case MessageType.Services:
                     return GetProcessServices().ProcessRequest(message);
-                case MessageType.FileUpload:
-                    return GetProcessFileUpload().ProcessRequest(message);
+                //case MessageType.FileUpload:
+                //    return GetProcessFileUpload().ProcessRequest(message);
                 default:
                     throw new Exception("Invalid message type: " + message.Head.Type);
             }
@@ -157,14 +144,14 @@ namespace Runner.Communicator
             return _processServices;
         }
 
-        private ProcessFileUpload GetProcessFileUpload()
-        {
-            if (_processFileUpload == null)
-            {
-                _processFileUpload = new ProcessFileUpload(_server);
-            }
-            return _processFileUpload;
-        }
+        //private ProcessFileUpload GetProcessFileUpload()
+        //{
+        //    if (_processFileUpload == null)
+        //    {
+        //        _processFileUpload = new ProcessFileUpload(_server);
+        //    }
+        //    return _processFileUpload;
+        //}
 
         public void Stop()
         {
