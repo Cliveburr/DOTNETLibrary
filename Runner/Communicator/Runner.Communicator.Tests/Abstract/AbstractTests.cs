@@ -83,7 +83,7 @@ namespace Runner.Communicator.Tests.Abstract
         {
             var isConnected = false;
 
-            var socket = new BaseImpl(3000);
+            var socket = new BaseImpl(1000);
             socket.OnConnected = (cancellationToken) =>
             {
                 isConnected = true;
@@ -91,12 +91,11 @@ namespace Runner.Communicator.Tests.Abstract
             };
 
             var dataSend = new byte[] { 10, 11, 12 };
-            await socket.SendMessage(new Message(MessagePort.Any, dataSend));
-            var dataReceive = await socket.ReceiveMessage();
+            var dataReceive = await socket.SendAndReceive(dataSend, MessagePort.Any);
 
             Assert.IsTrue(isConnected);
             Assert.IsNotNull(dataReceive);
-            CompareData(dataSend, dataReceive.Data);
+            CompareData(dataSend, dataReceive);
         }
 
         public void CompareData(byte[] data1, byte[] data2)

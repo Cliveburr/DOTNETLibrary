@@ -53,12 +53,19 @@ namespace Runner.Communicator.Model
         {
             return Task<byte[]>.Run(() =>
             {
-                WaitHandle.WaitAny(new[] { _cancellationTokenSource.Token.WaitHandle, _manualReset });
+                WaitHandle.WaitAny(new[] {
+                    _cancellationTokenSource.Token.WaitHandle,
+                    _manualReset
+                });
                 if (_err != null)
                 {
                     throw _err;
                 }
-                if (_data == null)
+                else if (_cancellationTokenSource.IsCancellationRequested)
+                {
+                    throw new TimeoutException("WaitDataAsync timeout");
+                }
+                else if (_data == null)
                 {
                     throw new Exception("Invalid release without data!");
                 }
@@ -70,21 +77,17 @@ namespace Runner.Communicator.Model
         {
             _ = Task.Run(() =>
             {
-                WaitHandle.WaitAny(new[] { _cancellationTokenSource.Token.WaitHandle, _manualReset });
+                WaitHandle.WaitAny(new[] {
+                    _cancellationTokenSource.Token.WaitHandle,
+                    _manualReset
+                });
                 if (_err != null)
                 {
                     timeoutEvent(this, _err);
                 }
-                else
+                else if (_cancellationTokenSource.IsCancellationRequested)
                 {
-                    if (_cancellationTokenSource.IsCancellationRequested)
-                    {
-                        timeoutEvent(this, new TimeoutException("MessageStore timeout"));
-                    }
-                    else
-                    {
-                        timeoutEvent(this, null);
-                    }
+                    timeoutEvent(this, new TimeoutException("MessageStore timeout"));
                 }
             });
         }

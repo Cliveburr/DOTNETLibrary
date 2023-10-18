@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Runner.Communicator.Helpers;
-using Runner.Communicator.Process.Services2;
+using Runner.Communicator.Process.Services;
 using Runner.Communicator.Tests.ServicesForTest.Implementation;
 using Runner.Communicator.Tests.ServicesForTest.Interface;
 using System;

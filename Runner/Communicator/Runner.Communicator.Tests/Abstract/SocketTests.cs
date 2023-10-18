@@ -46,61 +46,67 @@ namespace Runner.Communicator.Tests
         public async Task JustGo()
         {
             var wait = new ManualResetEvent(false);
+            TcpListener? listener = null;
 
             var lister = Task.Run(async () =>
             {
-                var listener = new TcpListener(IPAddress.Any, 18900);
+                listener = new TcpListener(IPAddress.Any, 18900);
                 listener.Start();
 
                 var tcpClient = await listener.AcceptTcpClientAsync();
 
-                var con = new SocketImpl(tcpClient, new Func<Message, Task<Message>>(message =>
+                var con = new SocketImpl(tcpClient, (data, port) =>
                 {
-                    Assert.AreEqual(message.Data[0], 111);
+                    Assert.AreEqual(data[0], 111);
 
-                    return Task.FromResult(Message.Create(MessagePort.Any, new byte[] { 222 }));
-                }));
-                con.Start(wait);
+                    return Task.FromResult<byte[]?>(new byte[] { 222 });
+                });
+                con.StartReceive();
+                wait.Set();
             });
 
             var conClient = new SocketImpl();
             await conClient.ConnectAsync("localhost", 18900);
             wait.WaitOne();
-            await Task.Delay(100);
 
-            var result = await conClient.SendAndReceive(Message.Create(MessagePort.Any, new byte[] { 111 }));
+            var result = await conClient.SendAndReceive(new byte[] { 111 }, MessagePort.Any);
 
-            Assert.AreEqual(result.Data[0], 222);
+            Assert.AreEqual(result[0], 222);
+            listener?.Stop();
+            lister.Dispose();
         }
 
         [TestMethod]
         public async Task LargeData()
         {
             var wait = new ManualResetEvent(false);
+            TcpListener? listener = null;
             var data = GenerateData(500);
 
             var lister = Task.Run(async () =>
             {
-                var listener = new TcpListener(IPAddress.Any, 18900);
+                listener = new TcpListener(IPAddress.Any, 18900);
                 listener.Start();
 
                 var tcpClient = await listener.AcceptTcpClientAsync();
 
-                var con = new SocketImpl(tcpClient, new Func<Message, Task<Message>>(message =>
+                var con = new SocketImpl(tcpClient, (data, port) =>
                 {
-                    CompareData(message.Data, data);
+                    CompareData(data, data);
 
-                    return Task.FromResult(Message.Create(MessagePort.Any, new byte[] { 0 }));
-                }));
-                con.Start(wait);
+                    return Task.FromResult<byte[]?>(new byte[] { 0 });
+                });
+                con.StartReceive();
+                wait.Set();
             });
 
             var conClient = new SocketImpl();
             await conClient.ConnectAsync("localhost", 18900);
             wait.WaitOne();
-            await Task.Delay(100);
 
-            var result = await conClient.SendAndReceive(Message.Create(MessagePort.Any, data));
+            var result = await conClient.SendAndReceive(data, MessagePort.Any);
+            listener?.Stop();
+            lister.Dispose();
         }
 
         [TestMethod]
@@ -108,10 +114,11 @@ namespace Runner.Communicator.Tests
         {
             var wait = new ManualResetEvent(false);
             var cancel = new CancellationTokenSource();
+            TcpListener? listener = null;
 
             var lister = Task.Run(async () =>
             {
-                var listener = new TcpListener(IPAddress.Any, 18900);
+                listener = new TcpListener(IPAddress.Any, 18900);
                 listener.Start();
 
                 while (!cancel.Token.IsCancellationRequested)
@@ -128,13 +135,13 @@ namespace Runner.Communicator.Tests
 
                     if (tcpClient != null && !cancel.Token.IsCancellationRequested)
                     {
-                        var con = new SocketImpl(tcpClient, new Func<Message, Task<Message>>(message =>
+                        var con = new SocketImpl(tcpClient, (data, port) =>
                         {
-                            var reverseData = ReverseData(message.Data);
+                            var reverseData = ReverseData(data);
 
-                            return Task.FromResult(Message.Create(MessagePort.Any, reverseData));
-                        }));
-                        con.Start(wait);
+                            return Task.FromResult<byte[]?>(reverseData);
+                        });
+                        con.StartReceive();
                     }
                 }
 
@@ -149,29 +156,22 @@ namespace Runner.Communicator.Tests
                 var data = GenerateData(1);
 
                 Trace.WriteLine($"client {i} start");
-                var result = await conClient.SendAndReceive(Message.Create(MessagePort.Any, data));
+                var result = await conClient.SendAndReceive(data, MessagePort.Any);
 
                 var reverseData = ReverseData(data);
-                CompareData(result.Data, reverseData);
+                CompareData(result, reverseData);
 
                 Trace.WriteLine($"client {i} close");
             });
 
-            //var allClients = new List<Task>();
-            //for (var i = 0; i < 1000; i++)
-            //{
-            //    var client = func(i);
-            //    allClients.Add(client);
-            //}
             var clientsList = Enumerable.Range(0, 100);
-
-
             await Parallel.ForEachAsync(clientsList, func);
-            //Task.WaitAll(allClients.AsParallel().ToArray());
 
             cancel.Cancel();
-
             lister.Wait();
+
+            listener?.Stop();
+            lister.Dispose();
         }
     }
 }

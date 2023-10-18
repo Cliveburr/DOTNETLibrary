@@ -4,6 +4,10 @@ using System.Net.Sockets;
 using System.Threading;
 using Runner.Communicator.Model;
 using Runner.Communicator.Process.Services;
+using Runner.Communicator.Helpers;
+using System.Security.Cryptography;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Net.Http;
 
 namespace Runner.Communicator
 {
@@ -14,18 +18,20 @@ namespace Runner.Communicator
         public CancellationToken CancellationToken { get; private set; }
         public List<ServerConnection> Connections { get; private set; }
         public string? FileUploadDirectory { get; set; }
+        public int Timeout { get; set; }
 
         private ushort _nextClientId;
         private TcpListener _listener;
-        private ServerServices? _serverServices;
+        //private ServerServices? _serverServices;
         private IServiceCollection _serviceCollection;
 
-        public Server(int port, IServiceCollection services)
+        public Server(int port, IServiceCollection services, int timeout = 180000)
         {
             _serviceCollection = services;
             _listener = new TcpListener(IPAddress.Any, port);
             Connections = new List<ServerConnection>();
             _nextClientId = 1;
+            Timeout = timeout;
         }
 
         public void Dispose()
@@ -82,24 +88,26 @@ namespace Runner.Communicator
                     var tcpClient = await _listener.AcceptTcpClientAsync(CancellationToken);
                     if (tcpClient != null)
                     {
-                        var temp = new ServerConnection(tcpClient, this, CancellationToken);
-                        var id = await temp.ShakeHand(GetNextId);
-
-                        var connection = Connections
-                            .FirstOrDefault(c => c.Id == id);
-                        if (connection == null)
+                        var shakeHandResult = await ShakeHand(tcpClient);
+                        if (shakeHandResult.Success)
                         {
-                            lock (Connections)
+                            var connection = Connections
+                                .FirstOrDefault(c => c.Id == shakeHandResult.ClientId);
+                            if (connection == null)
                             {
-                                Connections.Add(temp);
+                                var serverConnection = new ServerConnection(tcpClient, this, shakeHandResult.ClientId, CancellationToken);
+                                lock (Connections)
+                                {
+                                    Connections.Add(serverConnection);
+                                }
+                                serverConnection.OnError += OnErrorConnection_Handler;
+                                serverConnection.OnClose += OnCloseConnection_Handler;
+                                //temp.Start();
                             }
-                            temp.OnError += OnErrorConnection_Handler;
-                            temp.OnClose += OnCloseConnection_Handler;
-                            temp.Start();
-                        }
-                        else
-                        {
-                            connection.ReplaceTcpClient(tcpClient);
+                            else
+                            {
+                                connection.ReplaceTcpClient(tcpClient);
+                            }
                         }
                     }
                 }
@@ -110,7 +118,76 @@ namespace Runner.Communicator
             }
         }
 
-        private void OnErrorConnection_Handler(ServerConnection sender, Exception err)
+        private async Task<(bool Success, ushort ClientId)> ShakeHand(TcpClient tcpClient)
+        {
+            ushort clientId;
+            try
+            {
+                var readTimeoutCancellation = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken);
+                if (Timeout > 0)
+                {
+                    readTimeoutCancellation.CancelAfter(Timeout);
+                }
+                var requestLenght = 4; // (ushort = 2 byte) * 2
+                var requestData = new byte[requestLenght];
+                await tcpClient.GetStream().ReadExactlyAsync(requestData, 0, requestLenght, readTimeoutCancellation.Token);
+
+                var reader = new BytesReader(requestData);
+                clientId = reader.ReadUInt16();
+                var ack = reader.ReadUInt16();
+                if (ack != 1234)
+                {
+                    throw new Exception("ShakeHand ack wrong!");
+                }
+            }
+            catch (Exception err)
+            {
+                try
+                {
+                    tcpClient.Close();
+                    tcpClient.Dispose();
+                }
+                catch { }
+                OnErrorConnection_Handler(null, err);
+                return (false, 0);
+            }
+
+            if (clientId == 0)
+            {
+                clientId = GetNextId();
+            }
+
+            try
+            {
+                var writer = new BytesWriter();
+                writer.WriteUInt16(clientId);
+                writer.WriteUInt16(1234);
+
+                var responseMessage = new Message(writer.GetBytes(), 0, MessagePort.HandShake, true, true);
+
+                var sendTimeoutCancellation = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken);
+                if (Timeout > 0)
+                {
+                    sendTimeoutCancellation.CancelAfter(Timeout);
+                }
+                await tcpClient.GetStream().WriteAsync(writer.GetBytes(), sendTimeoutCancellation.Token);
+
+                return (true, clientId);
+            }
+            catch (Exception err)
+            {
+                try
+                {
+                    tcpClient.Close();
+                    tcpClient.Dispose();
+                }
+                catch { }
+                OnErrorConnection_Handler(null, err);
+                return (false, 0);
+            }
+        }
+
+        private void OnErrorConnection_Handler(ServerConnection? sender, Exception err)
         {
             Task.Run(() => OnError?.Invoke(this, sender, err));
         }
@@ -123,16 +200,16 @@ namespace Runner.Communicator
             }
         }
 
-        public ServerServices Services
-        {
-            get
-            {
-                if (_serverServices == null)
-                {
-                    _serverServices = new ServerServices(_serviceCollection);
-                }
-                return _serverServices;
-            }
-        }
+        //public ServerServices Services
+        //{
+        //    get
+        //    {
+        //        if (_serverServices == null)
+        //        {
+        //            _serverServices = new ServerServices(_serviceCollection);
+        //        }
+        //        return _serverServices;
+        //    }
+        //}
     }
 }

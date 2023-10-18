@@ -1,4 +1,4 @@
-﻿using Runner.Communicator.Process.Services2;
+﻿using Runner.Communicator.Process.Services;
 using Runner.Communicator.Tests.ServicesForTest.Interface;
 using System;
 using System.Collections.Generic;

@@ -25,17 +25,18 @@ namespace Runner.Communicator
         public delegate void OnErrorDelegate(ServerConnection sender, Exception err);
         public event OnErrorDelegate? OnError;
 
-        public ushort Id { get; set; }
+        public ushort Id { get; private set; }
 
         private Server _server;
         private ManualResetEvent? _waitReconnect;
-        private ProcessServices? _processServices;
+        //private ProcessServices? _processServices;
         //private ProcessFileUpload? _processFileUpload;
 
-        public ServerConnection(TcpClient tcpClient, Server server, CancellationToken cancellationToken)
+        public ServerConnection(TcpClient tcpClient, Server server, ushort id, CancellationToken cancellationToken)
             : base(tcpClient, cancellationToken)
         {
             _server = server;
+            Id = id;
         }
 
         public void ReplaceTcpClient(TcpClient tcpClient)
@@ -68,81 +69,60 @@ namespace Runner.Communicator
             return Task.CompletedTask;
         }
 
-        internal async Task<ushort> ShakeHand(Func<ushort> getNextId)
+
+        //public void Start()
+        //{
+        //    Task.Run(StartAsync);
+        //}
+
+        //private async Task StartAsync()
+        //{
+        //    while (!_server.CancellationToken.IsCancellationRequested)
+        //    {
+        //        try
+        //        {
+        //            var message = await ReceiveMessage();
+
+        //            var response = await ProcessRequestAsync(message);
+        //            await SendMessage(response);
+        //        }
+        //        catch (Exception err)
+        //        {
+        //            _ = Task.Run(() => OnError?.Invoke(this, err));
+        //        }
+        //    }
+        //}
+
+        protected override Task<byte[]?> DoProcessRequest(byte[] data, MessagePort port)
         {
-            var response = await ReceiveMessage();
-            if (response.Head.Type != MessagePort.HandShake)
+            switch (port)
             {
-                throw new Exception("ShakeHand response wrong!");
-            }
-
-            var reader = new BytesReader(response.Data);
-            var id = reader.ReadUInt16();
-            var ack = reader.ReadUInt16();
-            if (ack != 1234)
-            {
-                throw new Exception("ShakeHand ack wrong!");
-            }
-
-            if (id == 0)
-            {
-                id = getNextId();
-            }
-
-            var writer = new BytesWriter();
-            writer.WriteUInt16(id);
-            writer.WriteUInt16(1234);
-            var request = new Message(MessagePort.HandShake, writer.GetBytes());
-            await SendMessage(request);
-
-            return id;
-        }
-
-
-        public void Start()
-        {
-            Task.Run(StartAsync);
-        }
-
-        private async Task StartAsync()
-        {
-            while (!_server.CancellationToken.IsCancellationRequested)
-            {
-                try
-                {
-                    var message = await ReceiveMessage();
-
-                    var response = await ProcessRequestAsync(message);
-                    await SendMessage(response);
-                }
-                catch (Exception err)
-                {
-                    _ = Task.Run(() => OnError?.Invoke(this, err));
-                }
+                //case MessagePort.HandShake:
+                default: return null;
             }
         }
 
-        private Task<Message> ProcessRequestAsync(Message message)
-        {
-            switch (message.Head.Type)
-            {
-                case MessagePort.Services:
-                    return GetProcessServices().ProcessRequest(message);
-                //case MessageType.FileUpload:
-                //    return GetProcessFileUpload().ProcessRequest(message);
-                default:
-                    throw new Exception("Invalid message type: " + message.Head.Type);
-            }
-        }
+        //private Task<Message> ProcessRequestAsync(Message message)
+        //{
+        //    switch (message.Head.Type)
+        //    {
+        //        case MessagePort.Services:
+        //            return GetProcessServices().ProcessRequest(message);
+        //        //case MessageType.FileUpload:
+        //        //    return GetProcessFileUpload().ProcessRequest(message);
+        //        default:
+        //            throw new Exception("Invalid message type: " + message.Head.Type);
+        //    }
+        //}
 
-        private ProcessServices GetProcessServices()
-        {
-            if (_processServices == null)
-            {
-                _processServices = new ProcessServices(_server);
-            }
-            return _processServices;
-        }
+        //private ProcessServices GetProcessServices()
+        //{
+        //    if (_processServices == null)
+        //    {
+        //        _processServices = new ProcessServices(_server);
+        //    }
+        //    return _processServices;
+        //}
 
         //private ProcessFileUpload GetProcessFileUpload()
         //{

@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace Runner.Communicator.Process.Services2
+namespace Runner.Communicator.Process.Services
 {
     public abstract class ServiceCallerBase : IDisposable
     {

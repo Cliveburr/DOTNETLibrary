@@ -66,6 +66,10 @@ namespace Runner.Communicator.Helpers
                 await _process(item);
                 item = GetNextItem();
             }
+            lock (_lock)
+            {
+                _running = null;
+            }
         }
     }
 }

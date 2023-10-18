@@ -14,9 +14,9 @@ namespace Runner.Communicator.Tests
     {
         private string _hostname;
         private int _port;
-        private Func<Message, Task<Message>>? _process;
+        private Func<byte[], MessagePort, Task<byte[]?>> _process;
 
-        public SocketImpl(TcpClient? tcpClient = null, Func<Message, Task<Message>>? process = null)
+        public SocketImpl(TcpClient? tcpClient = null, Func<byte[], MessagePort, Task<byte[]?>> process = null)
             : base(tcpClient)
         {
             _process = process;
@@ -41,24 +41,9 @@ namespace Runner.Communicator.Tests
             await _tcpClient.ConnectAsync(_hostname, _port, CancellationToken);
         }
 
-        private ManualResetEvent? _serverReady;
-
-        public void Start(ManualResetEvent serverReady)
+        protected override Task<byte[]?> DoProcessRequest(byte[] data, MessagePort port)
         {
-            _serverReady = serverReady;
-            Task.Run(StartAsync);
-        }
-
-        private async Task StartAsync()
-        {
-            _serverReady?.Set();
-            while (!CancellationToken.IsCancellationRequested)
-            {
-                var message = await ReceiveMessage();
-
-                var response = await _process!(message);
-                await SendMessage(response);
-            }
+            return _process(data, port);
         }
     }
 }

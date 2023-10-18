@@ -1,5 +1,4 @@
-﻿using Runner.Communicator.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -9,22 +8,24 @@ using System.Threading.Tasks;
 
 namespace Runner.Communicator.Process.Services
 {
-    public class ClientProxy<T> : DispatchProxy
+    public class CallProxy<T> : DispatchProxy
     {
-        private Client? _client;
-        private string? _interfaceTypeFullName;
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        private Func<InvokeRequest, Task<InvokeResponse>> _callInvoker;
+        private string _interfaceTypeQualifiedName;
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-        public static T Create(Client client, string interfaceTypeFullName)
+        public static T Create(Func<InvokeRequest, Task<InvokeResponse>> callInvoker, string interfaceTypeQualifiedName)
         {
-            object proxy = Create<T, ClientProxy<T>>()!;
-            ((ClientProxy<T>)proxy).Initialize(client, interfaceTypeFullName);
+            object proxy = Create<T, CallProxy<T>>()!;
+            ((CallProxy<T>)proxy).Initialize(callInvoker, interfaceTypeQualifiedName);
             return (T)proxy;
         }
 
-        public void Initialize(Client client, string interfaceTypeFullName)
+        public void Initialize(Func<InvokeRequest, Task<InvokeResponse>> callInvoker, string interfaceTypeQualifiedName)
         {
-            _client = client;
-            _interfaceTypeFullName = interfaceTypeFullName;
+            _callInvoker = callInvoker;
+            _interfaceTypeQualifiedName = interfaceTypeQualifiedName;
         }
 
         protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
@@ -49,14 +50,14 @@ namespace Runner.Communicator.Process.Services
 
             if (returnType == null)
             {
-                var invokeDirectAsyncGeneric = typeof(ClientProxy<T>)
+                var invokeDirectAsyncGeneric = typeof(CallProxy<T>)
                     .GetMethod("InvokeDirectAsync", BindingFlags.Instance | BindingFlags.Public)!;
 
                 return invokeDirectAsyncGeneric.Invoke(this, new object?[] { targetMethod.Name, args });
             }
             else
             {
-                var invokeAsyncGeneric = typeof(ClientProxy<T>)
+                var invokeAsyncGeneric = typeof(CallProxy<T>)
                     .GetMethod("InvokeAsync", BindingFlags.Instance | BindingFlags.Public)!;
 
                 var genericMethod = invokeAsyncGeneric.MakeGenericMethod(
@@ -76,20 +77,13 @@ namespace Runner.Communicator.Process.Services
                 })
                 .ToArray();
 
-            var request = new RequestModel
+            var request = new InvokeRequest
             {
-                InterfaceFullName = _interfaceTypeFullName!,
+                AssemblyQualifiedName = _interfaceTypeQualifiedName,
                 Method = method,
                 Args = argsBytes
             };
-            var requestMessage = Message.Create(MessagePort.Services, request.GetBytes());
-
-            var responseMessage = await _client!.SendAndReceive(requestMessage);
-            if (responseMessage.Head.Type != MessagePort.Services)
-            {
-                throw new Exception("Invalid response MessageType Services!");
-            }
-            var response = ResponseModel.Parse(responseMessage.Data);
+            var response = await _callInvoker(request);
 
             if (response.IsSuccess)
             {
@@ -127,20 +121,13 @@ namespace Runner.Communicator.Process.Services
                 })
                 .ToArray();
 
-            var request = new RequestModel
+            var request = new InvokeRequest
             {
-                InterfaceFullName = _interfaceTypeFullName!,
+                AssemblyQualifiedName = _interfaceTypeQualifiedName,
                 Method = method,
                 Args = argsBytes
             };
-            var requestMessage = Message.Create(MessagePort.Services, request.GetBytes());
-
-            var responseMessage = await _client!.SendAndReceive(requestMessage);
-            if (responseMessage.Head.Type != MessagePort.Services)
-            {
-                throw new Exception("Invalid response MessageType!");
-            }
-            var response = ResponseModel.Parse(responseMessage.Data);
+            var response = await _callInvoker(request);
 
             if (response.IsSuccess)
             {

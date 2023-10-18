@@ -14,7 +14,7 @@ namespace Runner.Communicator.Abstract
         protected TcpClient? _tcpClient;
 
         public SocketTcp(TcpClient? tcpClient, CancellationToken cancellationToken = new CancellationToken())
-            : base(60000, cancellationToken)
+            : base(180000, cancellationToken)
         {
             _tcpClient = tcpClient;
         }

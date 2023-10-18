@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Runner.Communicator.Process.Services2
+namespace Runner.Communicator.Process.Services
 {
     public class InvokeResponse
     {

@@ -1,5 +1,6 @@
 ﻿using Runner.Communicator.Abstract;
 using Runner.Communicator.Helpers;
+using Runner.Communicator.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +15,12 @@ namespace Runner.Communicator.Tests.Abstract
 
         private bool _isConnected;
         private BytesReader? _data;
+        private ManualResetEvent _manualResetEvent;
 
         public BaseImpl(int timeout)
             : base(timeout, new CancellationToken())
         {
+            _manualResetEvent = new ManualResetEvent(false);
         }
 
         protected override bool IsConnected()
@@ -36,17 +39,19 @@ namespace Runner.Communicator.Tests.Abstract
 
         protected override Task<byte[]> DoReadAsync(CancellationToken cancellationToken, uint length)
         {
-            if (_data != null)
+            while (_data == null)
             {
-                if (length <= _data.Left)
+                _manualResetEvent.WaitOne();
+                _manualResetEvent.Reset();
+            }
+            if (length <= _data.Left)
+            {
+                var data = _data.ReadBytes(length);
+                if (_data.Left == 0)
                 {
-                    var data = _data.ReadBytes(length);
-                    if (_data.Left == 0)
-                    {
-                        _data = null;
-                    }
-                    return Task.FromResult(data);
+                    _data = null;
                 }
+                return Task.FromResult(data);
             }
             throw new Exception("No Data!");
         }
@@ -56,7 +61,13 @@ namespace Runner.Communicator.Tests.Abstract
             var buffer = new byte[data.Length];
             Array.Copy(data, buffer, data.Length);
             _data = new BytesReader(buffer);
+            _manualResetEvent.Set();
             return Task.CompletedTask;
+        }
+
+        protected override async Task<byte[]?> DoProcessRequest(byte[] data, MessagePort port)
+        {
+            return data;
         }
     }
 }

@@ -28,19 +28,19 @@ namespace Runner.Communicator.Abstract
         protected abstract Task<byte[]> DoReadAsync(CancellationToken cancellationToken, uint length);
         protected abstract Task<byte[]?> DoProcessRequest(byte[] data, MessagePort port);
 
-        private ulong _id;
+        private ushort _id;
         private object _lockId = new object();
         private MessageQueueProcess<MessageStore> _messageToSend;
-        private MessageQueueProcess<MessageStore> _messageToProccess;
+        private MessageQueueProcess<Message> _messageToProccess;
         private List<MessageStore> _waitingToRespond;
 
         protected SocketBase(int timeout, CancellationToken cancellationToken)
         {
             Timeout = timeout;
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            _id = 0;
+            _id = 1;
             _messageToSend = new MessageQueueProcess<MessageStore>(InnerSendMessage);
-            _messageToProccess = new MessageQueueProcess<MessageStore>(InnerProcessMessage);
+            _messageToProccess = new MessageQueueProcess<Message>(InnerProcessMessage);
             _waitingToRespond = new List<MessageStore>();
         }
 
@@ -52,11 +52,19 @@ namespace Runner.Communicator.Abstract
             }
         }
 
-        private ulong GetNextId()
+        private ushort GetNextId()
         {
             lock(_lockId)
             {
-                return _id++;
+                if (_id == ushort.MaxValue)
+                {
+                    _id = 1;
+                    return ushort.MaxValue;
+                }
+                else
+                {
+                    return _id++;
+                }
             }
         }
 
@@ -71,7 +79,7 @@ namespace Runner.Communicator.Abstract
             StartReceive();
         }
 
-        private void StartReceive()
+        public void StartReceive()
         {
             Task.Run(StartReceiveAsync);
         }
@@ -83,14 +91,7 @@ namespace Runner.Communicator.Abstract
                 try
                 {
                     var message = await InnerReceiveMessage();
-
-                    var timeoutCancellation = CancellationTokenSource.CreateLinkedTokenSource(_cancellationTokenSource.Token);
-                    if (Timeout > 0)
-                    {
-                        timeoutCancellation.CancelAfter(Timeout);
-                    }
-                    var messageStore = new MessageStore(message, timeoutCancellation);
-                    _messageToProccess.Enqueue(messageStore);
+                    _messageToProccess.Enqueue(message);
                 }
                 catch (Exception err)
                 {
@@ -126,14 +127,17 @@ namespace Runner.Communicator.Abstract
                 messageStore.Error(err);
                 return;
             }
-            if (messageStore.WaitReponse)
+            if (!messageStore.Message.Head.IsResponse)
             {
-                _waitingToRespond.Add(messageStore);
-                messageStore.SetTimeout(MessageStore_OnTimeout);
-            }
-            else
-            {
-                messageStore.Release();
+                if (messageStore.WaitReponse)
+                {
+                    _waitingToRespond.Add(messageStore);
+                    messageStore.SetTimeout(MessageStore_OnTimeout);
+                }
+                else
+                {
+                    messageStore.Release();
+                }
             }
         }
 
@@ -146,7 +150,7 @@ namespace Runner.Communicator.Abstract
                 _waitingToRespond.Remove(found);
                 if (err != null)
                 {
-                    var data = Encoding.UTF8.GetBytes(err.InnerException!.ToString());
+                    var data = Encoding.UTF8.GetBytes(err.ToString());
                     found.Release(data);
                 }
                 else
@@ -156,28 +160,28 @@ namespace Runner.Communicator.Abstract
             }
         }
 
-        private async Task InnerProcessMessage(MessageStore messageStore)
+        private async Task InnerProcessMessage(Message message)
         {
-            if (messageStore.Message.Head.IsResponse)
+            if (message.Head.IsResponse)
             {
                 var found = _waitingToRespond
-                    .FirstOrDefault(fr => fr.Message.Head.Id ==  messageStore.Message.Head.Id);
+                    .FirstOrDefault(fr => fr.Message.Head.Id ==  message.Head.Id);
                 if (found != null)
                 {
                     _waitingToRespond.Remove(found);
-                    found.Release(messageStore.Message.Data);
+                    found.Release(message.Data);
                 }
             }
             else
             {
                 try
                 {
-                    var data = await DoProcessRequest(messageStore.Message.Data, messageStore.Message.Head.Port);
+                    var data = await DoProcessRequest(message.Data, message.Head.Port);
                     if (data != null)
                     {
                         var response = new Message(data,
-                            messageStore.Message.Head.Id,
-                            messageStore.Message.Head.Port,
+                            message.Head.Id,
+                            message.Head.Port,
                             true,
                             true);
                         var responseStore = new MessageStore(response, _cancellationTokenSource);
@@ -188,8 +192,8 @@ namespace Runner.Communicator.Abstract
                 {
                     var data = Encoding.UTF8.GetBytes(err.InnerException!.ToString());
                     var response = new Message(data,
-                            messageStore.Message.Head.Id,
-                            messageStore.Message.Head.Port,
+                            message.Head.Id,
+                            message.Head.Port,
                             true,
                             false);
                     var responseStore = new MessageStore(response, _cancellationTokenSource);
@@ -199,8 +203,8 @@ namespace Runner.Communicator.Abstract
                 {
                     var data = Encoding.UTF8.GetBytes(err.ToString());
                     var response = new Message(data,
-                            messageStore.Message.Head.Id,
-                            messageStore.Message.Head.Port,
+                            message.Head.Id,
+                            message.Head.Port,
                             true,
                             false);
                     var responseStore = new MessageStore(response, _cancellationTokenSource);

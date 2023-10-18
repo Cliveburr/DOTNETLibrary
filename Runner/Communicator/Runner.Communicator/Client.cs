@@ -15,7 +15,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Runner.Communicator.Helpers;
 using Runner.Communicator.Model;
 using Runner.Communicator.Process.Services;
-using Runner.Communicator.Process.Services2;
 
 namespace Runner.Communicator
 {
@@ -60,20 +59,27 @@ namespace Runner.Communicator
             var writer = new BytesWriter();
             writer.WriteUInt16(_id);
             writer.WriteUInt16(1234);
-            var request = new Message(MessagePort.HandShake, writer.GetBytes());
 
-            var response = await SendAndReceive(request);
-
-            if (response == null)
+            var sendTimeoutCancellation = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken);
+            if (Timeout > 0)
+            {
+                sendTimeoutCancellation.CancelAfter(60000);
+            }
+            await DoSendAsync(sendTimeoutCancellation.Token, writer.GetBytes());
+            
+            uint responseLenght = 4; // (ushort = 2 byte) * 2
+            var readTimeoutCancellation = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken);
+            if (Timeout > 0)
+            {
+                readTimeoutCancellation.CancelAfter(60000);
+            }
+            var responseData = await DoReadAsync(readTimeoutCancellation.Token, responseLenght);
+            if (responseData == null)
             {
                 throw new Exception("ShakeHand fail!");
             }
-            if (response.Head.Type != MessagePort.HandShake)
-            {
-                throw new Exception("ShakeHand response wrong!");
-            }
 
-            var reader = new BytesReader(response.Data);
+            var reader = new BytesReader(responseData);
             var id = reader.ReadUInt16();
             var ack = reader.ReadUInt16();
             if (ack != 1234)
@@ -82,6 +88,14 @@ namespace Runner.Communicator
             }
 
             _id = id;
+        }
+
+        protected override async Task<byte[]?> DoProcessRequest(byte[] data, MessagePort port)
+        {
+            switch (port)
+            {
+                default: return null;
+            }
         }
 
         public ServiceCallerSocket Services
