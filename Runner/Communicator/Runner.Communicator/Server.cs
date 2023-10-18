@@ -13,21 +13,21 @@ namespace Runner.Communicator
 {
     public class Server : IDisposable
     {
-        public delegate void OnErrorDelegate(Server server, ServerConnection? connection, Exception err);
+        public delegate void OnErrorDelegate(object sender, Exception err);
         public event OnErrorDelegate? OnError;
+
         public CancellationToken CancellationToken { get; private set; }
         public List<ServerConnection> Connections { get; private set; }
-        public string? FileUploadDirectory { get; set; }
+        //public string? FileUploadDirectory { get; set; }
         public int Timeout { get; set; }
 
         private ushort _nextClientId;
         private TcpListener _listener;
-        //private ServerServices? _serverServices;
-        private IServiceCollection _serviceCollection;
+        private IServiceProvider _serviceProvider;
 
-        public Server(int port, IServiceCollection services, int timeout = 180000)
+        public Server(int port, IServiceProvider serviceProvider, int timeout = 180000)
         {
-            _serviceCollection = services;
+            _serviceProvider = serviceProvider;
             _listener = new TcpListener(IPAddress.Any, port);
             Connections = new List<ServerConnection>();
             _nextClientId = 1;
@@ -39,7 +39,7 @@ namespace Runner.Communicator
             try
             {
                 _listener.Stop();
-                Connections.ForEach(c => c.Stop());
+                Connections.ForEach(c => c.Dispose());
             }
             catch { }
         }
@@ -95,14 +95,15 @@ namespace Runner.Communicator
                                 .FirstOrDefault(c => c.Id == shakeHandResult.ClientId);
                             if (connection == null)
                             {
-                                var serverConnection = new ServerConnection(tcpClient, this, shakeHandResult.ClientId, CancellationToken);
+                                var serviceScope = _serviceProvider.CreateScope();
+                                var serverConnection = new ServerConnection(tcpClient, shakeHandResult.ClientId, serviceScope, CancellationToken);
                                 lock (Connections)
                                 {
                                     Connections.Add(serverConnection);
                                 }
                                 serverConnection.OnError += OnErrorConnection_Handler;
                                 serverConnection.OnClose += OnCloseConnection_Handler;
-                                //temp.Start();
+                                serverConnection.StartReceive();
                             }
                             else
                             {
@@ -113,7 +114,7 @@ namespace Runner.Communicator
                 }
                 catch (Exception err)
                 {
-                    _ = Task.Run(() => OnError?.Invoke(this, null, err));
+                    _ = Task.Run(() => OnError?.Invoke(this, err));
                 }
             }
         }
@@ -148,7 +149,7 @@ namespace Runner.Communicator
                     tcpClient.Dispose();
                 }
                 catch { }
-                OnErrorConnection_Handler(null, err);
+                OnErrorConnection_Handler(this, err);
                 return (false, 0);
             }
 
@@ -162,8 +163,6 @@ namespace Runner.Communicator
                 var writer = new BytesWriter();
                 writer.WriteUInt16(clientId);
                 writer.WriteUInt16(1234);
-
-                var responseMessage = new Message(writer.GetBytes(), 0, MessagePort.HandShake, true, true);
 
                 var sendTimeoutCancellation = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken);
                 if (Timeout > 0)
@@ -182,14 +181,14 @@ namespace Runner.Communicator
                     tcpClient.Dispose();
                 }
                 catch { }
-                OnErrorConnection_Handler(null, err);
+                OnErrorConnection_Handler(this, err);
                 return (false, 0);
             }
         }
 
-        private void OnErrorConnection_Handler(ServerConnection? sender, Exception err)
+        private void OnErrorConnection_Handler(object sender, Exception err)
         {
-            Task.Run(() => OnError?.Invoke(this, sender, err));
+            Task.Run(() => OnError?.Invoke(sender, err));
         }
 
         private void OnCloseConnection_Handler(ServerConnection sender)
@@ -199,17 +198,5 @@ namespace Runner.Communicator
                 Connections.Remove(sender);
             }
         }
-
-        //public ServerServices Services
-        //{
-        //    get
-        //    {
-        //        if (_serverServices == null)
-        //        {
-        //            _serverServices = new ServerServices(_serviceCollection);
-        //        }
-        //        return _serverServices;
-        //    }
-        //}
     }
 }

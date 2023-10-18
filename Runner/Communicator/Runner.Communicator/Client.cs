@@ -51,7 +51,15 @@ namespace Runner.Communicator
             catch { }
             _tcpClient = new TcpClient();
             await _tcpClient.ConnectAsync(_hostname, _port, CancellationToken);
-            await ShakeHand();
+            try
+            {
+                await ShakeHand();
+            }
+            catch
+            {
+                DisconnectSocket();
+                throw;
+            }
         }
 
         private async Task ShakeHand()
@@ -94,6 +102,7 @@ namespace Runner.Communicator
         {
             switch (port)
             {
+                case MessagePort.Services: return await Services.Process(data);
                 default: return null;
             }
         }

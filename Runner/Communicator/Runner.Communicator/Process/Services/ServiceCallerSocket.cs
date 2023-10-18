@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Runner.Communicator.Abstract;
 using Runner.Communicator.Model;
 using Runner.Communicator.Process.Services;
 using System;
@@ -11,42 +12,26 @@ namespace Runner.Communicator.Process.Services
 {
     public class ServiceCallerSocket : ServiceCallerBase
     {
-        private readonly Client _client;
+        private readonly SocketTcp _socketTcp;
 
-        public ServiceCallerSocket(Client client, IServiceScope? serviceScope, CancellationToken cancellationToken)
+        public ServiceCallerSocket(SocketTcp socketTcp, IServiceScope? serviceScope, CancellationToken cancellationToken)
             : base(serviceScope, cancellationToken)
         {
-            _client = client;
+            _socketTcp = socketTcp;
         }
 
         protected override async Task<InvokeResponse> SendAndReceive(InvokeRequest request)
         {
-            var data = await _client.SendAndReceive(request.GetBytes(), MessagePort.Services);
+            var data = await _socketTcp.SendAndReceive(request.GetBytes(), MessagePort.Services);
             var response = InvokeResponse.Parse(data);
             return response;
         }
 
-        public void Start()
+        public async Task<byte[]> Process(byte[] data)
         {
-            Task.Run(StartAsync);
-        }
-
-        private async Task StartAsync()
-        {
-            //while (!CancellationToken.IsCancellationRequested)
-            //{
-            //    try
-            //    {
-            //        var message = await _client.ReceiveMessage();
-
-            //        var response = await ProcessRequestAsync(message);
-            //        await _client.SendMessage(response);
-            //    }
-            //    catch (Exception err)
-            //    {
-            //        _ = Task.Run(() => _client.OnError?.Invoke(this, err));
-            //    }
-            //}
+            var request = InvokeRequest.Parse(data);
+            var response = await base.InvokeAsync(request);
+            return response.GetBytes();
         }
     }
 }

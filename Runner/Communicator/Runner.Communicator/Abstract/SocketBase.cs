@@ -33,6 +33,8 @@ namespace Runner.Communicator.Abstract
         private MessageQueueProcess<MessageStore> _messageToSend;
         private MessageQueueProcess<Message> _messageToProccess;
         private List<MessageStore> _waitingToRespond;
+        private object _lockConnect = new object();
+        private ManualResetEvent? _waitConnect;
 
         protected SocketBase(int timeout, CancellationToken cancellationToken)
         {
@@ -77,6 +79,38 @@ namespace Runner.Communicator.Abstract
             }
             await DoConnectAsync(timeoutCancellation.Token);
             StartReceive();
+            lock (_lockConnect)
+            {
+                _waitConnect?.Set();
+                _waitConnect = null;
+            }
+        }
+
+        private Task<bool> CheckConnectedAsync()
+        {
+            if (_waitConnect == null)
+            {
+                if (IsConnected())
+                {
+                    return Task.FromResult(true);
+                }
+                else
+                {
+                    lock (_lockConnect)
+                    {
+                        if (_waitConnect == null)
+                        {
+                            _waitConnect = new ManualResetEvent(false);
+                            Task.Run(ConnectAsync);
+                        }
+                    }
+                }
+            }
+            return Task.Run(() =>
+            {
+                _waitConnect?.WaitOne();
+                return IsConnected();
+            });
         }
 
         public void StartReceive()
@@ -102,17 +136,10 @@ namespace Runner.Communicator.Abstract
 
         private async Task InnerSendMessage(MessageStore messageStore)
         {
-            if (!IsConnected())
+            if (!await CheckConnectedAsync())
             {
-                try
-                {
-                    await ConnectAsync();
-                }
-                catch (Exception err)
-                {
-                    messageStore.Error(err);
-                    return;
-                }
+                messageStore.Error(new Exception("Not connected!"));
+                return;
             }
             var data = messageStore.Message.Head
                 .GetBytes()
@@ -213,13 +240,12 @@ namespace Runner.Communicator.Abstract
             }
         }
 
-        private async Task InnerRespondMessage(MessageStore messageStore)
-        {
-
-        }
-
         private async Task<Message> InnerReceiveMessage()
         {
+            if (!await CheckConnectedAsync())
+            {
+                new Exception("Not connected!");
+            }
             var timeoutCancellation = CancellationTokenSource.CreateLinkedTokenSource(_cancellationTokenSource.Token);
             if (Timeout > 0)
             {
