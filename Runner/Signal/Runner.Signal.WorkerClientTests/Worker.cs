@@ -1,7 +1,21 @@
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualBasic;
+using System.Data;
+using System.Data.Common;
+using System.Threading;
 
-namespace Runner.Agent
+namespace Runner.Signal.WorkerClientTests
 {
+    public class KeepAlwaysConnected : IRetryPolicy
+    {
+        public TimeSpan? NextRetryDelay(RetryContext retryContext)
+        {
+            return TimeSpan.FromSeconds(1);
+        }
+    }
+
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
@@ -13,8 +27,13 @@ namespace Runner.Agent
 
             _connection = new HubConnectionBuilder()
                 .WithAutomaticReconnect(new KeepAlwaysConnected())
-                .WithUrl("http://localhost:5021/hub/agent")
+                .WithUrl("http://localhost:5021/hubs/clienttoserver")
                 .Build();
+
+            _connection.On("Call", () =>
+            {
+                _logger.LogInformation("Received from server");
+            });
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -24,6 +43,7 @@ namespace Runner.Agent
                 try
                 {
                     await _connection.StartAsync(stoppingToken);
+
                     break;
                 }
                 catch
@@ -32,11 +52,15 @@ namespace Runner.Agent
                 }
             }
 
-            await _connection.InvokeAsync("Hit", stoppingToken);
+            var result = await _connection.InvokeAsync<string>("Ping", stoppingToken);
+            if (result != "PONG")
+            {
+                throw new Exception(result);
+            }
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                //_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 await Task.Delay(1000, stoppingToken);
             }
 

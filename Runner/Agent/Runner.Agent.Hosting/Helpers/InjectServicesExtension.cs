@@ -1,0 +1,27 @@
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Runner.Agent.Hosting.Hubs;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Runner.Agent.Hosting.Helpers
+{
+    public static class InjectServicesExtension
+    {
+        public static IServiceCollection AddAgentHosting(this IServiceCollection services)
+        {
+            services
+                .AddSignalR();
+
+            return services;
+        }
+
+        public static void MapAgentHub(this WebApplication app)
+        {
+            app.MapHub<AgentHub>("/hub/agent");
+        }
+    }
+}

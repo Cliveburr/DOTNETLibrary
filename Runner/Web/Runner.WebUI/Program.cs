@@ -6,6 +6,7 @@ using Runner.Business.Helpers;
 using Runner.WebUI.Components.Modal;
 using Runner.WebUI.Components.Notification;
 using Runner.WebUI.Components;
+using Runner.Agent.Hosting.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
@@ -21,6 +22,9 @@ builder.Services
 builder.Services
     .AddRunnerServices("mongodb://localhost:27017", "Runner");
 
+builder.Services
+    .AddAgentHosting();
+
 var app = builder.Build();
 
 
@@ -30,5 +34,7 @@ app.UseRouting();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
+
+app.MapAgentHub();
 
 app.Run();

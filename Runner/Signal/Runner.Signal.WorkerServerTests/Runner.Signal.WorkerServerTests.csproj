@@ -4,11 +4,10 @@
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-Runner.Signal.WorkerTests-52426d43-c8b4-4527-a764-0d62b9b89d30</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Agent\Runner.Agent.Hosting\Runner.Agent.Hosting.csproj" />
-    <ProjectReference Include="..\..\Core\Runner.Business\Runner.Business.csproj" />
+    <ProjectReference Include="..\Runner.Signal.WorkerInterfaceTests\Runner.Signal.WorkerInterfaceTests.csproj" />
   </ItemGroup>
-
 </Project>
