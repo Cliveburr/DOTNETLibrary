@@ -1,7 +1,7 @@
 ﻿@using Runner.Business.Entities;
 @using Runner.WebUI.Pages.Nodes;
 @inherits ErrorBoundaryBase;
-@inject AuthenticationService authenticationService
+@inject WebAuthenticationService authenticationService
 @inject NavigationManager navigationManager
 @inject NodeService appService
 @inject NotificationService notificationService
@@ -185,6 +185,8 @@ else
         {
             case NodeType.App: return typeof(Nodes.App);
             case NodeType.Folder: return typeof(Nodes.Folder);
+            case NodeType.AgentPool: return typeof(Nodes.AgentPool);
+            case NodeType.Agent: return typeof(Nodes.Agent);
             default: return typeof(Me.Home); // talvez subir erro
         }
     }

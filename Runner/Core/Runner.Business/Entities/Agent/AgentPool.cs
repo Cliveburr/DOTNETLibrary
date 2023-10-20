@@ -11,6 +11,6 @@ namespace Runner.Business.Entities.Agent
     [BsonDiscriminator("AgentPool")]
     public class AgentPool : NodeBase
     {
-        public required List<Agent> Agents { get; set; }
+        public bool Active { get; set; }
     }
 }

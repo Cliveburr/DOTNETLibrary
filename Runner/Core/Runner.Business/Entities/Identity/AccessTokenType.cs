@@ -8,6 +8,7 @@ namespace Runner.Business.Entities.Identity
 {
     public enum AccessTokenType : byte
     {
-        WebUI = 0
+        WebUI = 0,
+        Agent = 1
     }
 }

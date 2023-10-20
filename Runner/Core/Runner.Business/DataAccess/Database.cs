@@ -23,6 +23,7 @@ namespace Runner.Business.DataAccess
             RegisterClass();
             Client = new MongoClient(connectionString);
             Main = Client.GetDatabase(mainDatabaseName);
+            CheckUpdates();
         }
 
         private void RegisterClass()
@@ -30,6 +31,14 @@ namespace Runner.Business.DataAccess
             BsonClassMap.RegisterClassMap<App>();
             BsonClassMap.RegisterClassMap<Folder>();
             BsonClassMap.RegisterClassMap<AgentPool>();
+            BsonClassMap.RegisterClassMap<Agent>();
+        }
+
+        private void CheckUpdates()
+        {
+            var collection = Main.GetCollection<Job>("Job");
+            var indexKeysDefinition = Builders<Job>.IndexKeys.Ascending(j => j.Queued);
+            collection.Indexes.CreateOneAsync(new CreateIndexModel<Job>(indexKeysDefinition)).Wait();
         }
     }
 }

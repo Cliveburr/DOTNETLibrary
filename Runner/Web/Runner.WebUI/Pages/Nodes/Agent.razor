@@ -1,0 +1,56 @@
+﻿@using Runner.Business.Entities;
+@inject NodeService nodeService
+@inject JobService jobService
+@inject BaseService baseService
+
+<div class="container">
+
+    <div class="box mt-4">
+        <h3 class="title is-3">Agent: @Node.Name</h3>
+    </div>
+
+    <div class="buttons mt-3">
+        <button type="button" class="button is-primary" @onclick="baseService.BackNode">
+            <span class="icon is-small">
+                <i class="fa-solid fa-square-caret-left"></i>
+            </span>
+        </button>
+        <button type="button" class="button is-info" @onclick="OnRunTestJob_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-rotate-right"></i>
+            </span>
+            <span>Test</span>
+        </button>
+    </div>
+
+    <div class="box mt-3">
+        
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public required NodeBase Node { get; set; }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+    }
+
+    private async Task OnRunTestJob_Click()
+    {
+        var agent = Node as Runner.Business.Entities.Agent.Agent;
+        if (agent != null)
+        {
+            await jobService.CreateJob(agent);
+        }
+    }
+
+
+    public void OnNavigateApp_Click(NodeBase node)
+    {
+        baseService.FowardNode(node.Name);
+    }
+}

@@ -83,6 +83,12 @@
                     await OnRefresh_Click();
                     break;
                 }
+            case NodeType.AgentPool:
+                {
+                    await nodeService.CreateAgentPool(questionName.Value, Node);
+                    await OnRefresh_Click();
+                    break;
+                }
             default:
                 throw new Exception("Invalid type!");
         }

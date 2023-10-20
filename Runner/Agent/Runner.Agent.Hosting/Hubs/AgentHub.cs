@@ -1,4 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Runner.Agent.Hosting.Model.AgentManager;
+using Runner.Agent.Hosting.Services;
+using Runner.Business.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,14 +12,41 @@ namespace Runner.Agent.Hosting.Hubs
 {
     public class AgentHub : Hub
     {
-        public AgentHub()
+        private readonly AgentManagerService _agentManagerService;
+
+        public AgentHub(AgentManagerService agentManager)
         {
-            
+            _agentManagerService = agentManager;
         }
 
-        public Task Hit()
+        public override Task OnDisconnectedAsync(Exception? exception)
         {
-            return Task.CompletedTask;
+            return _agentManagerService.Offline(Context.ConnectionId);
+        }
+
+        public Task Register(RegisterRequest request)
+        {
+            return _agentManagerService.Register(Context.ConnectionId, request);
+        }
+
+        public Task Heartbeat()
+        {
+            return _agentManagerService.Heartbeat(Context.ConnectionId);
+        }
+
+        public Task ScriptStarted()
+        {
+
+        }
+
+        public Task ScriptError()
+        {
+
+        }
+
+        public Task ScriptFinish()
+        {
+
         }
     }
 }

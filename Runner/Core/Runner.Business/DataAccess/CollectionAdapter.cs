@@ -28,9 +28,20 @@ namespace Runner.Business.DataAccess
             _collection = collection;
         }
 
+        public IFindFluent<T, T?> Find(Expression<Func<T, bool>> filter, FindOptions? options = null)
+        {
+            return _collection.Find(filter, options);
+        }
+
         public Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> filter, FindOptions? options = null)
         {
             return _collection.Find(filter, options)
+                .FirstOrDefaultAsync();
+        }
+
+        public Task<E?> FirstOrDefaultAsync<E>(Expression<Func<E, bool>> filter, FindOptions? options = null) where E : T
+        {
+            return GetCollection<E>().Find(filter, options)
                 .FirstOrDefaultAsync();
         }
 
@@ -60,6 +71,16 @@ namespace Runner.Business.DataAccess
         public Task SaveAsync(T obj)
         {
             return _collection.FindOneAndReplaceAsync(e => e.Id == obj.Id, obj);
+        }
+
+        public Task UpdateAsync(T obj, UpdateDefinition<T> update, UpdateOptions? options = null)
+        {
+            return _collection.UpdateOneAsync(e => e.Id == obj.Id, update, options);
+        }
+
+        public Task UpdateAsync<E>(E obj, UpdateDefinition<E> update, UpdateOptions? options = null) where E : T
+        {
+            return GetCollection<E>().UpdateOneAsync(e => e.Id == obj.Id, update, options);
         }
 
         public Task<T?> ReadByIdAsync(ObjectId id)

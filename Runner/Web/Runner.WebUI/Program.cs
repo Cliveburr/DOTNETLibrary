@@ -13,7 +13,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
 builder.Services
-    .AddScoped<AuthenticationService>()
+    .AddScoped<WebAuthenticationService>()
     .AddScoped<GlobalJavascript>()
     .AddScoped<ModalService>()
     .AddScoped<NotificationService>()

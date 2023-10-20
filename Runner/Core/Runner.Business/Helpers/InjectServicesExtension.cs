@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Runner.Business.Authentication;
 using Runner.Business.DataAccess;
+using Runner.Business.WatcherNotification;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,8 @@ namespace Runner.Business.Helpers
         {
             services
                 .AddScoped<UserLogged>()
+                .AddScoped<AuthenticationService>()
+                .AddSingleton<IAgentWatcherNotification, ManualAgentWatcherNotification>()
                 .AddSingleton(serviceProvider => new Database(connectionString, mainDatabaseName));
 
             var allServices = typeof(ServiceBase)

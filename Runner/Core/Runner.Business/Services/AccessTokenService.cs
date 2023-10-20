@@ -23,10 +23,10 @@ namespace Runner.Business.Services
                 .FirstOrDefaultAsync(at => at.UserId == userId);
         }
 
-        public Task<AccessToken?> ReadByToken(string token)
+        public Task<AccessToken?> ReadByToken(string token, AccessTokenType type)
         {
             return AccessToken
-                .FirstOrDefaultAsync(at => at.Token == token);
+                .FirstOrDefaultAsync(at => at.Token == token && at.Type == type);
         }
 
         public Task<AccessToken?> ReadByUserAndType(ObjectId userId, AccessTokenType type)

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Runner.Agent.Hosting.Hubs;
+using Runner.Agent.Hosting.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,9 @@ namespace Runner.Agent.Hosting.Helpers
         {
             services
                 .AddSignalR();
+
+            services
+                .AddSingleton<AgentManagerService>();
 
             return services;
         }

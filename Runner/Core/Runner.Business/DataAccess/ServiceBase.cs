@@ -35,5 +35,6 @@ namespace Runner.Business.DataAccess
         protected CollectionAdapter<User> User { get => GetCollectionAdapter<User>("User"); }
         protected CollectionAdapter<AccessToken> AccessToken { get => GetCollectionAdapter<AccessToken>("AccessToken"); }
         protected CollectionAdapter<NodeBase> Node { get => GetCollectionAdapter<NodeBase>("Node"); }
+        protected CollectionAdapter<Entities.Agent.Job> Job { get => GetCollectionAdapter<Entities.Agent.Job>("Job"); }
     }
 }

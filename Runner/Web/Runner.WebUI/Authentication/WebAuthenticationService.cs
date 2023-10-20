@@ -10,7 +10,7 @@ using System.Security.Cryptography;
 
 namespace Runner.WebUI.Authentication
 {
-    public class AuthenticationService
+    public class WebAuthenticationService
     {
         public const string TOKEN_STORAGE = "TOKEN";
         private const int TOKEN_EXPIRE_MONTHS = 3;
@@ -18,13 +18,15 @@ namespace Runner.WebUI.Authentication
         private GlobalJavascript _js;
         private UserService _userService;
         private AccessTokenService _accessTokenService;
+        private readonly Business.Authentication.AuthenticationService _authenticationService;
         public UserLogged UserLogged { get; private set; }
 
         public bool IsLogged { get => UserLogged.User != null; }
 
-        public AuthenticationService(GlobalJavascript js, UserService userService, AccessTokenService accessTokenService, UserLogged userLogged)
+        public WebAuthenticationService(GlobalJavascript js, Business.Authentication.AuthenticationService authenticationService, UserService userService, AccessTokenService accessTokenService, UserLogged userLogged)
         {
             _js = js;
+            _authenticationService = authenticationService;
             _userService = userService;
             _accessTokenService = accessTokenService;
             UserLogged = userLogged;
@@ -35,36 +37,11 @@ namespace Runner.WebUI.Authentication
             var token = await _js.GetStorage(TOKEN_STORAGE);
             if (token != null)
             {
-                var accessToken = await _accessTokenService.ReadByToken(token);
-                if (accessToken != null)
+                if (!(await _authenticationService.CheckAccessToken(token, AccessTokenType.WebUI)))
                 {
-                    var user = await _userService.ReadByIdAsync(accessToken.UserId);
-                    if (user != null)
-                    {
-                        if (accessToken.State == AccessTokenState.Active)
-                        {
-                            if (DateTime.UtcNow > accessToken.ExpireDateimeUTC)
-                            {
-                                accessToken.State = AccessTokenState.Inactive;
-                                await _accessTokenService.SaveAsync(accessToken);
-                            }
-                            else
-                            {
-                                if (DateTime.UtcNow.AddMonths(TOKEN_EXPIRE_RENEW_MONTHS) > accessToken.ExpireDateimeUTC)
-                                {
-                                    accessToken.ExpireDateimeUTC = DateTime.UtcNow.AddMonths(TOKEN_EXPIRE_MONTHS);
-                                    await _accessTokenService.SaveAsync(accessToken);
-                                }
-
-                                UserLogged.User = user;
-                                return;
-                            }
-                        }
-                    }
+                    await _js.RemoveStorage(TOKEN_STORAGE);
                 }
-                await _js.RemoveStorage(TOKEN_STORAGE);
             }
-            UserLogged.User = null;
         }
 
         public Task Create(string? name, string? fullName, string? email, string? password, string? confirmPassword)

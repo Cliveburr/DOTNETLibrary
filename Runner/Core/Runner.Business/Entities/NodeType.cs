@@ -10,7 +10,8 @@ namespace Runner.Business.Entities
     {
         App = 0,
         Folder = 1,
-        AgentPool = 2
+        AgentPool = 2,
+        Agent = 3
     }
 
     public enum CreableNodeType : byte

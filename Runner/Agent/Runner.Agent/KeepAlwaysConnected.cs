@@ -11,7 +11,7 @@ namespace Runner.Agent
     {
         public TimeSpan? NextRetryDelay(RetryContext retryContext)
         {
-            return TimeSpan.FromSeconds(1);
+            return TimeSpan.FromSeconds(3);
         }
     }
 }

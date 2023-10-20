@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Runner.Business.Entities.Agent
+namespace Runner.Agent.Hosting.Model.AgentManager
 {
-    public enum AgentStatus : byte
+    public class RegisterResponse
     {
-        Offline = 0,
-        Idle = 1,
-        Running = 2
     }
 }
