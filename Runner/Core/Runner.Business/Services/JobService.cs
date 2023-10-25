@@ -2,6 +2,7 @@
 using MongoDB.Driver;
 using Runner.Business.Authentication;
 using Runner.Business.DataAccess;
+using Runner.Business.Entities;
 using Runner.Business.Entities.Agent;
 using Runner.Business.WatcherNotification;
 using System;

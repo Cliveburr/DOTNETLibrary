@@ -7,7 +7,7 @@ namespace Runner
 {
     public static class Assert
     {
-        private static AssertStrings _strings;
+        private static AssertStrings? _strings;
 
         public static AssertStrings Strings
         {
@@ -19,7 +19,7 @@ namespace Runner
             }
         }
 
-        private static AssertIO _io;
+        private static AssertIO? _io;
 
         public static AssertIO IO
         {
@@ -31,15 +31,27 @@ namespace Runner
             }
         }
 
-        private static AssertList _list;
+        private static AssertEnumerable? _enumerable;
 
-        public static AssertList List
+        public static AssertEnumerable Enumerable
         {
             get
             {
-                if (_list == null)
-                    _list = new AssertList();
-                return _list;
+                if (_enumerable == null)
+                    _enumerable = new AssertEnumerable();
+                return _enumerable;
+            }
+        }
+
+        private static AssertEnum? _enum;
+
+        public static AssertEnum Enum
+        {
+            get
+            {
+                if (_enum == null)
+                    _enum = new AssertEnum();
+                return _enum;
             }
         }
 
@@ -80,12 +92,6 @@ namespace Runner
             {
                 throw new RunnerException(message, format);
             }
-        }
-
-        [StackTraceHidden]
-        public static void EnumMustDefined(Type type, object value, string message, params string[] format)
-        {
-            Test(() => Enum.IsDefined(type, value), message, format);
         }
     }
 }

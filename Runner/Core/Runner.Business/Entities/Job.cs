@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Runner.Business.Entities.Agent
+namespace Runner.Business.Entities
 {
     public class Job : DocumentBase
     {

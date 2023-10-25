@@ -20,6 +20,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runner.WebUI", "Web\Runner.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runner.Agent.Hosting", "Agent\Runner.Agent.Hosting\Runner.Agent.Hosting.csproj", "{DE923518-5BC0-44FB-BCC3-766C96D0CC94}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runner.Business.Tests", "Core\Runner.Business.Tests\Runner.Business.Tests.csproj", "{FA3709E9-7E08-4BCB-B6DC-1BC5E3A1DDE5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,6 +40,10 @@ Global
 		{DE923518-5BC0-44FB-BCC3-766C96D0CC94}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DE923518-5BC0-44FB-BCC3-766C96D0CC94}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DE923518-5BC0-44FB-BCC3-766C96D0CC94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA3709E9-7E08-4BCB-B6DC-1BC5E3A1DDE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA3709E9-7E08-4BCB-B6DC-1BC5E3A1DDE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA3709E9-7E08-4BCB-B6DC-1BC5E3A1DDE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA3709E9-7E08-4BCB-B6DC-1BC5E3A1DDE5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -46,6 +52,7 @@ Global
 		{1DEC2B54-35D9-4D36-8EDC-7ABD35D5C556} = {2E817016-2ED8-4C3B-A59C-9BAB564967FE}
 		{F323A252-E888-448B-8AA4-A4205AB81322} = {0DFAE425-024A-4A41-A58B-2FCEA81AAC43}
 		{DE923518-5BC0-44FB-BCC3-766C96D0CC94} = {84ED4D77-E846-47AB-80F0-8BD2B58F3BFA}
+		{FA3709E9-7E08-4BCB-B6DC-1BC5E3A1DDE5} = {2E817016-2ED8-4C3B-A59C-9BAB564967FE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A41B04EE-D7D9-4C30-AE02-53E4C26FCB3D}

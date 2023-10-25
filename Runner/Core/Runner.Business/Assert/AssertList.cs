@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Runner.Business.AssertExtension
 {
-    public class AssertList
+    public class AssertEnumerable
     {
         [StackTraceHidden]
         public void MustHaveAny<T>(IEnumerable<T>? list, string message, params string[] format)

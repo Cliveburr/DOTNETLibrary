@@ -23,7 +23,7 @@ namespace Runner.Business.DataAccess
             RegisterClass();
             Client = new MongoClient(connectionString);
             Main = Client.GetDatabase(mainDatabaseName);
-            CheckUpdates();
+            //CheckUpdates();
         }
 
         private void RegisterClass()
@@ -32,6 +32,8 @@ namespace Runner.Business.DataAccess
             BsonClassMap.RegisterClassMap<Folder>();
             BsonClassMap.RegisterClassMap<AgentPool>();
             BsonClassMap.RegisterClassMap<Agent>();
+            BsonClassMap.RegisterClassMap<Flow>();
+            BsonClassMap.RegisterClassMap<Run>();
         }
 
         private void CheckUpdates()

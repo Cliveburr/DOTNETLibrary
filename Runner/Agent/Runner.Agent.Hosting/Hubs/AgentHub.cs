@@ -36,17 +36,17 @@ namespace Runner.Agent.Hosting.Hubs
 
         public Task ScriptStarted()
         {
-
+            return Task.CompletedTask;
         }
 
         public Task ScriptError()
         {
-
+            return Task.CompletedTask;
         }
 
         public Task ScriptFinish()
         {
-
+            return Task.CompletedTask;
         }
     }
 }
