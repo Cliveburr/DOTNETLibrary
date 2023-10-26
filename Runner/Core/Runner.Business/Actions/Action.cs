@@ -10,6 +10,7 @@ namespace Runner.Business.Actions
     {
         public int ActionId { get; set; }
         public required string Label { get; set; }
+        public required string AgentPath { get; set; }
         public ActionStatus Status { get; set; }
         public bool BreakPoint { get; set; }
     }

@@ -1,0 +1,37 @@
+﻿@using Runner.Business.Entities;
+@inject NodeService nodeService
+@inject BaseService baseService
+
+<div class="container">
+
+    <div class="box mt-4">
+        <h3 class="title is-3">Folder: @Node.Name</h3>
+    </div>
+
+    <div class="buttons mt-3">
+        <button type="button" class="button is-primary" @onclick="baseService.BackNode">
+            <span class="icon is-small">
+                <i class="fa-solid fa-square-caret-left"></i>
+            </span>
+        </button>
+        @* <button type="button" class="button is-info" @onclick="OnRefresh_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-rotate-right"></i>
+            </span>
+            <span>Refresh</span>
+        </button> *@
+        <button type="button" class="button is-success" @onclick="OnCreate_Click">Run</button>
+    </div>
+
+</div>
+
+@code {
+
+    [Parameter]
+    public required NodeBase Node { get; set; }
+
+    public async Task OnCreate_Click()
+    {
+            
+    }
+}

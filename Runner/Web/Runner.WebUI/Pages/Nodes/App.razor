@@ -89,6 +89,12 @@
                     await OnRefresh_Click();
                     break;
                 }
+            case NodeType.Flow:
+                {
+                    await nodeService.CreateFlow(questionName.Value, Node);
+                    await OnRefresh_Click();
+                    break;
+                }
             default:
                 throw new Exception("Invalid type!");
         }

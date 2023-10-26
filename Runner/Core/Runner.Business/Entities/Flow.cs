@@ -11,16 +11,19 @@ namespace Runner.Business.Entities
     public class Flow : NodeBase
     {
         public required FlowActionContainer Root { get; set; }
+        public required string AgentPath { get; set; }
     }
 
     public class FlowAction
     {
         public required string Label { get; set; }
+        public string? AgentPath { get; set; }
     }
 
     public class FlowActionContainer
     {
         public required string Label { get; set; }
+        public string? AgentPath { get; set; }
         public List<FlowAction>? Actions { get; set; }
         public List<FlowActionContainer>? Next { get; set; }
     }

@@ -135,6 +135,31 @@ namespace Runner.Business.Services
             });
         }
 
+        public Task CreateFlow(string name, NodeBase parent)
+        {
+            Assert.MustNotNull(_userLogged.User, "Need to be logged to create app!");
+
+            // checar se ter permissão de Create no parent
+
+            return Create(new Flow
+            {
+                Name = name,
+                Type = NodeType.Flow,
+                Parent = parent.Id,
+                Root = new FlowActionContainer
+                {
+                    Label = "Root",
+                    Actions = new List<FlowAction>
+                    {
+                        new FlowAction
+                        {
+                            Label = "Action"
+                        }
+                    }
+                }
+            });
+        }
+
         private string AssertMachineNameToAgentName(string machineName)
         {
             var invalidChars = new char[]

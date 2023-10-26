@@ -1,34 +1,35 @@
 using Runner.Business.Actions;
 using Runner.Business.Entities;
 using Test = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
+using Action = Runner.Business.Actions.Action;
 
-namespace Runner.Business.Tests
+namespace Runner.Business.Tests.Actions
 {
     [TestClass]
-    public class SingleTests
+    public class SingleTest : TestActionsBase
     {
         private ActionControl GetControl()
         {
             var run = new Run
             {
                 Name = "Test",
-                Actions = new List<Actions.Action>
+                Actions = new List<Action>
                 {
-                    new Actions.Action
+                    new Action
                     {
                         ActionId = 1,
                         Label = "1",
                         BreakPoint = false,
                         Status = ActionStatus.Waiting
                     },
-                    new Actions.Action
+                    new Action
                     {
                         ActionId = 2,
                         Label = "2",
                         BreakPoint = false,
                         Status = ActionStatus.Waiting
                     },
-                    new Actions.Action
+                    new Action
                     {
                         ActionId = 3,
                         Label = "3",
@@ -52,7 +53,7 @@ namespace Runner.Business.Tests
                 RootContainerId = 4
             };
 
-            return ActionControl.Build(run);
+            return ActionControl.Set(run);
         }
 
         // roda uma execução sem erro até o final
@@ -61,28 +62,50 @@ namespace Runner.Business.Tests
         {
             var control = GetControl();
 
-            for (var i = 0; i < 2; i++)
-            {
-                var setRunning = control.SetRunning(4);
-                Test.AreEqual(setRunning[0].Action!.Status, ActionStatus.Running);
-                Test.AreEqual(setRunning[0].Type, ComandEffectType.ActionUpdateStatus);
+            SetRunning(control, 4);
+            SetCompletedOnSameContainer(control, 4);
 
-                var setCompleted = control.SetCompleted(4);
-                Test.AreEqual(setCompleted[0].Action!.Status, ActionStatus.Completed);
-                Test.AreEqual(setCompleted[0].Type, ComandEffectType.ActionUpdateStatus);
-                Test.AreEqual(setCompleted[1].Type, ComandEffectType.ActionContainerUpdatePosition);
-                Test.AreEqual(setCompleted[2].Type, ComandEffectType.ActionCreateJobToRun);
-            }
+            SetRunning(control, 4);
+            SetCompletedOnSameContainer(control, 4);
 
-            var setRunningFinal = control.SetRunning(4);
-            Test.AreEqual(setRunningFinal[0].Action!.Status, ActionStatus.Running);
-            Test.AreEqual(setRunningFinal[0].Type, ComandEffectType.ActionUpdateStatus);
+            SetRunning(control, 4);
+            SetCompletedAndDone(control, 4);
+        }
 
-            var setCompletedFinal = control.SetCompleted(4);
-            Test.AreEqual(setCompletedFinal[0].Action!.Status, ActionStatus.Completed);
-            Test.AreEqual(setCompletedFinal[0].Type, ComandEffectType.ActionUpdateStatus);
-            Test.AreEqual(setCompletedFinal[1].Type, ComandEffectType.ActionContainerUpdateStatus);
-            Test.AreEqual(setCompletedFinal[1].ActionContainer!.Status, ActionContainerStatus.Done);
+
+        [TestMethod]
+        public void ErrorAndGo()
+        {
+            var control = GetControl();
+
+            SetRunning(control, 4);
+            SetCompletedOnSameContainer(control, 4);
+
+            SetRunning(control, 4);
+            SetError(control, 4);
+
+            SetRunning(control, 4);
+            SetCompletedOnSameContainer(control, 4);
+
+            SetRunning(control, 4);
+            SetCompletedAndDone(control, 4);
+        }
+
+        [TestMethod]
+        public void BreakPointAndGo()
+        {
+            var control = GetControl();
+
+            control.Run.Actions[1].BreakPoint = true;
+
+            SetRunning(control, 4);
+            SetCompletedAndBreak(control, 4);
+
+            SetRunning(control, 4);
+            SetCompletedOnSameContainer(control, 4);
+
+            SetRunning(control, 4);
+            SetCompletedAndDone(control, 4);
         }
     }
 }

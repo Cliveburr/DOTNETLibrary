@@ -20,7 +20,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runner.WebUI", "Web\Runner.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runner.Agent.Hosting", "Agent\Runner.Agent.Hosting\Runner.Agent.Hosting.csproj", "{DE923518-5BC0-44FB-BCC3-766C96D0CC94}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runner.Business.Tests", "Core\Runner.Business.Tests\Runner.Business.Tests.csproj", "{FA3709E9-7E08-4BCB-B6DC-1BC5E3A1DDE5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runner.Business.Tests", "Core\Runner.Business.Tests\Runner.Business.Tests.csproj", "{FA3709E9-7E08-4BCB-B6DC-1BC5E3A1DDE5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

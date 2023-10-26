@@ -19,15 +19,53 @@ namespace Runner.Business.Actions
             Run = run;
         }
 
-        public List<CommandEffect> SetRunning(int actionContainerId)
+        public List<CommandEffect> StartRun(int actionContainerId)
         {
             // buscar
-            var (container, action) = FindPositionActionOnContainer(actionContainerId);
+            var container = FindContainer(actionContainerId);
 
             // checagem container
             Assert.Enum.In(container.Status,
                 ActionContainerStatus.Ready,
                 $"Container is not ready to run! {container.ActionContainerId}-{container.Label}");
+
+            if (container.Actions.Count == 0)
+            {
+                return SetCompleted(actionContainerId);
+            }
+
+            var action = FindPositionAction(container);
+
+            // checagem action
+            Assert.Enum.In(action.Status, new[] {
+                ActionStatus.Waiting,
+                ActionStatus.Stopped,
+                ActionStatus.Error
+            }, $"Action in wrong status to run! {action.ActionId}-{action.Label}");
+
+            return new List<CommandEffect>
+            {
+                // create job to run
+                new CommandEffect(ComandEffectType.ActionCreateJobToRun, action)
+            };
+        }
+
+        public List<CommandEffect> SetRunning(int actionContainerId)
+        {
+            // buscar
+            var container = FindContainer(actionContainerId);
+
+            // checagem container
+            Assert.Enum.In(container.Status,
+                ActionContainerStatus.Ready,
+                $"Container is not ready to run! {container.ActionContainerId}-{container.Label}");
+
+            if (container.Actions.Count == 0)
+            {
+                return SetCompleted(actionContainerId);
+            }
+
+            var action = FindPositionAction(container);
 
             // checagem action
             Assert.Enum.In(action.Status, new[] {
@@ -98,21 +136,26 @@ namespace Runner.Business.Actions
             var effects = new List<CommandEffect>();
 
             // buscar
-            var (container, action) = FindPositionActionOnContainer(actionContainerId);
+            var container = FindContainer(actionContainerId);
 
-            // checagem cursor
+            // checagem container
             Assert.Enum.In(container.Status,
                 ActionContainerStatus.Ready,
                 $"Container is not ready to complete! {container.ActionContainerId}-{container.Label}");
 
-            // checagem action
-            Assert.Enum.In(action.Status,
-                ActionStatus.Running,
-                $"Action is not running to complete! {action.ActionId}-{action.Label}");
+            if (container.Actions.Count > 0)
+            {
+                var action = FindPositionAction(container);
 
-            // mudança
-            action.Status = ActionStatus.Completed;
-            effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, action));
+                // checagem action
+                Assert.Enum.In(action.Status,
+                    ActionStatus.Running,
+                    $"Action is not running to complete! {action.ActionId}-{action.Label}");
+
+                // mudança
+                action.Status = ActionStatus.Completed;
+                effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, action));
+            }
 
             // avança forçando para rodar todas actions a frente
             var nextPosition = container.Position + 1;
@@ -144,7 +187,7 @@ namespace Runner.Business.Actions
                     nextContainer.Status = ActionContainerStatus.Ready;
                     effects.Add(new CommandEffect(ComandEffectType.ActionContainerUpdatePositionAndStatus, nextContainer));
 
-                    var nextAction = FindPositionAction(container);
+                    var nextAction = FindPositionAction(nextContainer);
                     if (!nextAction.BreakPoint)
                     {
                         // create job to run

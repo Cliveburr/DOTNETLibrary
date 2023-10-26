@@ -43,14 +43,13 @@ namespace Runner.Business.Services
                 .FirstOrDefaultAsync();
         }
 
-        public async Task CreateJob(Agent agent)
+        public async Task CreateJob(string agentPath, int actionId, ObjectId runId)
         {
-            Assert.MustNotNull(agent.Parent, "Invalid Agent Parent!");
-
             var job = new Job
             {
-                AgentPoolId = agent.Parent.Value,
-                AgentId = agent.Id,
+                AgentPath = agentPath,
+                ActionId = actionId,
+                RunId = runId,
                 Queued = DateTime.Now,
                 ToRun = true
             };
