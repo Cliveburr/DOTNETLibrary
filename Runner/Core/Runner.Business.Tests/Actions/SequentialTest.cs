@@ -24,6 +24,8 @@ namespace Runner.Business.Tests.Actions
                     {
                         ActionId = 1,
                         Label = "1",
+                        AgentPool = "",
+                        Tags = new List<string>(),
                         BreakPoint = false,
                         Status = ActionStatus.Waiting
                     },
@@ -31,6 +33,8 @@ namespace Runner.Business.Tests.Actions
                     {
                         ActionId = 2,
                         Label = "2",
+                        AgentPool = "",
+                        Tags = new List<string>(),
                         BreakPoint = false,
                         Status = ActionStatus.Waiting
                     },
@@ -38,6 +42,8 @@ namespace Runner.Business.Tests.Actions
                     {
                         ActionId = 3,
                         Label = "3",
+                        AgentPool = "",
+                        Tags = new List<string>(),
                         BreakPoint = false,
                         Status = ActionStatus.Waiting
                     },
@@ -45,6 +51,8 @@ namespace Runner.Business.Tests.Actions
                     {
                         ActionId = 4,
                         Label = "4",
+                        AgentPool = "",
+                        Tags = new List<string>(),
                         BreakPoint = false,
                         Status = ActionStatus.Waiting
                     }

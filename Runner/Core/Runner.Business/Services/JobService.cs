@@ -16,47 +16,41 @@ namespace Runner.Business.Services
 {
     public class JobService : ServiceBase
     {
-        private UserLogged _userLogged;
         private IAgentWatcherNotification _agentWatcherNotification;
 
-        public JobService(Database database, UserLogged userLogged, IAgentWatcherNotification agentWatcherNotification)
+        public JobService(Database database, IAgentWatcherNotification agentWatcherNotification)
             : base(database)
         {
-            _userLogged = userLogged;
             _agentWatcherNotification = agentWatcherNotification;
         }
 
-        public Task<Job?> FindNextJobToRun(Agent agent)
+        public Task<List<Job>> ReadJobsWaiting()
         {
-            var sort = Builders<Job>.Sort
-                .Ascending(j => j.Queued);
+            //var sort = Builders<Job>.Sort
+            //    .Ascending(j => j.Queued);
 
-            // trocar torun para state
-            // find and update para preget
+            //// trocar torun para state
+            //// find and update para preget
 
             return Job
-                .Find(j =>
-                    j.AgentPoolId == agent.Parent &&
-                    j.AgentId == agent.Id &&
-                    j.ToRun == true)
-                .Sort(sort)
-                .FirstOrDefaultAsync();
+                .ToListAsync(j => j.Status == JobStatus.Waiting);
         }
 
-        public async Task CreateJob(string agentPath, int actionId, ObjectId runId)
+        public async Task CreateJob(Run run, Actions.Action action)
         {
             var job = new Job
             {
-                AgentPath = agentPath,
-                ActionId = actionId,
-                RunId = runId,
+                AgentPool = action.AgentPool,
+                Tags = action.Tags,
+                ActionId = action.ActionId,
+                RunId = run.Id,
                 Queued = DateTime.Now,
-                ToRun = true
+                Status = JobStatus.Waiting
             };
 
             await Job.CreateAsync(job);
 
-            _agentWatcherNotification.InvokeRunScript(agent);
+            _agentWatcherNotification.InvokeJobCreated(job);
         }
     }
 }

@@ -22,7 +22,7 @@ namespace Runner.Business.AssertExtension
         [StackTraceHidden]
         public void MustEqual([NotNull] string? text, string equal, string message, params string[] format)
         {
-            if (!text.Equals(equal))
+            if (text != equal)
             {
                 throw new RunnerException(message, format);
             }

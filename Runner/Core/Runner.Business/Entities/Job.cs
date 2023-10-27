@@ -9,11 +9,12 @@ namespace Runner.Business.Entities
 {
     public class Job : DocumentBase
     {
-        public required string AgentPath { get; set; }
+        public required string AgentPool { get; set; }
+        public required List<string> Tags { get; set; }
         public ObjectId RunId { get; set; }
         public int ActionId { get; set; }
         public DateTime Queued { get; set; }
-        public bool ToRun { get; set; }
+        public JobStatus Status { get; set; }
         public DateTime? Started { get; set; }
         public DateTime? End { get; set; }
     }

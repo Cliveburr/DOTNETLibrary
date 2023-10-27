@@ -93,6 +93,12 @@ namespace Runner.Business.Services
             }
         }
 
+        public Task<NodeBase?> ReadById(ObjectId nodeId)
+        {
+            return Node
+                .FirstOrDefaultAsync(a => a.Id == nodeId);
+        }
+
         public Task CreateApp(string name)
         {
             Assert.MustNotNull(_userLogged.User, "Need to be logged to create app!");
@@ -131,7 +137,7 @@ namespace Runner.Business.Services
                 Name = name,
                 Type = NodeType.AgentPool,
                 Parent = parent.Id,
-                Active = true
+                Enabled = true
             });
         }
 
@@ -146,6 +152,7 @@ namespace Runner.Business.Services
                 Name = name,
                 Type = NodeType.Flow,
                 Parent = parent.Id,
+                AgentPool = "",
                 Root = new FlowActionContainer
                 {
                     Label = "Root",
@@ -181,7 +188,7 @@ namespace Runner.Business.Services
 
             // checar se ter permissão de Agent no agentPoolNode
 
-            Assert.MustTrue(agentPoolNode.Active, "AgentPool is not active!");
+            Assert.MustTrue(agentPoolNode.Enabled, "AgentPool is not enabled!");
 
             var agent = await ReadChild<Agent>(agentPoolNode, machineName);
             if (agent == null)
@@ -194,12 +201,15 @@ namespace Runner.Business.Services
                     Type = NodeType.Agent,
                     RegistredTags = tags,
                     Status = AgentStatus.Idle,
-                    HeartBeat = DateTime.Now
+                    HeartBeat = DateTime.Now,
+                    Enabled = true
                 };
                 await Node.CreateAsync(agent);
             }
             else
             {
+                agent.Name = AssertMachineNameToAgentName(machineName);
+                agent.MachineName = machineName;
                 agent.RegistredTags = tags;
                 agent.Status = AgentStatus.Idle;
                 agent.HeartBeat = DateTime.Now;
@@ -220,7 +230,7 @@ namespace Runner.Business.Services
             await Node.CreateAsync(node);
         }
 
-        public async Task<Agent> AgentHeartbeat(ObjectId id)
+        public async Task AgentHeartbeat(ObjectId id)
         {
             Assert.MustNotNull(_userLogged.User, "Need to be logged to register agent!");
 
@@ -234,26 +244,19 @@ namespace Runner.Business.Services
                 .Set(a => a.HeartBeat, DateTime.Now);
 
             await Node.UpdateAsync(agent, update);
-
-            return agent;
         }
 
-        public async Task<Agent> UpdateAgentStatus(ObjectId id, AgentStatus status)
+        public async Task UpdateAgentOffline(ObjectId id)
         {
-            Assert.MustNotNull(_userLogged.User, "Need to be logged to register agent!");
-
-            // checar se ter permissão de Agent
-
             var agent = await Node
                 .FirstOrDefaultAsync<Agent>(n => n.Id == id);
-            Assert.MustNotNull(agent, "Agent not found! " + id);
+            if (agent != null)
+            {
+                var update = Builders<Agent>.Update
+                    .Set(a => a.Status, AgentStatus.Offline);
 
-            var update = Builders<Agent>.Update
-                .Set(a => a.Status, status);
-
-            await Node.UpdateAsync(agent, update);
-
-            return agent;
+                await Node.UpdateAsync(agent, update);
+            }
         }
     }
 }

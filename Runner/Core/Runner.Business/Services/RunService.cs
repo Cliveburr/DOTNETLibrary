@@ -81,16 +81,7 @@ namespace Runner.Business.Services
 
         private async Task ExecuteCreateJobToRun(Run run, Actions.Action action)
         {
-            await _jobService.CreateJob(action.AgentPath, action.ActionId, run.Id);
-
-            var agentPool = await _nodeService.ReadLocation(action.AgentPath);
-            Assert.MustNotNull(agentPool, $"AgentPool not found! Path: {action.AgentPath}");
-            Assert.MustTrue(agentPool.Type == NodeType.AgentPool, $"Node type invalid! {agentPool.Type}");
-
-            // check tags
-
-            var agents = await _nodeService.ReadChilds(agentPool);
-            Assert.MustTrue(agents.Count > 0, "Missing");
+            await _jobService.CreateJob(run, action);
         }
     }
 }

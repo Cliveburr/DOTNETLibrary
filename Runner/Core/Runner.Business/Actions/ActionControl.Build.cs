@@ -24,16 +24,20 @@ namespace Runner.Business.Actions
                 Containers = new List<ActionContainer>()
             };
 
-            run.RootContainerId = MapContainer(run, flow.Root, flow.AgentPath, true);
+            run.RootContainerId = MapContainer(run, flow.Root, flow.AgentPool, flow.Tags, true);
 
             return run;
         }
 
-        private static int MapContainer(Run run, FlowActionContainer flowActionContainer, string agentPath, bool isRoot)
+        private static int MapContainer(Run run, FlowActionContainer flowActionContainer, string agentPool, List<string>? tags, bool isRoot)
         {
-            var thisAgentPath = string.IsNullOrEmpty(flowActionContainer.AgentPath) ?
-                agentPath :
-                flowActionContainer.AgentPath;
+            var thisAgentPool = string.IsNullOrEmpty(flowActionContainer.AgentPool) ?
+                agentPool :
+                flowActionContainer.AgentPool;
+
+            var thisTags = flowActionContainer.Tags == null ?
+                tags :
+                flowActionContainer.Tags;
 
             var actionContaniner = new ActionContainer
             {
@@ -48,29 +52,34 @@ namespace Runner.Business.Actions
 
             if (flowActionContainer.Actions != null)
             {
-                MapActions(run, actionContaniner, flowActionContainer.Actions, thisAgentPath);
+                MapActions(run, actionContaniner, flowActionContainer.Actions, thisAgentPool, thisTags);
             }
             if (flowActionContainer.Next != null)
             {
-                MapNextContainers(run, actionContaniner, flowActionContainer.Next, thisAgentPath);
+                MapNextContainers(run, actionContaniner, flowActionContainer.Next, thisAgentPool, thisTags);
             }
 
             return actionContaniner.ActionContainerId;
         }
 
-        private static void MapActions(Run run, ActionContainer actionContainer, List<FlowAction> flowActions, string agentPath)
+        private static void MapActions(Run run, ActionContainer actionContainer, List<FlowAction> flowActions, string agentPool, List<string>? tags)
         {
             foreach (var flowAction in flowActions)
             {
-                var thisAgentPath = string.IsNullOrEmpty(flowAction.AgentPath) ?
-                    agentPath :
-                    flowAction.AgentPath;
+                var thisAgentPool = string.IsNullOrEmpty(flowAction.AgentPool) ?
+                    agentPool :
+                    flowAction.AgentPool;
+
+                var thisTags = flowAction.Tags == null ?
+                    tags :
+                    flowAction.Tags;
 
                 var action = new Action
                 {
                     ActionId = run.IdIndexes++,
                     Label = flowAction.Label,
-                    AgentPath = thisAgentPath,
+                    AgentPool = thisAgentPool,
+                    Tags = thisTags ?? new List<string>(),
                     Status = ActionStatus.Waiting,
                     BreakPoint = false
                 };
@@ -79,11 +88,11 @@ namespace Runner.Business.Actions
             }
         }
 
-        private static void MapNextContainers(Run run, ActionContainer actionContainer, List<FlowActionContainer> flowActionContainers, string agentPath)
+        private static void MapNextContainers(Run run, ActionContainer actionContainer, List<FlowActionContainer> flowActionContainers, string agentPath, List<string>? tags)
         {
             foreach (var flowActionContainer in flowActionContainers)
             {
-                var actionContaninerId = MapContainer(run, flowActionContainer, agentPath, false);
+                var actionContaninerId = MapContainer(run, flowActionContainer, agentPath, tags, false);
                 actionContainer.Next.Add(actionContaninerId);
             }
         }

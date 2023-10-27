@@ -36,15 +36,20 @@ namespace Runner.Agent.Hosting.Hubs
 
         public Task ScriptStarted()
         {
-            return Task.CompletedTask;
+            return _agentManagerService.ScriptStarted(Context.ConnectionId);
         }
 
-        public Task ScriptError()
+        public Task ScriptError(ScriptErrorRequest request)
         {
-            return Task.CompletedTask;
+            return _agentManagerService.ScriptError(Context.ConnectionId, request);
         }
 
-        public Task ScriptFinish()
+        public Task ScriptFinish(ScriptFinishRequest request)
+        {
+            return _agentManagerService.ScriptFinish(Context.ConnectionId, request);
+        }
+
+        public Task ScriptLog()
         {
             return Task.CompletedTask;
         }

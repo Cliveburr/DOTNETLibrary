@@ -1,4 +1,5 @@
-﻿using Runner.Business.Entities.Agent;
+﻿using Runner.Business.Entities;
+using Runner.Business.Entities.Agent;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace Runner.Business.WatcherNotification
 {
-    public delegate void OnRunScriptDelegate(Agent agent);
+    public delegate void OnJobCreatedDelegate(Job job);
 
     public interface IAgentWatcherNotification
     {
-        event OnRunScriptDelegate? OnRunScript;
-        void InvokeRunScript(Agent agent);
+        event OnJobCreatedDelegate? OnJobCreated;
+        void InvokeJobCreated(Job job);
     }
 }

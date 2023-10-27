@@ -17,5 +17,6 @@ namespace Runner.Business.Entities.Agent
         public DateTime HeartBeat { get; set; }
         public DateTime LastExecuted { get; set; }
         public AgentStatus Status { get; set; }
+        public bool Enabled { get; set; }
     }
 }
