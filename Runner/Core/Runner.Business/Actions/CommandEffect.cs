@@ -23,13 +23,20 @@ namespace Runner.Business.Actions
             Type = type;
             ActionContainer = actionContainer;
         }
+
+        public CommandEffect(ComandEffectType type, ActionContainer actionContainer, Action action)
+        {
+            Type = type;
+            ActionContainer = actionContainer;
+            Action = action;
+        }
     }
 
     public enum ComandEffectType
     {
         ActionUpdateStatus = 0,
         ActionContainerUpdatePosition = 1,
-        ActionCreateJobToRun = 2,
+        ActionContainerCreateJobToRun = 2,
         ActionContainerUpdateStatus = 3,
         ActionContainerUpdatePositionAndStatus = 4
     }

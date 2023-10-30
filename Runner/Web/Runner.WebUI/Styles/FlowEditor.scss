@@ -1,0 +1,39 @@
+
+.flowactioncontainer {
+    display: flex;
+    flex-direction: column;
+    background: #eee;
+    gap: 6px;
+    padding: 6px;
+    border-radius: 6px;
+    box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1), 0 0px 0 1px rgba(10, 10, 10, 0.02);
+
+    > p {
+        align-self: center;
+        font-size: 1.1em;
+        color: #000022;
+        font-weight: bold;
+    }
+
+    > button {
+        align-self: flex-start;
+    }
+}
+
+.flowactioncontainernext {
+
+}
+
+.flowaction {
+    background: linear-gradient(to top, #6e8be3a1 0%, #aed0ea8c 50%);
+    width: 218px;
+    padding: 4px;
+    border: 1px solid #aed0ea;
+
+    > p {
+        margin-left: 4px;
+        margin-right: 4px;
+        font-weight: bold;
+        color: #2779aa;
+    }
+}

@@ -21,7 +21,8 @@ namespace Runner.Business.Actions
                 Name = flow.Name,
                 IdIndexes = 0,
                 Actions = new List<Action>(),
-                Containers = new List<ActionContainer>()
+                Containers = new List<ActionContainer>(),
+                Log = new List<RunLog>()
             };
 
             run.RootContainerId = MapContainer(run, flow.Root, flow.AgentPool, flow.Tags, true);

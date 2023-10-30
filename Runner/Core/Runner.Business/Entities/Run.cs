@@ -16,5 +16,12 @@ namespace Runner.Business.Entities
         public required List<ActionContainer> Containers { get; set; }
         public int RootContainerId { get; set; }
         public int IdIndexes { get; set; }
+        public required List<RunLog> Log { get; set; }
+    }
+
+    public class RunLog
+    {
+        public DateTime Created { get; set; }
+        public required string Text { get; set; }
     }
 }

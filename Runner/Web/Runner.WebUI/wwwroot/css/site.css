@@ -67,12 +67,56 @@ html, body {
         margin-right: 0.5rem;
     }
 }*/
+.w10 {
+  width: 10%;
+}
+
 .w20 {
   width: 20%;
 }
 
 .w50 {
   width: 50%;
+}
+
+.w50px {
+  width: 50px;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.flowactioncontainer {
+  display: flex;
+  flex-direction: column;
+  background: #eee;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 6px;
+  box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1), 0 0px 0 1px rgba(10, 10, 10, 0.02);
+}
+.flowactioncontainer > p {
+  align-self: center;
+  font-size: 1.1em;
+  color: #000022;
+  font-weight: bold;
+}
+.flowactioncontainer > button {
+  align-self: flex-start;
+}
+
+.flowaction {
+  background: linear-gradient(to top, rgba(110, 139, 227, 0.631372549) 0%, rgba(174, 208, 234, 0.5490196078) 50%);
+  width: 218px;
+  padding: 4px;
+  border: 1px solid #aed0ea;
+}
+.flowaction > p {
+  margin-left: 4px;
+  margin-right: 4px;
+  font-weight: bold;
+  color: #2779aa;
 }
 
 /* Bulma Utilities */
@@ -371,7 +415,7 @@ th:not([align]) {
 }
 
 html {
-  background-color: rgba(92, 98, 91, 0.7294117647);
+  background-color: rgba(92, 98, 91, 0.4117647059);
   font-size: 16px;
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;

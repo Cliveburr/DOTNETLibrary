@@ -1,0 +1,36 @@
+﻿<div class="flowactioncontainer">
+    @if (!string.IsNullOrEmpty(Node.Label))
+    {
+        <p>
+            @Node.Label
+        </p>
+    }
+    @if (Node.Actions != null)
+    @foreach (var action in Node.Actions)
+    {
+        <FlowAction Node="action" />
+    }
+    <button class="button is-success is-small">
+        <span class="icon is-small">
+            <i class="fa-solid fa-square-plus fa-lg"></i>
+        </span>
+    </button>
+</div>
+<div class="flowactioncontainernext">
+    @if (Node.Next != null)
+    @foreach (var next in Node.Next)
+    {
+        <FlowActionContainer Node="next" />
+    }
+    <button class="button is-success is-small">
+        <span class="icon is-small">
+            <i class="fa-solid fa-square-plus fa-lg"></i>
+        </span>
+    </button>
+</div>
+
+@code {
+
+    [Parameter]
+    public required Runner.Business.Entities.FlowActionContainer Node { get; set; }
+}

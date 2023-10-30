@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Runner.Agent.Hosting.Model.AgentManager
 {
-    public class ScriptErrorRequest
+    public class ScriptLogRequest
     {
-        public required string Error { get; set; }
+        public required string Text { get; set; }
     }
 }

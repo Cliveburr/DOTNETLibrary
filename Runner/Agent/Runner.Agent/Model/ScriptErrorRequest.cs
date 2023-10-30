@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Runner.Agent.Hosting.Model.AgentManager
+namespace Runner.Agent.Model
 {
     public class ScriptErrorRequest
     {

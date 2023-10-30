@@ -1,12 +1,11 @@
 ﻿@using Runner.Business.Entities;
-@inject NodeService nodeService
 @inject JobService jobService
 @inject BaseService baseService
 
 <div class="container">
 
     <div class="box mt-4">
-        <h3 class="title is-3">Agent: @Node.Name</h3>
+        <h3 class="title is-3">Agent: @AgentNode.MachineName <NodeTypeIcon Type="Node.Type" /></h3>
     </div>
 
     <div class="buttons mt-3">
@@ -15,16 +14,36 @@
                 <i class="fa-solid fa-square-caret-left"></i>
             </span>
         </button>
-        <button type="button" class="button is-info" @onclick="OnRunTestJob_Click">
+        <button type="button" class="button is-info" @onclick="OnRefresh_Click">
             <span class="icon is-small">
                 <i class="fa-solid fa-rotate-right"></i>
             </span>
-            <span>Test</span>
+            <span>Refresh</span>
         </button>
     </div>
 
     <div class="box mt-3">
-        
+        @if (Items != null)
+        {
+            <DataTable Items="Items">
+                <Header>
+                <tr>
+                    <th>Queued</th>
+                    <th>Status</th>
+                    <th>Started</th>
+                    <th>End</th>
+                </tr>
+                </Header>
+                <Body Context="Item">
+                <tr>
+                    <td>@Item.Queued</td>
+                    <td>@Item.Status</td>
+                    <td>@Item.Started</td>
+                    <td>@Item.End</td>
+                </tr>
+                </Body>
+            </DataTable>
+        }
     </div>
 </div>
 
@@ -33,21 +52,21 @@
     [Parameter]
     public required NodeBase Node { get; set; }
 
+    public List<Job>? Items { get; set; }
+
+    public Business.Entities.Agent.Agent AgentNode { get => (Business.Entities.Agent.Agent)Node; }
 
 
     protected override async Task OnInitializedAsync()
     {
+        await OnRefresh_Click();
     }
 
-    private async Task OnRunTestJob_Click()
+    public async Task OnRefresh_Click()
     {
-        // var agent = Node as Runner.Business.Entities.Agent.Agent;
-        // if (agent != null)
-        // {
-        //     await jobService.CreateJob(agent);
-        // }
+        Items = await jobService.ReadJobs(AgentNode);
+        StateHasChanged();
     }
-
 
     public void OnNavigateApp_Click(NodeBase node)
     {

@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
+using Runner.Business.Actions;
 using Runner.Business.Authentication;
 using Runner.Business.DataAccess;
 using Runner.Business.Entities;
@@ -24,6 +25,18 @@ namespace Runner.Business.Services
             _agentWatcherNotification = agentWatcherNotification;
         }
 
+        public Task<List<Job>> ReadJobs(Agent agent)
+        {
+            //var sort = Builders<Job>.Sort
+            //    .Ascending(j => j.Queued);
+
+            //// trocar torun para state
+            //// find and update para preget
+
+            return Job
+                .ToListAsync(j => j.AgentId == agent.Id);
+        }
+
         public Task<List<Job>> ReadJobsWaiting()
         {
             //var sort = Builders<Job>.Sort
@@ -36,13 +49,26 @@ namespace Runner.Business.Services
                 .ToListAsync(j => j.Status == JobStatus.Waiting);
         }
 
-        public async Task CreateJob(Run run, Actions.Action action)
+        public Task<Job?> ReadById(ObjectId jobId)
+        {
+            //var sort = Builders<Job>.Sort
+            //    .Ascending(j => j.Queued);
+
+            //// trocar torun para state
+            //// find and update para preget
+
+            return Job
+                .FirstOrDefaultAsync(j => j.Id == jobId);
+        }
+
+        public async Task CreateJob(Run run, ActionContainer actionContainer, Actions.Action action)
         {
             var job = new Job
             {
                 AgentPool = action.AgentPool,
                 Tags = action.Tags,
                 ActionId = action.ActionId,
+                ActionContainerId = actionContainer.ActionContainerId,
                 RunId = run.Id,
                 Queued = DateTime.Now,
                 Status = JobStatus.Waiting
@@ -51,6 +77,34 @@ namespace Runner.Business.Services
             await Job.CreateAsync(job);
 
             _agentWatcherNotification.InvokeJobCreated(job);
+        }
+
+        public Task SetRunning(Job job, ObjectId agentId)
+        {
+            var update = Builders<Job>.Update
+                .Set(j => j.Status, JobStatus.Running)
+                .Set(i => i.Started, DateTime.Now)
+                .Set(i => i.AgentId, agentId);
+
+            return Job.UpdateAsync(job, update);
+        }
+
+        public Task SetError(Job job)
+        {
+            var update = Builders<Job>.Update
+                .Set(j => j.Status, JobStatus.Error)
+                .Set(i => i.End, DateTime.Now);
+
+            return Job.UpdateAsync(job, update);
+        }
+
+        public Task SetCompleted(Job job)
+        {
+            var update = Builders<Job>.Update
+                .Set(j => j.Status, JobStatus.Completed)
+                .Set(i => i.End, DateTime.Now);
+
+            return Job.UpdateAsync(job, update);
         }
     }
 }

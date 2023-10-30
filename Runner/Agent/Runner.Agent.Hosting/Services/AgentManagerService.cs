@@ -18,6 +18,7 @@ using System.Security.Authentication;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Collections.Specialized.BitVector32;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace Runner.Agent.Hosting.Services
 {
@@ -34,6 +35,7 @@ namespace Runner.Agent.Hosting.Services
             public required string AgentPool { get; set; }
             public required ObjectId AgentId { get; set; }
             public required IServiceScope Scope { get; set; }
+            public ObjectId? RunningJobId { get; set; }
         }
 
         public AgentManagerService(IHubContext<AgentHub> agentHub, IServiceProvider serviceProvider, IAgentWatcherNotification agentWatcherNotification)
@@ -122,6 +124,14 @@ namespace Runner.Agent.Hosting.Services
             var agentConnect = FindConnected(connectionId);
             if (agentConnect != null)
             {
+                if (agentConnect.RunningJobId.HasValue)
+                {
+                    await ScriptError(connectionId, new ScriptErrorRequest
+                    {
+                        Error = "Agent offline!"
+                    });
+                }
+
                 var nodeService = agentConnect.Scope.ServiceProvider.GetRequiredService<NodeService>();
                 await nodeService.UpdateAgentOffline(agentConnect.AgentId);
                 Remove(agentConnect);
@@ -165,6 +175,11 @@ namespace Runner.Agent.Hosting.Services
 
                 foreach (var agentConnected in _agents)
                 {
+                    if (agentConnected.RunningJobId.HasValue)
+                    {
+                        continue;
+                    }
+
                     var agentNormalizedAgentPool = NormalizeAgentPool(agentConnected.AgentPool);
 
                     if (jobNormalizedAgentPool == agentNormalizedAgentPool)
@@ -238,8 +253,12 @@ namespace Runner.Agent.Hosting.Services
             public required AgentConnect AgentConnect { get; set; }
         }
 
+        private SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1);
+
         private async Task CheckAgentForJobs()
         {
+            await _semaphoreSlim.WaitAsync();
+
             using (var scope = _serviceProvider.CreateScope())
             {
                 var jobService = scope.ServiceProvider.GetRequiredService<JobService>();
@@ -252,7 +271,13 @@ namespace Runner.Agent.Hosting.Services
                 {
                     try
                     {
-                        await _agentHub.Clients.Client(jobWithAgent.AgentConnect.ConnectionId).SendAsync("RunScript");
+                        var request = new RunScriptRequest
+                        {
+                        };
+
+                        await _agentHub.Clients.Client(jobWithAgent.AgentConnect.ConnectionId).SendAsync("RunScript", request);
+
+                        jobWithAgent.AgentConnect.RunningJobId = jobWithAgent.Job.Id;
                     }
                     catch (Exception ex)
                     {
@@ -260,21 +285,78 @@ namespace Runner.Agent.Hosting.Services
                     }
                 }
             }
+
+            _semaphoreSlim.Release();
         }
 
-        internal Task ScriptStarted(string connectionId)
+        internal async Task ScriptStarted(string connectionId)
         {
-            throw new NotImplementedException();
+            var agentConnect = FindConnected(connectionId);
+            if (agentConnect != null)
+            {
+                var jobService = agentConnect.Scope.ServiceProvider.GetRequiredService<JobService>();
+                Assert.MustNotNull(agentConnect.RunningJobId, "Missing RunningJobId!");
+                var job = await jobService.ReadById(agentConnect.RunningJobId.Value);
+                Assert.MustNotNull(job, "Job not found! " + agentConnect.RunningJobId.Value);
+
+                var runService = agentConnect.Scope.ServiceProvider.GetRequiredService<RunService>();
+                await runService.SetRunning(job.RunId, job.ActionContainerId);
+
+                await jobService.SetRunning(job, agentConnect.AgentId);
+            }
         }
 
-        internal Task ScriptError(string connectionId, ScriptErrorRequest request)
+        internal async Task ScriptError(string connectionId, ScriptErrorRequest request)
         {
-            throw new NotImplementedException();
+            var agentConnect = FindConnected(connectionId);
+            if (agentConnect != null)
+            {
+                var jobService = agentConnect.Scope.ServiceProvider.GetRequiredService<JobService>();
+                Assert.MustNotNull(agentConnect.RunningJobId, "Missing RunningJobId!");
+                var job = await jobService.ReadById(agentConnect.RunningJobId.Value);
+                Assert.MustNotNull(job, "Job not found! " + agentConnect.RunningJobId.Value);
+
+                var runService = agentConnect.Scope.ServiceProvider.GetRequiredService<RunService>();
+                await runService.SetError(job.RunId, job.ActionContainerId, request.Error);
+
+                await jobService.SetError(job);
+            }
         }
 
-        internal Task ScriptFinish(string connectionId, ScriptFinishRequest request)
+        internal async Task ScriptFinish(string connectionId, ScriptFinishRequest request)
         {
-            throw new NotImplementedException();
+            var agentConnect = FindConnected(connectionId);
+            if (agentConnect != null)
+            {
+                var jobService = agentConnect.Scope.ServiceProvider.GetRequiredService<JobService>();
+                Assert.MustNotNull(agentConnect.RunningJobId, "Missing RunningJobId!");
+                var job = await jobService.ReadById(agentConnect.RunningJobId.Value);
+                Assert.MustNotNull(job, "Job not found! " + agentConnect.RunningJobId.Value);
+
+                var runService = agentConnect.Scope.ServiceProvider.GetRequiredService<RunService>();
+                await runService.SetCompleted(job.RunId, job.ActionContainerId);
+
+                await jobService.SetCompleted(job);
+
+                agentConnect.RunningJobId = null;
+            }
+
+            _ = CheckAgentForJobs();
+        }
+
+        internal async Task ScriptLog(string connectionId, ScriptLogRequest request)
+        {
+            var agentConnect = FindConnected(connectionId);
+            if (agentConnect != null)
+            {
+                var jobService = agentConnect.Scope.ServiceProvider.GetRequiredService<JobService>();
+                Assert.MustNotNull(agentConnect.RunningJobId, "Missing RunningJobId!");
+                var job = await jobService.ReadById(agentConnect.RunningJobId.Value);
+                Assert.MustNotNull(job, "Job not found! " + agentConnect.RunningJobId.Value);
+
+                var runService = agentConnect.Scope.ServiceProvider.GetRequiredService<RunService>();
+                await runService.WriteLog(job.RunId, request.Text);
+            }
         }
     }
 }

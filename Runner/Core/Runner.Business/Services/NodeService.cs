@@ -152,7 +152,7 @@ namespace Runner.Business.Services
                 Name = name,
                 Type = NodeType.Flow,
                 Parent = parent.Id,
-                AgentPool = "",
+                AgentPool = "/test/pasta/agents",
                 Root = new FlowActionContainer
                 {
                     Label = "Root",
@@ -160,7 +160,11 @@ namespace Runner.Business.Services
                     {
                         new FlowAction
                         {
-                            Label = "Action"
+                            Label = "Action One"
+                        },
+                        new FlowAction
+                        {
+                            Label = "Action Two"
                         }
                     }
                 }
@@ -190,13 +194,15 @@ namespace Runner.Business.Services
 
             Assert.MustTrue(agentPoolNode.Enabled, "AgentPool is not enabled!");
 
-            var agent = await ReadChild<Agent>(agentPoolNode, machineName);
+            var assertName = AssertMachineNameToAgentName(machineName);
+
+            var agent = await ReadChild<Agent>(agentPoolNode, assertName);
             if (agent == null)
             {
                 agent = new Agent
                 {
                     Parent = agentPoolNode.Id,
-                    Name = AssertMachineNameToAgentName(machineName),
+                    Name = assertName,
                     MachineName = machineName,
                     Type = NodeType.Agent,
                     RegistredTags = tags,
@@ -208,8 +214,6 @@ namespace Runner.Business.Services
             }
             else
             {
-                agent.Name = AssertMachineNameToAgentName(machineName);
-                agent.MachineName = machineName;
                 agent.RegistredTags = tags;
                 agent.Status = AgentStatus.Idle;
                 agent.HeartBeat = DateTime.Now;

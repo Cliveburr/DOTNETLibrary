@@ -1,0 +1,18 @@
+﻿<div class="card flowaction">
+    <p>
+        @ValidLabel()
+    </p>
+</div>
+
+@code {
+
+    [Parameter]
+    public required Runner.Business.Entities.FlowAction Node { get; set; }
+
+    private string ValidLabel()
+    {
+        return string.IsNullOrEmpty(Node.Label) ?
+            " " :
+            Node.Label;
+    }
+}

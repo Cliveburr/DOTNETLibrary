@@ -56,7 +56,8 @@ namespace Runner.Business.Tests.Actions
                     }
                 },
                 IdIndexes = 5,
-                RootContainerId = 4
+                RootContainerId = 4,
+                Log = new List<RunLog>()
             };
 
             return ActionControl.Set(run);

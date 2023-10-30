@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Amazon.Runtime.Internal;
+using Microsoft.AspNetCore.SignalR;
 using Runner.Agent.Hosting.Model.AgentManager;
 using Runner.Agent.Hosting.Services;
 using Runner.Business.Services;
@@ -49,9 +50,9 @@ namespace Runner.Agent.Hosting.Hubs
             return _agentManagerService.ScriptFinish(Context.ConnectionId, request);
         }
 
-        public Task ScriptLog()
+        public Task ScriptLog(ScriptLogRequest request)
         {
-            return Task.CompletedTask;
+            return _agentManagerService.ScriptLog(Context.ConnectionId, request);
         }
     }
 }

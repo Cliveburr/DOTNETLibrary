@@ -19,8 +19,10 @@ namespace Runner.Business.Actions
             Run = run;
         }
 
-        public List<CommandEffect> StartRun(int actionContainerId)
+        public List<CommandEffect> StartRun()
         {
+            var actionContainerId = Run.RootContainerId;
+
             // buscar
             var container = FindContainer(actionContainerId);
 
@@ -46,7 +48,7 @@ namespace Runner.Business.Actions
             return new List<CommandEffect>
             {
                 // create job to run
-                new CommandEffect(ComandEffectType.ActionCreateJobToRun, action)
+                new CommandEffect(ComandEffectType.ActionContainerCreateJobToRun, container, action)
             };
         }
 
@@ -169,7 +171,7 @@ namespace Runner.Business.Actions
                 if (!nextAction.BreakPoint)
                 {
                     // create job to run
-                    effects.Add(new CommandEffect(ComandEffectType.ActionCreateJobToRun, nextAction));
+                    effects.Add(new CommandEffect(ComandEffectType.ActionContainerCreateJobToRun, container, nextAction));
                 }
             }
             else
@@ -191,7 +193,7 @@ namespace Runner.Business.Actions
                     if (!nextAction.BreakPoint)
                     {
                         // create job to run
-                        effects.Add(new CommandEffect(ComandEffectType.ActionCreateJobToRun, nextAction));
+                        effects.Add(new CommandEffect(ComandEffectType.ActionContainerCreateJobToRun, nextContainer, nextAction));
                     }
                 }
             }

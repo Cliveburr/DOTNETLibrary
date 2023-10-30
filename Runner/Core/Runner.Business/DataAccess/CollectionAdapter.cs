@@ -83,6 +83,16 @@ namespace Runner.Business.DataAccess
             return GetCollection<E>().UpdateOneAsync(e => e.Id == obj.Id, update, options);
         }
 
+        public Task UpdateAsync<E>(Expression<Func<E, bool>> filter, UpdateDefinition<E> update, UpdateOptions? options = null) where E : T
+        {
+            return GetCollection<E>().UpdateOneAsync(filter, update, options);
+        }
+
+        public Task UpdateAsync<E>(FilterDefinition<E> filter, UpdateDefinition<E> update, UpdateOptions? options = null) where E : T
+        {
+            return GetCollection<E>().UpdateOneAsync(filter, update, options);
+        }
+
         public Task<T?> ReadByIdAsync(ObjectId id)
         {
             return _collection.Find(e => e.Id == id)

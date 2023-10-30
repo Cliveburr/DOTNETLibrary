@@ -46,7 +46,7 @@ namespace Runner.Business.Tests.Actions
                 Test.AreEqual(effects[i].ActionContainer!.Position, 0);
                 Test.AreEqual(effects[i].ActionContainer!.Status, ActionContainerStatus.Ready);
 
-                Test.AreEqual(effects[i + 1].Type, ComandEffectType.ActionCreateJobToRun);
+                Test.AreEqual(effects[i + 1].Type, ComandEffectType.ActionContainerCreateJobToRun);
             }
         }
 
@@ -85,7 +85,7 @@ namespace Runner.Business.Tests.Actions
 
             Test.AreEqual(effects[1].Type, ComandEffectType.ActionContainerUpdatePosition);
 
-            Test.AreEqual(effects[2].Type, ComandEffectType.ActionCreateJobToRun);
+            Test.AreEqual(effects[2].Type, ComandEffectType.ActionContainerCreateJobToRun);
         }
 
         protected void SetCompletedOnSameContainer(ActionControl control, string actionContainerLabel)
@@ -134,7 +134,7 @@ namespace Runner.Business.Tests.Actions
                 Test.AreEqual(effects[i].ActionContainer!.Position, 0);
                 Test.AreEqual(effects[i].ActionContainer!.Status, ActionContainerStatus.Ready);
 
-                Test.AreEqual(effects[i + 1].Type, ComandEffectType.ActionCreateJobToRun);
+                Test.AreEqual(effects[i + 1].Type, ComandEffectType.ActionContainerCreateJobToRun);
             }
         }
 
