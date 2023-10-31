@@ -1,0 +1,74 @@
+﻿@using Runner.Business.Entities;
+@using Runner.WebUI.Components.FlowEditor;
+@inject NodeService nodeService
+@inject BaseService baseService
+
+<div class="container">
+
+    <div class="box mt-4">
+        <h3 class="title is-3">Folder: @Node.Name</h3>
+    </div>
+
+    <div class="tabs is-centered is-medium">
+        <ul>
+            <li class="@GetTabActive(0)" @onclick="(() => OnTabClick(0))">
+                <a>
+                    <span class="icon is-small"><i class="fa-solid fa-person-running"></i></span>
+                    <span>Runs</span>
+                </a>
+            </li>
+            <li class="@GetTabActive(1)" @onclick="(() => OnTabClick(1))">
+                <a>
+                    <span class="icon is-small"><i class="fa-solid fa-wind"></i></span>
+                    <span>Flow</span>
+                </a>
+            </li>
+            <li class="@GetTabActive(2)" @onclick="(() => OnTabClick(2))">
+                <a>
+                    <span class="icon is-small"><i class="fa-solid fa-calendar-days"></i></span>
+                    <span>Schedule</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    @switch (tabId)
+    {
+        case 0:
+            <FlowRuns FlowNode=FlowNode />
+            break;
+        case 1:
+            <FlowEdit FlowNode=FlowNode Panel=panel />
+            break;
+        case 2:
+            <FlowSchedule />
+            break;
+    }
+</div>
+
+<RightPanel @ref=panel />
+
+@code {
+
+    [Parameter]
+    public required NodeBase Node { get; set; }
+
+    public Business.Entities.Flow FlowNode { get => (Business.Entities.Flow)Node; }
+
+    private RightPanel? panel;
+    private int tabId;
+
+    private string GetTabActive(int id)
+    {
+        return id == tabId ? "is-active" : "";
+    }
+
+    private void OnTabClick(int id)
+    {
+        if (id != tabId)
+        {
+            tabId = id;
+            StateHasChanged();
+        }
+    }
+}

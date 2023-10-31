@@ -16,12 +16,31 @@ namespace Runner.Business.Entities
         public required List<ActionContainer> Containers { get; set; }
         public int RootContainerId { get; set; }
         public int IdIndexes { get; set; }
+        public RunStatus Status { get; set; }
+        public DateTime Created { get; set; }
+        public DateTime Completed { get; set; }
         public required List<RunLog> Log { get; set; }
+    }
+
+    public enum RunStatus
+    {
+        Waiting = 0,
+        Running = 1,
+        Error = 2,
+        Completed = 3
     }
 
     public class RunLog
     {
         public DateTime Created { get; set; }
         public required string Text { get; set; }
+    }
+
+    public class RunList : DocumentBase
+    {
+        public required string Name { get; set; }
+        public RunStatus Status { get; set; }
+        public DateTime Created { get; set; }
+        public DateTime Completed { get; set; }
     }
 }

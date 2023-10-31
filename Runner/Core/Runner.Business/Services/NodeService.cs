@@ -74,8 +74,29 @@ namespace Runner.Business.Services
         private async Task<NodeBase?> ReadLocation_Recursive(System.Collections.Queue parts, NodeBase? parent)
         {
             var name = (string)parts.Dequeue()!;
-            var found = await Node
-                .FirstOrDefaultAsync(n => n.Name == name && n.Parent == (parent == null ? null : parent.Id));
+            NodeBase? found = null;
+            if (parent == null)
+            {
+                found = await Node
+                    .FirstOrDefaultAsync(n => n.Name == name && n.Parent == null);
+            }
+            else
+            {
+                switch (parent.Type)
+                {
+                    case NodeType.Flow:
+                        if (ObjectId.TryParse(name, out ObjectId runId))
+                        {
+                            found = await Node
+                                .FirstOrDefaultAsync(n => n.Id == runId && n.Parent == parent.Id);
+                        }
+                        break;
+                    default:
+                        found = await Node
+                            .FirstOrDefaultAsync(n => n.Name == name && n.Parent == parent.Id);
+                        break;
+                }
+            }
             if (found == null)
             {
                 return null;
@@ -152,7 +173,6 @@ namespace Runner.Business.Services
                 Name = name,
                 Type = NodeType.Flow,
                 Parent = parent.Id,
-                AgentPool = "/test/pasta/agents",
                 Root = new FlowActionContainer
                 {
                     Label = "Root",
@@ -160,15 +180,20 @@ namespace Runner.Business.Services
                     {
                         new FlowAction
                         {
-                            Label = "Action One"
-                        },
-                        new FlowAction
-                        {
-                            Label = "Action Two"
+                            Label = "Action"
                         }
                     }
                 }
             });
+        }
+
+        public Task UpdateFlow(Flow flow)
+        {
+            Assert.MustNotNull(_userLogged.User, "Need to be logged to create app!");
+
+            // checar se ter permissão de Create no parent
+
+            return Node.SaveAsync(flow);
         }
 
         private string AssertMachineNameToAgentName(string machineName)

@@ -1,0 +1,81 @@
+﻿@using Runner.Business.Entities;
+@inject NodeService nodeService
+@inject RunService runService
+@inject BaseService baseService
+
+<div class="buttons mt-3">
+    <button type="button" class="button is-primary" @onclick="baseService.BackNode">
+        <span class="icon is-small">
+            <i class="fa-solid fa-square-caret-left"></i>
+        </span>
+    </button>
+    <button type="button" class="button is-info" @onclick="OnRefresh_Click">
+        <span class="icon is-small">
+            <i class="fa-solid fa-rotate-right"></i>
+        </span>
+        <span>Refresh</span>
+    </button>
+    <button type="button" class="button is-success" @onclick="OnRun_Click">
+        <span class="icon is-small">
+            <i class="fa-solid fa-person-running"></i>
+        </span>
+        <span>Run</span>
+    </button>
+</div>
+
+<div class="box mt-3">
+    @if (Items != null)
+    {
+        <DataTable Items="Items">
+            <Header>
+            <tr>
+                <th class="w50px">Type</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Completed</th>
+            </tr>
+            </Header>
+            <Body Context="Item">
+            <tr class="pointer" @onclick="@(_ => OnNavigateApp_Click(Item))">
+                <td class="has-text-centered">
+                    <NodeTypeIcon Type="NodeType.Run" />
+                </td>
+                <td>@Item.Name</td>
+                <td>@Item.Status</td>
+                <td>@Item.Created</td>
+                <td>@Item.Completed</td>
+            </tr>
+            </Body>
+        </DataTable>
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public required Business.Entities.Flow FlowNode { get; set; }
+
+    public List<RunList>? Items { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await OnRefresh_Click();
+    }
+
+    public async Task OnRefresh_Click()
+    {
+        Items = await runService.ReadRuns(FlowNode);
+        StateHasChanged();
+    }
+
+    public async Task OnRun_Click()
+    {
+        await runService.CreateRun(FlowNode);
+    }
+
+    public void OnNavigateApp_Click(RunList node)
+    {
+        baseService.FowardNode(node.Id.ToString());
+    }
+}

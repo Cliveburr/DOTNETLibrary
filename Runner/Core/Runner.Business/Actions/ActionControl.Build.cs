@@ -25,7 +25,7 @@ namespace Runner.Business.Actions
                 Log = new List<RunLog>()
             };
 
-            run.RootContainerId = MapContainer(run, flow.Root, flow.AgentPool, flow.Tags, true);
+            run.RootContainerId = MapContainer(run, flow.Root, string.Empty, null, true);
 
             return run;
         }
@@ -44,7 +44,7 @@ namespace Runner.Business.Actions
             {
                 ActionContainerId = run.IdIndexes++,
                 Label = flowActionContainer.Label,
-                Status = isRoot ? ActionContainerStatus.Ready : ActionContainerStatus.StandBy,
+                Status = isRoot ? ActionContainerStatus.Ready : ActionContainerStatus.Waiting,
                 Position = 0,
                 Actions = new List<int>(),
                 Next = new List<int>()

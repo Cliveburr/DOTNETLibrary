@@ -36,7 +36,7 @@ namespace Runner.Business.Tests.Actions
 
             Test.AreEqual(effects[0].Type, ComandEffectType.ActionContainerUpdateStatus);
             var container = effects[0].ActionContainer!;
-            Test.AreEqual(container.Status, ActionContainerStatus.Done);
+            Test.AreEqual(container.Status, ActionContainerStatus.Completed);
 
             Test.AreEqual(effects.Count, 1 + (container.Next.Count * 2));
 
@@ -124,7 +124,7 @@ namespace Runner.Business.Tests.Actions
 
             Test.AreEqual(effects[1].Type, ComandEffectType.ActionContainerUpdateStatus);
             var container = effects[1].ActionContainer!;
-            Test.AreEqual(container.Status, ActionContainerStatus.Done);
+            Test.AreEqual(container.Status, ActionContainerStatus.Completed);
 
             Test.AreEqual(effects.Count, 2 + (container.Next.Count * 2));//
 
@@ -155,7 +155,7 @@ namespace Runner.Business.Tests.Actions
             Test.AreEqual(effects[0].Type, ComandEffectType.ActionUpdateStatus);
 
             Test.AreEqual(effects[1].Type, ComandEffectType.ActionContainerUpdateStatus);
-            Test.AreEqual(effects[1].ActionContainer!.Status, ActionContainerStatus.Done);
+            Test.AreEqual(effects[1].ActionContainer!.Status, ActionContainerStatus.Completed);
         }
 
         protected void SetCompletedAndDone(ActionControl control, string actionContainerLabel)
@@ -175,7 +175,7 @@ namespace Runner.Business.Tests.Actions
             Test.AreEqual(effects[0].Type, ComandEffectType.ActionUpdateStatus);
 
             Test.AreEqual(effects[1].Type, ComandEffectType.ActionContainerUpdateStatus);
-            Test.AreEqual(effects[1].ActionContainer!.Status, ActionContainerStatus.Done);
+            Test.AreEqual(effects[1].ActionContainer!.Status, ActionContainerStatus.Completed);
 
             Test.AreEqual(effects[2].Type, ComandEffectType.ActionContainerUpdatePositionAndStatus);
             Test.AreEqual(effects[2].ActionContainer!.Position, 0);

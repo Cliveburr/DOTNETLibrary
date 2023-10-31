@@ -31,6 +31,15 @@ namespace Runner.Business.Actions
                 ActionContainerStatus.Ready,
                 $"Container is not ready to run! {container.ActionContainerId}-{container.Label}");
 
+            if (container.IsForActions)
+            {
+
+            }
+            else
+            {
+
+            }
+
             if (container.Actions.Count == 0)
             {
                 return SetCompleted(actionContainerId);
@@ -177,7 +186,7 @@ namespace Runner.Business.Actions
             else
             {
                 // mudança
-                container.Status = ActionContainerStatus.Done;
+                container.Status = ActionContainerStatus.Completed;
                 effects.Add(new CommandEffect(ComandEffectType.ActionContainerUpdateStatus, container));
 
                 foreach (var nextContainerId in container.Next)

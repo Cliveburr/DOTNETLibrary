@@ -1,7 +1,10 @@
-﻿<div class="card flowaction">
-    <p>
-        @ValidLabel()
-    </p>
+﻿<div class="card flowaction" @onclick=OnOpenEditor>
+    <p>@ValidLabel()</p>
+    @* <button class="button is-small" @onclick=OnOpenEditor>
+        <span class="icon is-small">
+            <i class="fa-solid fa-bars"></i>
+        </span>
+    </button> *@
 </div>
 
 @code {
@@ -9,10 +12,79 @@
     [Parameter]
     public required Runner.Business.Entities.FlowAction Node { get; set; }
 
+    [Parameter]
+    public required FlowActionContainer Parent { get; set; }
+
+    [CascadingParameter(Name = "GetPanel")]
+    public Func<RightPanel?>? GetPanel { get; set; }
+
     private string ValidLabel()
     {
         return string.IsNullOrEmpty(Node.Label) ?
             " " :
             Node.Label;
+    }
+
+    private void OnOpenEditor()
+    {
+        if (GetPanel != null)
+        {
+            var panel = GetPanel();
+            if (panel != null)
+            {
+                panel.SetOpen(EditorForm());
+            }
+        }
+    }
+
+    private void OnRemoveAction_Click()
+    {
+        if (Parent.Node.Actions != null)
+        {
+            Parent.Node.Actions.Remove(Node);
+            Parent.UpdateState();
+            if (GetPanel != null)
+            {
+                var panel = GetPanel();
+                if (panel != null)
+                {
+                    panel.CleanPanel();
+                }
+            }
+        }
+    }
+
+    private RenderFragment EditorForm()
+    {
+        return
+        @<div class="is-flex is-flex-direction-column m-4">
+            <h3 class="title is-3">Container</h3>
+            <div class="buttons">
+                <button type="button" class="button is-danger is-small" @onclick="OnRemoveAction_Click">
+                    <span class="icon is-small">
+                        <i class="fa-solid fa-xmark"></i>
+                    </span>
+                    <span>Remove</span>
+                </button>
+            </div>
+            <div class="field">
+                <label class="label">Label</label>
+                <div class="control">
+                    <input class="input" type="text" @bind=Node.Label placeholder="Label">
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Agent Pool</label>
+                <div class="control">
+                    <input class="input" type="text" @bind=Node.AgentPool placeholder="Agent Pool">
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Tags</label>
+                <div class="control">
+                    <input class="input" type="text" placeholder="Tags">
+                </div>
+            </div>
+        </div>;
     }
 }

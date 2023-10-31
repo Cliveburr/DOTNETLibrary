@@ -33,5 +33,10 @@ namespace Runner.WebUI.Components
             parts.RemoveAt(parts.Count - 1);
             Navigation.NavigateTo($"/{string.Join('/', parts)}", false, true);
         }
+
+        public void Reload()
+        {
+            Navigation.NavigateTo(Navigation.Uri, false, true);
+        }
     }
 }

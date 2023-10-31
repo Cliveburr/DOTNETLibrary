@@ -87,6 +87,12 @@ html, body {
   cursor: pointer;
 }
 
+.flowactionbase {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .flowactioncontainer {
   display: flex;
   flex-direction: column;
@@ -96,14 +102,23 @@ html, body {
   border-radius: 6px;
   box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1), 0 0px 0 1px rgba(10, 10, 10, 0.02);
 }
-.flowactioncontainer > p {
-  align-self: center;
+.flowactioncontainer > .flowlabel {
+  display: flex;
+  justify-content: center;
+}
+.flowactioncontainer > .flowlabel > p {
   font-size: 1.1em;
   color: #000022;
   font-weight: bold;
 }
-.flowactioncontainer > button {
-  align-self: flex-start;
+.flowactioncontainer > .flowlabel > button {
+  background-color: rgba(255, 255, 255, 0.5411764706);
+}
+
+.flowactioncontainers {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
 }
 
 .flowaction {
@@ -111,12 +126,61 @@ html, body {
   width: 218px;
   padding: 4px;
   border: 1px solid #aed0ea;
+  display: flex;
+  justify-content: space-between;
 }
 .flowaction > p {
   margin-left: 4px;
   margin-right: 4px;
   font-weight: bold;
   color: #2779aa;
+}
+.flowaction > button {
+  background-color: rgba(255, 255, 255, 0.5411764706);
+}
+
+.rightpanelopen {
+  top: 94px;
+  position: absolute;
+  right: 0;
+  width: 34px;
+  background-color: #289999;
+  display: flex;
+  justify-content: center;
+  height: 53px;
+  cursor: pointer;
+  border-radius: 10px 0 0 6px;
+  z-index: 800;
+}
+.rightpanelopen > i {
+  align-self: center;
+}
+
+.rightpanel {
+  display: flex;
+  top: 53px;
+  position: absolute;
+  right: 0;
+  height: calc(100% - 53px);
+}
+.rightpanel > .rightpanelclose {
+  top: 41px;
+  position: relative;
+  width: 34px;
+  background-color: #289999;
+  display: flex;
+  justify-content: center;
+  height: 53px;
+  cursor: pointer;
+  border-radius: 10px 0 0 10px;
+}
+.rightpanel > .rightpanelclose > i {
+  align-self: center;
+}
+.rightpanel > .rightpanelcontent {
+  background-color: #a2c4f3;
+  min-width: 400px;
+  box-shadow: -5px 1em 1em -0.125em rgba(113, 76, 76, 0.1), -10px -2px 0 1px rgba(10, 10, 10, 0.02);
 }
 
 /* Bulma Utilities */

@@ -98,6 +98,14 @@ namespace Runner.Business.DataAccess
             return _collection.Find(e => e.Id == id)
                 .FirstOrDefaultAsync();
         }
+
+        public Task<List<P>> ProjectToListAsync<E, P>(Expression<Func<E, bool>> filter, ProjectionDefinition<E, P> projection) where E : T
+        {
+            return GetCollection<E>()
+                .Find(filter)
+                .Project(projection)
+                .ToListAsync();
+        }
     }
 }
 

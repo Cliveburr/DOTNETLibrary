@@ -72,7 +72,7 @@ namespace Runner.Business.Tests.Actions
                     {
                         ActionContainerId = 6,
                         Label = "left",
-                        Status = ActionContainerStatus.StandBy,
+                        Status = ActionContainerStatus.Waiting,
                         Position = 0,
                         Actions = new List<int> { 1, 2 },
                         Next = new List<int> { }
@@ -81,7 +81,7 @@ namespace Runner.Business.Tests.Actions
                     {
                         ActionContainerId = 7,
                         Label = "right",
-                        Status = ActionContainerStatus.StandBy,
+                        Status = ActionContainerStatus.Waiting,
                         Position = 0,
                         Actions = new List<int> { 3, 4 },
                         Next = new List<int> { }

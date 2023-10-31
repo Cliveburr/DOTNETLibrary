@@ -39,6 +39,8 @@ namespace Runner.Business.Services
 
             run.Type = NodeType.Run;
             run.Parent = flow.Id;
+            run.Status = RunStatus.Waiting;
+            run.Created = DateTime.Now;
 
             // start transaction
 
@@ -207,6 +209,27 @@ namespace Runner.Business.Services
                 });
 
             await Node.UpdateAsync(run, update);
+        }
+
+        public Task<List<RunList>> ReadRuns(Flow flow)
+        {
+            Assert.MustNotNull(_userLogged.User, "Need to be logged to error script!");
+
+            // checar se ter permissão
+
+            var project = Builders<Run>.Projection.Expression(r => new RunList
+            {
+                Id = r.Id,
+                Name = r.Name,
+                Status = r.Status,
+                Completed = r.Completed,
+                Created = r.Created
+            });
+                //.Exclude(r => r.Type)
+                //. As<RunList>(); //. .Expression(item => new RunList);
+
+            return Node
+                .ProjectToListAsync(a => a.Parent == flow.Id, project);
         }
     }
 }

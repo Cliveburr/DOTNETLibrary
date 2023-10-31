@@ -8,8 +8,8 @@ namespace Runner.Business.Actions
 {
     public enum ActionContainerStatus : byte
     {
-        StandBy = 0,
+        Waiting = 0,
         Ready = 1,
-        Done = 2
+        Completed = 2
     }
 }

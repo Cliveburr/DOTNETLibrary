@@ -11,8 +11,6 @@ namespace Runner.Business.Entities
     public class Flow : NodeBase
     {
         public required FlowActionContainer Root { get; set; }
-        public required string AgentPool { get; set; }
-        public List<string>? Tags { get; set; }
     }
 
     public class FlowAction
@@ -27,7 +25,9 @@ namespace Runner.Business.Entities
         public required string Label { get; set; }
         public string? AgentPool { get; set; }
         public List<string>? Tags { get; set; }
-        public List<FlowAction>? Actions { get; set; }
+        public bool IsForActions { get; set; }
+        public List<FlowAction>? ContentActions { get; set; }
+        public List<FlowActionContainer>? ContentContainers { get; set; }
         public List<FlowActionContainer>? Next { get; set; }
     }
 }

@@ -1,0 +1,39 @@
+﻿@using Runner.Business.Entities;
+@using Runner.WebUI.Components.FlowEditor;
+@inject NodeService nodeService
+@inject BaseService baseService
+
+<div class="buttons mt-3">
+    <button type="button" class="button is-primary" @onclick="baseService.BackNode">
+        <span class="icon is-small">
+            <i class="fa-solid fa-square-caret-left"></i>
+        </span>
+    </button>
+    <button type="button" class="button is-success" @onclick="OnSave_Click">
+        <span class="icon is-small">
+            <i class="fa-solid fa-floppy-disk"></i>
+        </span>
+        <span>Save</span>
+    </button>
+</div>
+
+<div class="flowactioncontainers">
+    <CascadingValue Name="GetPanel" TValue="Func<RightPanel>" Value="new Func<RightPanel?>(() => Panel)">
+        <FlowActionContainer Node="FlowNode.Root" />
+    </CascadingValue>
+</div>
+
+@code {
+
+    [Parameter]
+    public required Business.Entities.Flow FlowNode { get; set; }
+
+    [Parameter]
+    public RightPanel? Panel { get; set; }
+
+    private async Task OnSave_Click()
+    {
+        await nodeService.UpdateFlow(FlowNode);
+        baseService.Reload();
+    }
+}

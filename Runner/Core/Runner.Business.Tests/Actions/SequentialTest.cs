@@ -72,7 +72,7 @@ namespace Runner.Business.Tests.Actions
                     {
                         ActionContainerId = 6,
                         Label = "6",
-                        Status = ActionContainerStatus.StandBy,
+                        Status = ActionContainerStatus.Waiting,
                         Position = 0,
                         Actions = new List<int> { 3, 4 },
                         Next = new List<int> { }
