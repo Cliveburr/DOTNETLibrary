@@ -18,7 +18,6 @@ namespace Runner.Business.Tests.Actions
             var flow = new Flow
             {
                 Name = "Test",
-                AgentPool = "",
                 Root = new FlowActionContainer
                 {
                     Label = "Root",

@@ -15,7 +15,7 @@ namespace Runner.Business.Actions
         public ActionContainerStatus Status { get; set; }
         public int Position { get; set; }
         public bool IsForActions { get; set; }
-        public List<int>? ContentActions { get; set; }
+        public List<int>? Actions { get; set; }
         public List<int>? ContentContainers { get; set; }
         public List<int>? Next { get; set; }
     }

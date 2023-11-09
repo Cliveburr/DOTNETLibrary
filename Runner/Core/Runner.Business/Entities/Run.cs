@@ -22,6 +22,19 @@ namespace Runner.Business.Entities
         public required List<RunLog> Log { get; set; }
     }
 
+    [BsonDiscriminator("Run")]
+    public class Run2 : NodeBase
+    {
+        public required List<ActionsOutro.Action> Actions { get; set; }
+        public required List<ActionsOutro.Cursor> Cursors { get; set; }
+        public int RootActionId { get; set; }
+        public int IdIndexes { get; set; }
+        public RunStatus Status { get; set; }
+        public DateTime Created { get; set; }
+        public DateTime Completed { get; set; }
+        public required List<RunLog> Log { get; set; }
+    }
+
     public enum RunStatus
     {
         Waiting = 0,

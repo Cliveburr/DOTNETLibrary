@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Runner.Business.ActionsOutro.Types
 {
-    internal class ActionParallel
+    public class ActionParallel
     {
     }
 }

@@ -6,33 +6,33 @@ using System.Threading.Tasks;
 
 namespace Runner.Business.ActionsOutro
 {
-/*
+    /*
 
-    Run - marca uma ação que esteja com cursor para ser executada
-        from: Waiting, Stopped, Error
-        to: ToRun
+        Run - marca uma ação que esteja com cursor para ser executada
+            from: Waiting, Stopped, Error
+            to: ToRun
 
-    SetRunning - marca uma ação sendo executada
-        from: ToRun
-        to: Running
+        SetRunning - marca uma ação sendo executada
+            from: ToRun
+            to: Running
 
-    SetCompleted - marca uma ação que estava sendo executada como completada, move o cursor
-        from: Running
-        to: Completed
+        SetCompleted - marca uma ação que estava sendo executada como completada, move o cursor
+            from: Running
+            to: Completed
 
-    SetError - marca uma ação que estava sendo executada como error
-        from: Running
-        to: Error
+        SetError - marca uma ação que estava sendo executada como error
+            from: Running
+            to: Error
 
-    Stop - marca uma ação rodando para parar
-        from: Running
-        to: ToStop
+        Stop - marca uma ação rodando para parar
+            from: Running
+            to: ToStop
 
-    SetStop - marca uma ação marcada para parar, como parado
-        from: ToStop
-        to: Stopped
+        SetStopped - marca uma ação marcada para parar, como parado
+            from: ToStop
+            to: Stopped
 
-*/
+    */
 
     public enum ActionStatus : byte
     {
