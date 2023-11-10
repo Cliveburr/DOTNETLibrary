@@ -55,6 +55,18 @@ namespace Runner
             }
         }
 
+        private static AssertNumber? _number;
+
+        public static AssertNumber Number
+        {
+            get
+            {
+                if (_number == null)
+                    _number = new AssertNumber();
+                return _number;
+            }
+        }
+
         [StackTraceHidden]
         public static void Test(Func<bool> test, string message, params string[] format)
         {

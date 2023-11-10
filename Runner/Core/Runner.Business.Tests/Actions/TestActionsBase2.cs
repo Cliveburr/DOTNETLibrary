@@ -17,9 +17,9 @@ namespace Runner.Business.Tests.Actions
             private readonly List<CommandEffect> _effects;
             private int _sequence;
 
-            public TestResults(List<CommandEffect> effects)
+            public TestResults(IEnumerable<CommandEffect> effects)
             {
-                _effects = effects;
+                _effects = effects.ToList();
                 _sequence = 0;
             }
 
@@ -31,8 +31,35 @@ namespace Runner.Business.Tests.Actions
 
             public TestResults TestInSequeceActionUpdateStatus(ActionStatus actionStatus)
             {
-                Test.AreEqual(_effects[_sequence].Action.Status, actionStatus);
+                Test.IsNotNull(_effects[_sequence].Action);
+                Test.AreEqual(_effects[_sequence].Action!.Status, actionStatus);
                 Test.AreEqual(_effects[_sequence].Type, ComandEffectType.ActionUpdateStatus);
+                _sequence++;
+                return this;
+            }
+
+            public TestResults TestInSequeceActionUpdateToRun()
+            {
+                Test.IsNotNull(_effects[_sequence].Action);
+                Test.AreEqual(_effects[_sequence].Action!.Status, ActionStatus.ToRun);
+                Test.AreEqual(_effects[_sequence].Type, ComandEffectType.ActionUpdateToRun);
+                _sequence++;
+                return this;
+            }
+
+            public TestResults TestInSequeceActionUpdateBreakPoint(bool value)
+            {
+                Test.IsNotNull(_effects[_sequence].Action);
+                Test.AreEqual(_effects[_sequence].Action!.BreakPoint, value);
+                Test.AreEqual(_effects[_sequence].Type, ComandEffectType.ActionUpdateBreakPoint);
+                _sequence++;
+                return this;
+            }
+
+            public TestResults TestInSequeceCursorUpdate()
+            {
+                Test.IsNotNull(_effects[_sequence].Cursor);
+                Test.AreEqual(_effects[_sequence].Type, ComandEffectType.CursorUpdate);
                 _sequence++;
                 return this;
             }
@@ -75,172 +102,40 @@ namespace Runner.Business.Tests.Actions
             return new TestResults(Control.SetCompleted(action.ActionId));
         }
 
-        //protected void SetRunning(ActionControl control, string actionLabel)
-        //{
-        //    var actionContainer = control.Run.Containers
-        //        .FirstOrDefault(c => c.Label == actionLabel);
-        //    Test.IsNotNull(actionContainer);
-        //    SetRunning(control, actionContainer.ActionContainerId);
-        //}
 
-        //protected void SetRunningEmptyContainer(ActionControl control, int actionContainerId)
-        //{
-        //    var effects = control.SetCompleted(actionContainerId);
+        protected TestResults SetError(string actionLabel)
+        {
+            var action = Control.FindAction(actionLabel);
+            Test.IsNotNull(action);
+            return new TestResults(Control.SetError(action.ActionId));
+        }
 
-        //    Test.AreEqual(effects[0].Type, ComandEffectType.ActionContainerUpdateStatus);
-        //    var container = effects[0].ActionContainer!;
-        //    Test.AreEqual(container.Status, ActionContainerStatus.Completed);
+        protected TestResults Stop(string actionLabel)
+        {
+            var action = Control.FindAction(actionLabel);
+            Test.IsNotNull(action);
+            return new TestResults(Control.Stop(action.ActionId));
+        }
 
-        //    Test.AreEqual(effects.Count, 1 + (container.Next.Count * 2));
+        protected TestResults SetStopped(string actionLabel)
+        {
+            var action = Control.FindAction(actionLabel);
+            Test.IsNotNull(action);
+            return new TestResults(Control.SetStopped(action.ActionId));
+        }
 
-        //    for (var i = 1; i < 1 + container.Next.Count; i += 2)
-        //    {
-        //        Test.AreEqual(effects[i].Type, ComandEffectType.ActionContainerUpdatePositionAndStatus);
-        //        Test.AreEqual(effects[i].ActionContainer!.Position, 0);
-        //        Test.AreEqual(effects[i].ActionContainer!.Status, ActionContainerStatus.Ready);
+        protected TestResults SetBreakPoint(string actionLabel)
+        {
+            var action = Control.FindAction(actionLabel);
+            Test.IsNotNull(action);
+            return new TestResults(Control.SetBreakPoint(action.ActionId));
+        }
 
-        //        Test.AreEqual(effects[i + 1].Type, ComandEffectType.ActionContainerCreateJobToRun);
-        //    }
-        //}
-
-        //protected void SetRunningEmptyContainer(ActionControl control, string actionLabel)
-        //{
-        //    var actionContainer = control.Run.Containers
-        //        .FirstOrDefault(c => c.Label == actionLabel);
-        //    Test.IsNotNull(actionContainer);
-        //    SetRunningEmptyContainer(control, actionContainer.ActionContainerId);
-        //}
-
-        //protected void SetError(ActionControl control, int actionContainerId)
-        //{
-        //    var effects = control.SetError(actionContainerId);
-        //    Test.AreEqual(effects.Count, 1);
-
-        //    Test.AreEqual(effects[0].Action!.Status, ActionStatus.Error);
-        //    Test.AreEqual(effects[0].Type, ComandEffectType.ActionUpdateStatus);
-        //}
-
-        //protected void SetError(ActionControl control, string actionLabel)
-        //{
-        //    var actionContainer = control.Run.Containers
-        //        .FirstOrDefault(c => c.Label == actionLabel);
-        //    Test.IsNotNull(actionContainer);
-        //    SetError(control, actionContainer.ActionContainerId);
-        //}
-
-        //protected void SetCompletedOnSameContainer(ActionControl control, int actionContainerId)
-        //{
-        //    var effects = control.SetCompleted(actionContainerId);
-        //    Test.AreEqual(effects.Count, 3);
-
-        //    Test.AreEqual(effects[0].Action!.Status, ActionStatus.Completed);
-        //    Test.AreEqual(effects[0].Type, ComandEffectType.ActionUpdateStatus);
-
-        //    Test.AreEqual(effects[1].Type, ComandEffectType.ActionContainerUpdatePosition);
-
-        //    Test.AreEqual(effects[2].Type, ComandEffectType.ActionContainerCreateJobToRun);
-        //}
-
-        //protected void SetCompletedOnSameContainer(ActionControl control, string actionLabel)
-        //{
-        //    var actionContainer = control.Run.Containers
-        //        .FirstOrDefault(c => c.Label == actionLabel);
-        //    Test.IsNotNull(actionContainer);
-        //    SetCompletedOnSameContainer(control, actionContainer.ActionContainerId);
-        //}
-
-        //protected void SetCompletedAndBreak(ActionControl control, int actionContainerId)
-        //{
-        //    var effects = control.SetCompleted(actionContainerId);
-        //    Test.AreEqual(effects.Count, 2);
-
-        //    Test.AreEqual(effects[0].Action!.Status, ActionStatus.Completed);
-        //    Test.AreEqual(effects[0].Type, ComandEffectType.ActionUpdateStatus);
-
-        //    Test.AreEqual(effects[1].Type, ComandEffectType.ActionContainerUpdatePosition);
-        //}
-
-        //protected void SetCompletedAndBreak(ActionControl control, string actionLabel)
-        //{
-        //    var actionContainer = control.Run.Containers
-        //        .FirstOrDefault(c => c.Label == actionLabel);
-        //    Test.IsNotNull(actionContainer);
-        //    SetCompletedAndBreak(control, actionContainer.ActionContainerId);
-        //}
-
-        //protected void SetCompletedAndMoveToNextContainer(ActionControl control, int actionContainerId)
-        //{
-        //    var effects = control.SetCompleted(actionContainerId);
-
-        //    Test.AreEqual(effects[0].Action!.Status, ActionStatus.Completed);
-        //    Test.AreEqual(effects[0].Type, ComandEffectType.ActionUpdateStatus);
-
-        //    Test.AreEqual(effects[1].Type, ComandEffectType.ActionContainerUpdateStatus);
-        //    var container = effects[1].ActionContainer!;
-        //    Test.AreEqual(container.Status, ActionContainerStatus.Completed);
-
-        //    Test.AreEqual(effects.Count, 2 + (container.Next.Count * 2));//
-
-        //    for (var i = 2; i < 2 + container.Next.Count; i += 2)
-        //    {
-        //        Test.AreEqual(effects[i].Type, ComandEffectType.ActionContainerUpdatePositionAndStatus);
-        //        Test.AreEqual(effects[i].ActionContainer!.Position, 0);
-        //        Test.AreEqual(effects[i].ActionContainer!.Status, ActionContainerStatus.Ready);
-
-        //        Test.AreEqual(effects[i + 1].Type, ComandEffectType.ActionContainerCreateJobToRun);
-        //    }
-        //}
-
-        //protected void SetCompletedAndMoveToNextContainer(ActionControl control, string actionLabel)
-        //{
-        //    var actionContainer = control.Run.Containers
-        //        .FirstOrDefault(c => c.Label == actionLabel);
-        //    Test.IsNotNull(actionContainer);
-        //    SetCompletedAndMoveToNextContainer(control, actionContainer.ActionContainerId);
-        //}
-
-        //protected void SetCompletedAndDone(ActionControl control, int actionContainerId)
-        //{
-        //    var effects = control.SetCompleted(actionContainerId);
-        //    Test.AreEqual(effects.Count, 2);
-
-        //    Test.AreEqual(effects[0].Action!.Status, ActionStatus.Completed);
-        //    Test.AreEqual(effects[0].Type, ComandEffectType.ActionUpdateStatus);
-
-        //    Test.AreEqual(effects[1].Type, ComandEffectType.ActionContainerUpdateStatus);
-        //    Test.AreEqual(effects[1].ActionContainer!.Status, ActionContainerStatus.Completed);
-        //}
-
-        //protected void SetCompletedAndDone(ActionControl control, string actionLabel)
-        //{
-        //    var actionContainer = control.Run.Containers
-        //        .FirstOrDefault(c => c.Label == actionLabel);
-        //    Test.IsNotNull(actionContainer);
-        //    SetCompletedAndDone(control, actionContainer.ActionContainerId);
-        //}
-
-        //protected void SetCompletedAndMoveToNextContainerWithBreak1(ActionControl control, int actionContainerId)
-        //{
-        //    var effects = control.SetCompleted(actionContainerId);
-        //    Test.AreEqual(effects.Count, 3);
-
-        //    Test.AreEqual(effects[0].Action!.Status, ActionStatus.Completed);
-        //    Test.AreEqual(effects[0].Type, ComandEffectType.ActionUpdateStatus);
-
-        //    Test.AreEqual(effects[1].Type, ComandEffectType.ActionContainerUpdateStatus);
-        //    Test.AreEqual(effects[1].ActionContainer!.Status, ActionContainerStatus.Completed);
-
-        //    Test.AreEqual(effects[2].Type, ComandEffectType.ActionContainerUpdatePositionAndStatus);
-        //    Test.AreEqual(effects[2].ActionContainer!.Position, 0);
-        //    Test.AreEqual(effects[2].ActionContainer!.Status, ActionContainerStatus.Ready);
-        //}
-
-        //protected void SetCompletedAndMoveToNextContainerWithBreak1(ActionControl control, string actionLabel)
-        //{
-        //    var actionContainer = control.Run.Containers
-        //        .FirstOrDefault(c => c.Label == actionLabel);
-        //    Test.IsNotNull(actionContainer);
-        //    SetCompletedAndMoveToNextContainerWithBreak1(control, actionContainer.ActionContainerId);
-        //}
+        protected TestResults CleanBreakPoint(string actionLabel)
+        {
+            var action = Control.FindAction(actionLabel);
+            Test.IsNotNull(action);
+            return new TestResults(Control.CleanBreakPoint(action.ActionId));
+        }
     }
 }

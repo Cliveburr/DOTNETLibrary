@@ -33,7 +33,67 @@ namespace Runner.Business.Tests.Actions
         {
             Run("Root")
                 .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.ToRun);
+                .TestInSequeceActionUpdateToRun();
+
+            SetRunning("Root")
+                .TestCount(1)
+                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+
+            SetCompleted("Root")
+                .TestCount(1)
+                .TestInSequeceActionUpdateStatus(ActionStatus.Completed);
+        }
+
+        [TestMethod]
+        public void RunAndErrorRetryComplete()
+        {
+            Run("Root")
+                .TestCount(1)
+                .TestInSequeceActionUpdateToRun();
+
+            SetRunning("Root")
+                .TestCount(1)
+                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+
+            SetError("Root")
+                .TestCount(1)
+                .TestInSequeceActionUpdateStatus(ActionStatus.Error);
+            
+            Run("Root")
+                .TestCount(1)
+                .TestInSequeceActionUpdateToRun();
+
+            SetRunning("Root")
+                .TestCount(1)
+                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+
+            SetCompleted("Root")
+                .TestCount(1)
+                .TestInSequeceActionUpdateStatus(ActionStatus.Completed);
+        }
+
+        [TestMethod]
+        public void RunAndStopContinueAndComplete()
+        {
+            Run("Root")
+                .TestCount(1)
+                .TestInSequeceActionUpdateToRun();
+
+            SetRunning("Root")
+                .TestCount(1)
+                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+
+            Stop("Root")
+                .TestCount(1)
+                .TestInSequeceActionUpdateStatus(ActionStatus.ToStop);
+            
+            SetStopped("Root")
+                .TestCount(1)
+                .TestInSequeceActionUpdateStatus(ActionStatus.Stopped);
+
+            Run("Root")
+                .TestCount(1)
+                .TestInSequeceActionUpdateToRun();
 
             SetRunning("Root")
                 .TestCount(1)

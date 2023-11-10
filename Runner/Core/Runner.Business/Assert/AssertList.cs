@@ -26,5 +26,14 @@ namespace Runner.Business.AssertExtension
                 throw new RunnerException(message, format);
             }
         }
+
+        [StackTraceHidden]
+        public void CountEquals<T>(IEnumerable<T> list, int value, string message, params string[] format)
+        {
+            if (list.Count() != value)
+            {
+                throw new RunnerException(message, format);
+            }
+        }
     }
 }

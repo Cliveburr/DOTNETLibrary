@@ -18,72 +18,85 @@ namespace Runner.Business.ActionsOutro.Types
             _action = action;
         }
 
-        public abstract List<CommandEffect> Run();
-        public abstract List<CommandEffect> BackRun();
-        public abstract List<CommandEffect> SetRunning();
-        public abstract List<CommandEffect> BackSetRunning();
-        public abstract List<CommandEffect> SetCompleted();
-        public abstract List<CommandEffect> BackSetCompleted();
-        public abstract List<CommandEffect> SetError();
-        public abstract List<CommandEffect> BackSetError();
-        public abstract List<CommandEffect> Stop();
-        public abstract List<CommandEffect> BackStop();
-        public abstract List<CommandEffect> SetStopped();
-        public abstract List<CommandEffect> BackSetStopped();
+        public abstract IEnumerable<CommandEffect> Run();
+        public abstract IEnumerable<CommandEffect> BackRun();
+        public abstract IEnumerable<CommandEffect> SetRunning();
+        public abstract IEnumerable<CommandEffect> BackSetRunning();
+        public abstract IEnumerable<CommandEffect> SetCompleted();
+        public abstract IEnumerable<CommandEffect> BackSetCompleted();
+        public abstract IEnumerable<CommandEffect> SetError();
+        public abstract IEnumerable<CommandEffect> BackSetError();
+        public abstract IEnumerable<CommandEffect> Stop();
+        public abstract IEnumerable<CommandEffect> BackStop();
+        public abstract IEnumerable<CommandEffect> SetStopped();
+        public abstract IEnumerable<CommandEffect> BackSetStopped();
+        public abstract IEnumerable<CommandEffect> SetBreakPoint();
+        public abstract IEnumerable<CommandEffect> CleanBreakPoint();
+        public abstract IEnumerable<CommandEffect> BackBreakPoint();
 
-        protected List<CommandEffect> PropagateBackRun(int actionId)
+        protected IEnumerable<CommandEffect> PropagateBackRun(int actionId)
         {
             var action = _control.FindAction(actionId);
-
             var actionType = _control.FindActionType(action);
 
             return actionType.BackRun();
         }
 
-        protected List<CommandEffect> PropagateBackSetRunning(int actionId)
+        protected IEnumerable<CommandEffect> PropagateBackSetRunning(int actionId)
         {
             var action = _control.FindAction(actionId);
-
             var actionType = _control.FindActionType(action);
 
             return actionType.BackSetRunning();
         }
 
-        protected List<CommandEffect> PropagateBackSetCompleted(int actionId)
+        protected IEnumerable<CommandEffect> PropagateBackSetCompleted(int actionId)
         {
             var action = _control.FindAction(actionId);
-
             var actionType = _control.FindActionType(action);
 
             return actionType.BackSetCompleted();
         }
 
 
-        protected List<CommandEffect> PropagateBackSetError(int actionId)
+        protected IEnumerable<CommandEffect> PropagateBackSetError(int actionId)
         {
             var action = _control.FindAction(actionId);
-
             var actionType = _control.FindActionType(action);
 
             return actionType.BackSetError();
         }
 
-        protected List<CommandEffect> PropagateBackStop(int actionId)
+        protected IEnumerable<CommandEffect> PropagateBackStop(int actionId)
         {
             var action = _control.FindAction(actionId);
-
             var actionType = _control.FindActionType(action);
 
             return actionType.BackStop();
         }
 
-        protected List<CommandEffect> PropagateBackSetStoppped(int actionId)
+        protected IEnumerable<CommandEffect> PropagateBackSetStoppped(int actionId)
         {
             var action = _control.FindAction(actionId);
-
             var actionType = _control.FindActionType(action);
 
             return actionType.BackSetStopped();
+        }
+
+        protected IEnumerable<CommandEffect> MoveCursorFoward(Cursor cursor, int nextActionId)
+        {
+            cursor.ActionsPasseds.Add(cursor.ActionId);
+            cursor.ActionId = nextActionId;
+
+            yield return new CommandEffect(ComandEffectType.CursorUpdate, cursor);
+        }
+
+        protected IEnumerable<CommandEffect> PropagateBackBreakPoint(int actionId)
+        {
+            var action = _control.FindAction(actionId);
+            var actionType = _control.FindActionType(action);
+
+            return actionType.BackBreakPoint();
         }
     }
 }

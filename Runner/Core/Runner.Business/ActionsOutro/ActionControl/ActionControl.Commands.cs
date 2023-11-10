@@ -12,58 +12,68 @@ namespace Runner.Business.ActionsOutro
 {
     public partial class ActionControl
     {
-        public List<CommandEffect> Run(int actionId)
+        public IEnumerable<CommandEffect> Run(int actionId)
         {
             var action = FindAction(actionId);
-
             var actionType = FindActionType(action);
 
             return actionType.Run();
         }
 
-        public List<CommandEffect> SetRunning(int actionId)
+        public IEnumerable<CommandEffect> SetRunning(int actionId)
         {
             var action = FindAction(actionId);
-
             var actionType = FindActionType(action);
 
             return actionType.SetRunning();
         }
 
-        public List<CommandEffect> SetCompleted(int actionId)
+        public IEnumerable<CommandEffect> SetCompleted(int actionId)
         {
             var action = FindAction(actionId);
-
             var actionType = FindActionType(action);
 
             return actionType.SetCompleted();
         }
 
-        public List<CommandEffect> SetError(int actionId)
+        public IEnumerable<CommandEffect> SetError(int actionId)
         {
             var action = FindAction(actionId);
-
             var actionType = FindActionType(action);
 
             return actionType.SetError();
         }
 
-        public List<CommandEffect> Stop(int actionId)
+        public IEnumerable<CommandEffect> Stop(int actionId)
         {
             var action = FindAction(actionId);
-
             var actionType = FindActionType(action);
 
             return actionType.Stop();
         }
 
-        public List<CommandEffect> SetStopped(int actionId)
+        public IEnumerable<CommandEffect> SetStopped(int actionId)
         {
             var action = FindAction(actionId);
-
             var actionType = FindActionType(action);
 
             return actionType.SetStopped();
+        }
+
+        public IEnumerable<CommandEffect> SetBreakPoint(int actionId)
+        {
+            var action = FindAction(actionId);
+            var actionType = FindActionType(action);
+
+            return actionType.SetBreakPoint();
+        }
+
+        public IEnumerable<CommandEffect> CleanBreakPoint(int actionId)
+        {
+            var action = FindAction(actionId);
+            var actionType = FindActionType(action);
+
+            return actionType.CleanBreakPoint();
         }
     }
 }
