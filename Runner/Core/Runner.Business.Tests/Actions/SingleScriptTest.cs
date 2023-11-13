@@ -1,5 +1,6 @@
 ﻿using Runner.Business.ActionsOutro;
 using Runner.Business.Entities;
+using Runner.Business.Tests.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 namespace Runner.Business.Tests.Actions
 {
     [TestClass]
-    public class SingleScriptTest : TestActionsBase2
+    public class SingleScriptTest : TestActionsBase
     {
         protected override ActionControl GetControl()
         {
@@ -32,76 +33,79 @@ namespace Runner.Business.Tests.Actions
         public void RunAndComplete()
         {
             Run("Root")
-                .TestCount(1)
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateToRun("Root")
+                .IsCheckedAll();
 
             SetRunning("Root")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Root")
+                .IsCheckedAll();
 
             SetCompleted("Root")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed);
+                .HasActionUpdateCompleted("Root")
+                .HasActionClearingCursor("Root")
+                .IsCheckedAll();
         }
 
         [TestMethod]
         public void RunAndErrorRetryComplete()
         {
             Run("Root")
-                .TestCount(1)
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateToRun("Root")
+                .IsCheckedAll();
 
             SetRunning("Root")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Root")
+                .IsCheckedAll();
 
             SetError("Root")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Error);
-            
+                .HasActionUpdateError("Root")
+                .IsCheckedAll();
+
             Run("Root")
-                .TestCount(1)
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateToRun("Root")
+                .IsCheckedAll();
 
             SetRunning("Root")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Root")
+                .IsCheckedAll();
 
             SetCompleted("Root")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed);
+                .HasActionUpdateCompleted("Root")
+                .HasActionClearingCursor("Root")
+                .IsCheckedAll();
         }
 
         [TestMethod]
         public void RunAndStopContinueAndComplete()
         {
             Run("Root")
-                .TestCount(1)
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateToRun("Root")
+                .IsCheckedAll();
 
             SetRunning("Root")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Root")
+                .IsCheckedAll();
 
             Stop("Root")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.ToStop);
-            
+                .HasActionUpdateToStop("Root")
+                .IsCheckedAll();
+
             SetStopped("Root")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Stopped);
+                .HasActionUpdateStopped("Root")
+                .IsCheckedAll();
 
             Run("Root")
-                .TestCount(1)
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateToRun("Root")
+                .IsCheckedAll();
 
             SetRunning("Root")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Root")
+                .IsCheckedAll();
 
             SetCompleted("Root")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed);
+                .HasActionUpdateCompleted("Root")
+                .HasActionClearingCursor("Root")
+                .IsCheckedAll();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Runner.Business.ActionsOutro;
 using Runner.Business.Entities;
+using Runner.Business.Tests.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 namespace Runner.Business.Tests.Actions
 {
     [TestClass]
-    public class EmptyContainerTest : TestActionsBase2
+    public class EmptyContainerTest : TestActionsBase
     {
         protected override ActionControl GetControl()
         {
@@ -35,8 +36,9 @@ namespace Runner.Business.Tests.Actions
         public void RunAndComplete()
         {
             Run("Container")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed);
+                .HasActionClearingCursor("Container")
+                .HasActionUpdateCompleted("Container")
+                .IsCheckedAll();
         }
     }
 }

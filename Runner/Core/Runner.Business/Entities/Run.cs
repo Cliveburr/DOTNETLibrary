@@ -26,7 +26,6 @@ namespace Runner.Business.Entities
     public class Run2 : NodeBase
     {
         public required List<ActionsOutro.Action> Actions { get; set; }
-        public required List<ActionsOutro.Cursor> Cursors { get; set; }
         public int RootActionId { get; set; }
         public int IdIndexes { get; set; }
         public RunStatus Status { get; set; }

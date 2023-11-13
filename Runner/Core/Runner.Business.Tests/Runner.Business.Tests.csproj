@@ -10,9 +10,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Actions\FlowParallelTest.cs" />
+    <Compile Remove="Actions\FlowSequentialTest.cs" />
+    <Compile Remove="Actions\FlowSingleTest.cs" />
     <Compile Remove="Actions\ParallelTest.cs" />
     <Compile Remove="Actions\SequentialTest.cs" />
     <Compile Remove="Actions\SingleTest.cs" />
+    <Compile Remove="Actions\TestActionsBase.cs" />
+    <Compile Remove="Actions\TestActionsBase2.cs" />
   </ItemGroup>
 
   <ItemGroup>

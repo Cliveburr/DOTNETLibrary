@@ -31,22 +31,20 @@ namespace Runner.Business.ActionsOutro
                 Name = flow.Name,
                 IdIndexes = 0,
                 Actions = new List<Action>(),
-                Cursors = new List<Cursor>(),
                 Log = new List<RunLog>()
             };
 
             run.RootActionId = MapAction(run, flow.Root, null);
             
-            run.Cursors.Add(new Cursor
+            if (run.Actions.Any())
             {
-                ActionId = run.RootActionId,
-                ActionsPasseds = new List<int>()
-            });
+                run.Actions[0].WithCursor = true;
+            }
 
             return run;
         }
 
-        private static int MapAction(Run2 run, FlowAction2 flowAction, ActionsOutro.Action? parent)
+        private static int MapAction(Run2 run, FlowAction2 flowAction, Action? parent)
         {
             var thisAgentPool = !string.IsNullOrEmpty(flowAction.AgentPool) ?
                 flowAction.AgentPool :
@@ -56,13 +54,13 @@ namespace Runner.Business.ActionsOutro
                 flowAction.Tags :
                 parent?.Tags;
 
-            var newActionFlow = new ActionsOutro.Action
+            var newActionFlow = new Action
             {
                 ActionId = run.IdIndexes++,
                 Label = flowAction.Label,
                 AgentPool = thisAgentPool,
                 Tags = thisTags,
-                Status = ActionsOutro.ActionStatus.Waiting,
+                Status = ActionStatus.Waiting,
                 Type = flowAction.Type,
                 BreakPoint = false,
                 Parent = parent?.ActionId

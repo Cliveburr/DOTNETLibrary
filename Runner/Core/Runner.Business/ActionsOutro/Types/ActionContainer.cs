@@ -15,146 +15,107 @@ namespace Runner.Business.ActionsOutro.Types
         {
         }
 
+        public override IEnumerable<CommandEffect> ContinueRun()
+        {
+            Assert.Enum.In(_action.Status, new[] {
+                ActionStatus.Waiting
+            }, $"ActionContainer in wrong status to Cursor! {_action.ActionId}-{_action.Label}");
+
+            Assert.MustFalse(_action.WithCursor, $"ActionContainer already with Cursor! {_action.ActionId}-{_action.Label}");
+
+            if (_action.BreakPoint)
+            {
+                _action.WithCursor = true;
+                yield return new CommandEffect(ComandEffectType.ActionUpdateWithCursor, _action);
+
+                _action.Status = ActionStatus.Stopped;
+                yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
+
+                foreach (var command in PropagateBackBreakPoint())
+                {
+                    yield return command;
+                };
+            }
+            else
+            {
+                foreach (var command in InterRun())
+                {
+                    yield return command;
+                }
+            }
+        }
+
         public override IEnumerable<CommandEffect> Run()
         {
             Assert.Enum.In(_action.Status, new[] {
                 ActionStatus.Waiting,
                 ActionStatus.Stopped,
                 ActionStatus.Error
-            }, $"Action in wrong status to Run! {_action.ActionId}-{_action.Label}");
+            }, $"ActionContainer in wrong status to Run! {_action.ActionId}-{_action.Label}");
 
-            var cursorHasPassedOverMe = _control.FindCursorOnPasseds(_action.ActionId)
-                .FirstOrDefault();
+            Assert.MustTrue(_action.WithCursor, $"ActionContainer in without cursor to Run! {_action.ActionId}-{_action.Label}");
 
-            if (cursorHasPassedOverMe is null)
+            _action.WithCursor = false;
+            yield return new CommandEffect(ComandEffectType.ActionUpdateWithCursor, _action);
+
+            foreach (var command in InterRun())
             {
-                var cursor = _control.FindCursor(_action.ActionId);
+                yield return command;
+            }
+        }
 
-                if (_action.Childs is not null && _action.Childs.Any())
+        private IEnumerable<CommandEffect> InterRun()
+        {
+            if (_action.Childs is not null && _action.Childs.Any())
+            {
+                _action.Status = ActionStatus.Running;
+
+                var firstActionIdChild = _action.Childs.First();
+                var (nextAction, nextActionType) = _control.FindActionAndType(firstActionIdChild);
+
+                foreach (var command in nextActionType.ContinueRun())
                 {
-                    var firstActionIdChild = _action.Childs.First();
-
-                    foreach (var command in MoveCursorFoward(cursor, firstActionIdChild))
-                    {
-                        yield return command;
-                    }
-
-                    var nextAction = _control.FindAction(firstActionIdChild);
-                    if (nextAction.BreakPoint)
-                    {
-                        _action.Status = ActionStatus.Stopped;
-                        yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
-
-                        if (_action.Parent.HasValue)
-                        {
-                            foreach (var command in PropagateBackBreakPoint(_action.Parent.Value))
-                            {
-                                yield return command;
-                            }
-                        }
-                        yield break;
-                    }
-                    else
-                    {
-                        _action.Status = ActionStatus.Running;
-                        yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
-
-                        foreach (var command in _control.Run(firstActionIdChild))
-                        {
-                            yield return command;
-                        }
-
-                        if (_action.Parent.HasValue)
-                        {
-                            foreach (var command in PropagateBackRun(_action.Parent.Value))
-                            {
-                                yield return command;
-                            }
-                        }
-                    }
+                    yield return command;
                 }
-                else
+
+                if (_action.Status == ActionStatus.Running)
                 {
-                    _action.Status = ActionStatus.Completed;
                     yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
 
-                    if (_action.Parent.HasValue)
+                    foreach (var command in PropagateBackRun())
                     {
-                        foreach (var command in PropagateBackSetCompleted(_action.Parent.Value))
-                        {
-                            yield return command;
-                        }
+                        yield return command;
                     }
                 }
             }
             else
             {
-                var actionIdOnCursor = cursorHasPassedOverMe.ActionId;
-                var currentAction = _control.FindAction(actionIdOnCursor);
+                _action.Status = ActionStatus.Completed;
+                yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
 
-                if (currentAction.BreakPoint)
+                foreach (var command in PropagateBackSetCompleted())
                 {
-                    _action.Status = ActionStatus.Stopped;
-                    yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
-
-                    if (_action.Parent.HasValue)
-                    {
-                        foreach (var command in PropagateBackBreakPoint(_action.Parent.Value))
-                        {
-                            yield return command;
-                        }
-                    }
-                    yield break;
-                }
-                else
-                {
-                    _action.Status = ActionStatus.Running;
-                    yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
-
-                    foreach (var command in _control.Run(currentAction.ActionId))
-                    {
-                        yield return command;
-                    }
-
-                    if (_action.Parent.HasValue)
-                    {
-                        foreach (var command in PropagateBackRun(_action.Parent.Value))
-                        {
-                            yield return command;
-                        }
-                    }
+                    yield return command;
                 }
             }
         }
 
         public override IEnumerable<CommandEffect> BackRun()
         {
-            if (_action.Status == ActionStatus.Running)
+            if (_action.Status != ActionStatus.Running)
             {
-                yield break;
+                Assert.Enum.In(_action.Status, new[] {
+                    ActionStatus.Stopped,
+                    ActionStatus.Error
+                }, $"ActionContainer container in wrong status to BackRun! {_action.ActionId}-{_action.Label}");
+
+                _action.Status = ActionStatus.Running;
+                yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
             }
 
-            var (myCursor, currentActionOnMyCursor) = _control.FindCurrentActionOnMyCursor(_action.ActionId);
-
-            Assert.Enum.In(currentActionOnMyCursor.Status, new[] {
-                ActionStatus.ToRun
-            }, $"Action child in wrong status to Run! {_action.ActionId}-{_action.Label}");
-
-            Assert.Enum.In(_action.Status, new[] {
-                ActionStatus.Waiting,
-                ActionStatus.Stopped,
-                ActionStatus.Error
-            }, $"Action container in wrong status to Run! {_action.ActionId}-{_action.Label}");
-
-            _action.Status = ActionStatus.Running;
-            yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
-
-            if (_action.Parent.HasValue)
+            foreach (var command in PropagateBackRun())
             {
-                foreach (var command in PropagateBackRun(_action.Parent.Value))
-                {
-                    yield return command;
-                }
+                yield return command;
             }
         }
 
@@ -165,17 +126,14 @@ namespace Runner.Business.ActionsOutro.Types
 
         public override IEnumerable<CommandEffect> BackSetRunning()
         {
-            var (myCursor, currentActionOnMyCursor) = _control.FindCurrentActionOnMyCursor(_action.ActionId);
-
-            Assert.Enum.In(currentActionOnMyCursor.Status, new[] {
-                ActionStatus.Running
-            }, $"Action child in wrong status to BackSetRunning! {_action.ActionId}-{_action.Label}");
-
             Assert.Enum.In(_action.Status, new[] {
                 ActionStatus.Running
-            }, $"Action container in wrong status to BackSetRunning! {_action.ActionId}-{_action.Label}");
+            }, $"ActionContainer in wrong status to BackSetRunning! {_action.ActionId}-{_action.Label}");
 
-            yield break;
+            foreach (var command in PropagateBackSetRunning())
+            {
+                yield return command;
+            };
         }
 
         public override IEnumerable<CommandEffect> SetCompleted()
@@ -183,22 +141,17 @@ namespace Runner.Business.ActionsOutro.Types
             throw new RunnerException("ActionContainer shound't never call completed!");
         }
 
-        public override IEnumerable<CommandEffect> BackSetCompleted()
+        public override IEnumerable<CommandEffect> BackSetCompleted(int actionChildId)
         {
-            var (myCursor, currentActionOnMyCursor) = _control.FindCurrentActionOnMyCursor(_action.ActionId);
-
-            Assert.Enum.In(currentActionOnMyCursor.Status, new[] {
-                ActionStatus.Completed
-            }, $"Action child in wrong status to BackSetCompleted! {_action.ActionId}-{_action.Label}");
-
             Assert.Enum.In(_action.Status, new[] {
-                ActionStatus.Running
-            }, $"Action container in wrong status to BackSetCompleted! {_action.ActionId}-{_action.Label}");
+                ActionStatus.Running,
+                ActionStatus.ToStop
+            }, $"ActionContainer in wrong status to BackSetCompleted! {_action.ActionId}-{_action.Label}");
 
             Assert.MustNotNull(_action.Childs, $"Action container with invalid Childs! {_action.ActionId}-{_action.Label}");
 
-            var currentChildIndex = _action.Childs.IndexOf(currentActionOnMyCursor.ActionId);
-            Assert.Number.InRange(currentChildIndex, 0, _action.Childs.Count - 1, $"Invalid child index in parent! {_action.ActionId}-{_action.Label}");
+            var currentChildIndex = _action.Childs.IndexOf(actionChildId);
+            Assert.Number.InRange(currentChildIndex, 0, _action.Childs.Count - 1, $"Invalid child index in parent! {_action.ActionId}-{_action.Label}, ActionChildId: {actionChildId}");
 
             var nextChildIndex = currentChildIndex + 1;
             if (nextChildIndex == _action.Childs.Count)
@@ -206,42 +159,19 @@ namespace Runner.Business.ActionsOutro.Types
                 _action.Status = ActionStatus.Completed;
                 yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
 
-                if (_action.Parent.HasValue)
+                foreach (var command in PropagateBackSetCompleted())
                 {
-                    foreach (var command in PropagateBackSetCompleted(_action.Parent.Value))
-                    {
-                        yield return command;
-                    };
-                }
+                    yield return command;
+                };
             }
             else
             {
                 var nextActionId = _action.Childs[nextChildIndex];
-                foreach (var command in MoveCursorFoward(myCursor, nextActionId))
+                var (nextAction, nextActionType) = _control.FindActionAndType(nextActionId);
+
+                foreach (var command in nextActionType.ContinueRun())
                 {
                     yield return command;
-                }
-
-                var nextAction = _control.FindAction(nextActionId);
-                if (nextAction.BreakPoint)
-                {
-                    _action.Status = ActionStatus.Stopped;
-                    yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
-
-                    if (_action.Parent.HasValue)
-                    {
-                        foreach (var command in PropagateBackBreakPoint(_action.Parent.Value))
-                        {
-                            yield return command;
-                        }
-                    }
-                }   
-                else
-                {
-                    foreach (var command in _control.Run(nextActionId))
-                    {
-                        yield return command;
-                    }
                 }
             }
         }
@@ -253,12 +183,6 @@ namespace Runner.Business.ActionsOutro.Types
 
         public override IEnumerable<CommandEffect> BackSetError()
         {
-            var (myCursor, currentActionOnMyCursor) = _control.FindCurrentActionOnMyCursor(_action.ActionId);
-
-            Assert.Enum.In(currentActionOnMyCursor.Status, new[] {
-                ActionStatus.Error
-            }, $"Action child in wrong status to BackSetError! {_action.ActionId}-{_action.Label}");
-
             Assert.Enum.In(_action.Status, new[] {
                 ActionStatus.Running
             }, $"Action container in wrong status to BackSetError! {_action.ActionId}-{_action.Label}");
@@ -266,27 +190,15 @@ namespace Runner.Business.ActionsOutro.Types
             _action.Status = ActionStatus.Error;
             yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
 
-            if (_action.Parent.HasValue)
+            foreach (var command in PropagateBackSetError())
             {
-                foreach (var command in PropagateBackSetError(_action.Parent.Value))
-                {
-                    yield return command;
-                };
-            }
+                yield return command;
+            };
         }
 
         public override IEnumerable<CommandEffect> Stop()
         {
-            var (myCursor, currentActionOnMyCursor) = _control.FindCurrentActionOnMyCursor(_action.ActionId);
-
-            Assert.Enum.In(_action.Status, new[] {
-                ActionStatus.Running
-            }, $"ActionContainer in wrong status to Stop! {_action.ActionId}-{_action.Label}");
-
-            foreach (var command in _control.Stop(currentActionOnMyCursor.ActionId))
-            {
-                yield return command;
-            };
+            throw new RunnerException("ActionContainer shound't never call stop!");
         }
 
         public override IEnumerable<CommandEffect> BackStop()
@@ -295,13 +207,10 @@ namespace Runner.Business.ActionsOutro.Types
                 ActionStatus.Running
             }, $"ActionContainer in wrong status to Stop! {_action.ActionId}-{_action.Label}");
 
-            if (_action.Parent.HasValue)
+            foreach (var command in PropagateBackStop())
             {
-                foreach (var command in PropagateBackStop(_action.Parent.Value))
-                {
-                    yield return command;
-                };
-            }
+                yield return command;
+            };
         }
 
         public override IEnumerable<CommandEffect> SetStopped()
@@ -318,13 +227,10 @@ namespace Runner.Business.ActionsOutro.Types
             _action.Status = ActionStatus.Stopped;
             yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
 
-            if (_action.Parent.HasValue)
+            foreach (var command in PropagateBackSetStoppped())
             {
-                foreach (var command in PropagateBackSetStoppped(_action.Parent.Value))
-                {
-                    yield return command;
-                };
-            }
+                yield return command;
+            };
         }
 
         public override IEnumerable<CommandEffect> SetBreakPoint()
@@ -339,23 +245,16 @@ namespace Runner.Business.ActionsOutro.Types
 
         public override IEnumerable<CommandEffect> BackBreakPoint()
         {
-            Assert.Enum.In(_action.Status, new[] {
-                ActionStatus.Waiting,
-                ActionStatus.Stopped,
-                ActionStatus.Error,
-                ActionStatus.Running
-            }, $"ActionContainer in wrong status to Stopped! {_action.ActionId}-{_action.Label}");
-
-            _action.Status = ActionStatus.Stopped;
-            yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
-
-            if (_action.Parent.HasValue)
+            if (_action.Status != ActionStatus.Stopped)
             {
-                foreach (var command in PropagateBackBreakPoint(_action.Parent.Value))
-                {
-                    yield return command;
-                };
+                _action.Status = ActionStatus.Stopped;
+                yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
             }
+
+            foreach (var command in PropagateBackBreakPoint())
+            {
+                yield return command;
+            };
         }
     }
 }

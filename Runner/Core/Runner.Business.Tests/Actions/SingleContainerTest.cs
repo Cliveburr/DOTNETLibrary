@@ -1,5 +1,6 @@
 ﻿using Runner.Business.ActionsOutro;
 using Runner.Business.Entities;
+using Runner.Business.Tests.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 namespace Runner.Business.Tests.Actions
 {
     [TestClass]
-    public class SingleContainerTest : TestActionsBase2
+    public class SingleContainerTest : TestActionsBase
     {
         protected override ActionControl GetControl()
         {
@@ -50,876 +51,1284 @@ namespace Runner.Business.Tests.Actions
         [TestMethod]
         public void RunAndComplete()
         {
+            /*
+                Container = Waiting, Cursor
+                    First = Waiting
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             Run("Container")
-                .TestCount(3)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running)
-                .TestInSequeceActionUpdateToRun();
+                .HasActionClearingCursor("Container")
+                .HasActionUpdateRunning("Container")
+                .HasActionSettingCursor("First")
+                .HasActionUpdateToRun("First")
+                .IsCheckedAll();
+
+            /*
+                Container = Running
+                    First = ToRun, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
 
             SetRunning("First")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("First")
+                .IsCheckedAll();
+
+            /*
+                Container = Running
+                    First = Running, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
 
             SetCompleted("First")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateCompleted("First")
+                .HasActionClearingCursor("First")
+                .HasActionSettingCursor("Mid")
+                .HasActionUpdateToRun("Mid")
+                .IsCheckedAll();
+
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = ToRun, Cursor
+                    End = Waiting
+            */
 
             SetRunning("Mid")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Mid")
+                .IsCheckedAll();
+
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Running, Cursor
+                    End = Waiting
+            */
 
             SetCompleted("Mid")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateCompleted("Mid")
+                .HasActionClearingCursor("Mid")
+                .HasActionSettingCursor("End")
+                .HasActionUpdateToRun("End")
+                .IsCheckedAll();
+
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = ToRun, Cursor
+            */
 
             SetRunning("End")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("End")
+                .IsCheckedAll();
+
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = Running, Cursor
+            */
 
             SetCompleted("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed);
+                .HasActionUpdateCompleted("End")
+                .HasActionClearingCursor("End")
+                .HasActionUpdateCompleted("Container")
+                .IsCheckedAll();
+
+            /*
+                Container = Completed
+                    First = Completed
+                    Mid = Completed
+                    End = Completed
+            */
         }
 
         [TestMethod]
         public void ErrorOnFirstRetryComplete()
         {
+            /*
+                Container = Waiting, Cursor
+                    First = Waiting
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             Run("Container")
-                .TestCount(3)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running)
-                .TestInSequeceActionUpdateToRun();
+                .HasActionClearingCursor("Container")
+                .HasActionUpdateRunning("Container")
+                .HasActionSettingCursor("First")
+                .HasActionUpdateToRun("First")
+                .IsCheckedAll();
+
+            /*
+                Container = Running
+                    First = ToRun, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
 
             SetRunning("First")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("First")
+                .IsCheckedAll();
+
+            /*
+                Container = Running
+                    First = Running, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
 
             SetError("First")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Error)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Error);
+                .HasActionUpdateError("First")
+                .HasActionUpdateError("Container")
+                .IsCheckedAll();
+
+            /*
+                Container = Error
+                    First = Error, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
 
             Run("First")
-                .TestCount(2)
-                .TestInSequeceActionUpdateToRun()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
-            
+                .HasActionUpdateRunning("Container")
+                .HasActionUpdateToRun("First")
+                .IsCheckedAll();
+
+            /*
+                Container = Running
+                    First = ToRun, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             SetRunning("First")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("First")
+                .IsCheckedAll();
+
+            /*
+                Container = Running
+                    First = Running, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
 
             SetCompleted("First")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateCompleted("First")
+                .HasActionClearingCursor("First")
+                .HasActionSettingCursor("Mid")
+                .HasActionUpdateToRun("Mid")
+                .IsCheckedAll();
+
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = ToRun, Cursor
+                    End = Waiting
+            */
 
             SetRunning("Mid")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Mid")
+                .IsCheckedAll();
+
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Running, Cursor
+                    End = Waiting
+            */
 
             SetCompleted("Mid")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateCompleted("Mid")
+                .HasActionClearingCursor("Mid")
+                .HasActionSettingCursor("End")
+                .HasActionUpdateToRun("End")
+                .IsCheckedAll();
+
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = ToRun, Cursor
+            */
 
             SetRunning("End")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("End")
+                .IsCheckedAll();
+
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = Running, Cursor
+            */
 
             SetCompleted("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed);
+                .HasActionUpdateCompleted("End")
+                .HasActionClearingCursor("End")
+                .HasActionUpdateCompleted("Container")
+                .IsCheckedAll();
+
+            /*
+                Container = Completed
+                    First = Completed
+                    Mid = Completed
+                    End = Completed
+            */
         }
 
         [TestMethod]
         public void ErrorOnMidRetryComplete()
         {
-            // start run the flow
+            /*
+                Container = Waiting, Cursor
+                    First = Waiting
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             Run("Container")
-                .TestCount(3)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running)
-                .TestInSequeceActionUpdateToRun();
+                .HasActionClearingCursor("Container")
+                .HasActionUpdateRunning("Container")
+                .HasActionSettingCursor("First")
+                .HasActionUpdateToRun("First")
+                .IsCheckedAll();
 
-            // job begin to run the first script
+            /*
+                Container = Running
+                    First = ToRun, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             SetRunning("First")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("First")
+                .IsCheckedAll();
 
-            // job complete first script
+            /*
+                Container = Running
+                    First = Running, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             SetCompleted("First")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateCompleted("First")
+                .HasActionClearingCursor("First")
+                .HasActionSettingCursor("Mid")
+                .HasActionUpdateToRun("Mid")
+                .IsCheckedAll();
 
-            // job begin to run mid script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = ToRun, Cursor
+                    End = Waiting
+            */
+
             SetRunning("Mid")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Mid")
+                .IsCheckedAll();
 
-            // job raiser error on mid script
-            // set container as error
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Running, Cursor
+                    End = Waiting
+            */
+
             SetError("Mid")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Error)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Error);
+                .HasActionUpdateError("Mid")
+                .HasActionUpdateError("Container")
+                .IsCheckedAll();
 
-            // user send to retry mid script
-            // set container as running
+            /*
+                Container = Error
+                    First = Completed
+                    Mid = Error, Cursor
+                    End = Waiting
+            */
+
             Run("Mid")
-                .TestCount(2)
-                .TestInSequeceActionUpdateToRun()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Container")
+                .HasActionUpdateToRun("Mid")
+                .IsCheckedAll();
 
-            // job begin to retry mid script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = ToRun, Cursor
+                    End = Waiting
+            */
+
             SetRunning("Mid")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Mid")
+                .IsCheckedAll();
 
-            // job complete mid script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Running, Cursor
+                    End = Waiting
+            */
+
             SetCompleted("Mid")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateCompleted("Mid")
+                .HasActionClearingCursor("Mid")
+                .HasActionSettingCursor("End")
+                .HasActionUpdateToRun("End")
+                .IsCheckedAll();
 
-            // job begin to run end script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = ToRun, Cursor
+            */
+
             SetRunning("End")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("End")
+                .IsCheckedAll();
 
-            // job complete end script
-            // set container as completed
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = Running, Cursor
+            */
+
             SetCompleted("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed);
+                .HasActionUpdateCompleted("End")
+                .HasActionClearingCursor("End")
+                .HasActionUpdateCompleted("Container")
+                .IsCheckedAll();
+
+            /*
+                Container = Completed
+                    First = Completed
+                    Mid = Completed
+                    End = Completed
+            */
         }
 
         [TestMethod]
         public void ErrorOnEndRetryComplete()
         {
-            // start run the flow
-            // set container to running
-            // set to run first script
+            /*
+                Container = Waiting, Cursor
+                    First = Waiting
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             Run("Container")
-                .TestCount(3)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running)
-                .TestInSequeceActionUpdateToRun();
+                .HasActionClearingCursor("Container")
+                .HasActionUpdateRunning("Container")
+                .HasActionSettingCursor("First")
+                .HasActionUpdateToRun("First")
+                .IsCheckedAll();
 
-            // job begin to run the first script
+            /*
+                Container = Running
+                    First = ToRun, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             SetRunning("First")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("First")
+                .IsCheckedAll();
 
-            // job complete first script
-            // set to run mid script
+            /*
+                Container = Running
+                    First = Running, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             SetCompleted("First")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateCompleted("First")
+                .HasActionClearingCursor("First")
+                .HasActionSettingCursor("Mid")
+                .HasActionUpdateToRun("Mid")
+                .IsCheckedAll();
 
-            // job begin to run mid script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = ToRun, Cursor
+                    End = Waiting
+            */
+
             SetRunning("Mid")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Mid")
+                .IsCheckedAll();
 
-            // job complete mid script
-            // set to run end script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Running, Cursor
+                    End = Waiting
+            */
+
             SetCompleted("Mid")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateCompleted("Mid")
+                .HasActionClearingCursor("Mid")
+                .HasActionSettingCursor("End")
+                .HasActionUpdateToRun("End")
+                .IsCheckedAll();
 
-            // job begin to run end script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = ToRun, Cursor
+            */
+
             SetRunning("End")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("End")
+                .IsCheckedAll();
 
-            // job raiser error on end script
-            // set container as error
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = Running, Cursor
+            */
+
             SetError("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Error)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Error);
+                .HasActionUpdateError("End")
+                .HasActionUpdateError("Container")
+                .IsCheckedAll();
 
-            // user send to retry end script
-            // set container as running
+            /*
+                Container = Error
+                    First = Completed
+                    Mid = Completed
+                    End = Error, Cursor
+            */
+
             Run("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateToRun()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Container")
+                .HasActionUpdateToRun("End")
+                .IsCheckedAll();
 
-            // job begin to retry end script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = ToRun, Cursor
+            */
+
             SetRunning("End")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("End")
+                .IsCheckedAll();
 
-            // job complete end script
-            // set container as completed
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = Running, Cursor
+            */
+
             SetCompleted("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed);
+                .HasActionUpdateCompleted("End")
+                .HasActionClearingCursor("End")
+                .HasActionUpdateCompleted("Container")
+                .IsCheckedAll();
+
+            /*
+                Container = Completed
+                    First = Completed
+                    Mid = Completed
+                    End = Completed
+            */
         }
 
         [TestMethod]
         public void StopOnFirstAndContainue()
         {
-            // start run the flow
-            // set container to running
-            // set to run first script
+            /*
+                Container = Waiting, Cursor
+                    First = Waiting
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             Run("Container")
-                .TestCount(3)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running)
-                .TestInSequeceActionUpdateToRun();
-            
-            // job begin to run the first script
-            SetRunning("First")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionClearingCursor("Container")
+                .HasActionUpdateRunning("Container")
+                .HasActionSettingCursor("First")
+                .HasActionUpdateToRun("First")
+                .IsCheckedAll();
 
-            // user set to stop first script
+            /*
+                Container = Running
+                    First = ToRun, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
+            SetRunning("First")
+                .HasActionUpdateRunning("First")
+                .IsCheckedAll();
+
+            /*
+                Container = Running
+                    First = Running, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             Stop("First")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.ToStop);
+                .HasActionUpdateToStop("First")
+                .IsCheckedAll();
 
-            // job signal that first script is stopped
+            /*
+                Container = Running
+                    First = ToStop, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             SetStopped("First")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Stopped)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Stopped);
-            
-            // user send to retry first script
-            // set container as running
+                .HasActionUpdateStopped("First")
+                .HasActionUpdateStopped("Container")
+                .IsCheckedAll();
+
+            /*
+                Container = Stopped
+                    First = Stopped, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             Run("First")
-                .TestCount(2)
-                .TestInSequeceActionUpdateToRun()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Container")
+                .HasActionUpdateToRun("First")
+                .IsCheckedAll();
 
-            // job begin to run the first script
+            /*
+                Container = Running
+                    First = ToRun, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             SetRunning("First")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("First")
+                .IsCheckedAll();
 
-            // job complete first script
-            // set to run mid script
+            /*
+                Container = Running
+                    First = Running, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             SetCompleted("First")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateCompleted("First")
+                .HasActionClearingCursor("First")
+                .HasActionSettingCursor("Mid")
+                .HasActionUpdateToRun("Mid")
+                .IsCheckedAll();
 
-            // job begin to run mid script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = ToRun, Cursor
+                    End = Waiting
+            */
+
             SetRunning("Mid")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Mid")
+                .IsCheckedAll();
 
-            // job complete mid script
-            // set to run end script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Running, Cursor
+                    End = Waiting
+            */
+
             SetCompleted("Mid")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateCompleted("Mid")
+                .HasActionClearingCursor("Mid")
+                .HasActionSettingCursor("End")
+                .HasActionUpdateToRun("End")
+                .IsCheckedAll();
 
-            // job begin to run end script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = ToRun, Cursor
+            */
+
             SetRunning("End")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("End")
+                .IsCheckedAll();
 
-            // job complete end script
-            // set container as completed
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = Running, Cursor
+            */
+
             SetCompleted("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed);
+                .HasActionUpdateCompleted("End")
+                .HasActionClearingCursor("End")
+                .HasActionUpdateCompleted("Container")
+                .IsCheckedAll();
+
+            /*
+                Container = Completed
+                    First = Completed
+                    Mid = Completed
+                    End = Completed
+            */
         }
 
         [TestMethod]
         public void StopOnMidAndContainue()
         {
-            // start run the flow
-            // set container to running
-            // set to run first script
+            /*
+                Container = Waiting, Cursor
+                    First = Waiting
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             Run("Container")
-                .TestCount(3)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running)
-                .TestInSequeceActionUpdateToRun();
+                .HasActionClearingCursor("Container")
+                .HasActionUpdateRunning("Container")
+                .HasActionSettingCursor("First")
+                .HasActionUpdateToRun("First")
+                .IsCheckedAll();
 
-            // job begin to run the first script
+            /*
+                Container = Running
+                    First = ToRun, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             SetRunning("First")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("First")
+                .IsCheckedAll();
 
-            // job complete first script
-            // set to run mid script
+            /*
+                Container = Running
+                    First = Running, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             SetCompleted("First")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateCompleted("First")
+                .HasActionClearingCursor("First")
+                .HasActionSettingCursor("Mid")
+                .HasActionUpdateToRun("Mid")
+                .IsCheckedAll();
 
-            // job begin to run mid script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = ToRun, Cursor
+                    End = Waiting
+            */
+
             SetRunning("Mid")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Mid")
+                .IsCheckedAll();
 
-            // user set to stop mid script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Running, Cursor
+                    End = Waiting
+            */
+
             Stop("Mid")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.ToStop);
+                .HasActionUpdateToStop("Mid")
+                .IsCheckedAll();
 
-            // job signal that mid script is stopped
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = ToStop, Cursor
+                    End = Waiting
+            */
+
             SetStopped("Mid")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Stopped)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Stopped);
+                .HasActionUpdateStopped("Mid")
+                .HasActionUpdateStopped("Container")
+                .IsCheckedAll();
 
-            // user send to retry mid script
-            // set container as running
+            /*
+                Container = Stopped
+                    First = Completed
+                    Mid = Stopped, Cursor
+                    End = Waiting
+            */
+
             Run("Mid")
-                .TestCount(2)
-                .TestInSequeceActionUpdateToRun()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Container")
+                .HasActionUpdateToRun("Mid")
+                .IsCheckedAll();
 
-            // job begin to run the mid script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = ToRun, Cursor
+                    End = Waiting
+            */
+
             SetRunning("Mid")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Mid")
+                .IsCheckedAll();
 
-            // job complete mid script
-            // set to run end script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Running, Cursor
+                    End = Waiting
+            */
+
             SetCompleted("Mid")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateCompleted("Mid")
+                .HasActionClearingCursor("Mid")
+                .HasActionSettingCursor("End")
+                .HasActionUpdateToRun("End")
+                .IsCheckedAll();
 
-            // job begin to run end script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = ToRun, Cursor
+            */
+
             SetRunning("End")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("End")
+                .IsCheckedAll();
 
-            // job complete end script
-            // set container as completed
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = Running, Cursor
+            */
+
             SetCompleted("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed);
+                .HasActionUpdateCompleted("End")
+                .HasActionClearingCursor("End")
+                .HasActionUpdateCompleted("Container")
+                .IsCheckedAll();
+
+            /*
+                Container = Completed
+                    First = Completed
+                    Mid = Completed
+                    End = Completed
+            */
         }
 
         [TestMethod]
         public void StopOnEndAndContainue()
         {
-            // start run the flow
-            // set container to running
-            // set to run first script
+            /*
+                Container = Waiting, Cursor
+                    First = Waiting
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             Run("Container")
-                .TestCount(3)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running)
-                .TestInSequeceActionUpdateToRun();
+                .HasActionClearingCursor("Container")
+                .HasActionUpdateRunning("Container")
+                .HasActionSettingCursor("First")
+                .HasActionUpdateToRun("First")
+                .IsCheckedAll();
 
-            // job begin to run the first script
+            /*
+                Container = Running
+                    First = ToRun, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             SetRunning("First")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("First")
+                .IsCheckedAll();
 
-            // job complete first script
-            // set to run mid script
+            /*
+                Container = Running
+                    First = Running, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             SetCompleted("First")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateCompleted("First")
+                .HasActionClearingCursor("First")
+                .HasActionSettingCursor("Mid")
+                .HasActionUpdateToRun("Mid")
+                .IsCheckedAll();
 
-            // job begin to run mid script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = ToRun, Cursor
+                    End = Waiting
+            */
+
             SetRunning("Mid")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Mid")
+                .IsCheckedAll();
 
-            // job complete mid script
-            // set to run end script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Running, Cursor
+                    End = Waiting
+            */
+
             SetCompleted("Mid")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateCompleted("Mid")
+                .HasActionClearingCursor("Mid")
+                .HasActionSettingCursor("End")
+                .HasActionUpdateToRun("End")
+                .IsCheckedAll();
 
-            // job begin to run end script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = ToRun, Cursor
+            */
+
             SetRunning("End")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("End")
+                .IsCheckedAll();
 
-            // user set to stop end script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = Running, Cursor
+            */
+
             Stop("End")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.ToStop);
+                .HasActionUpdateToStop("End")
+                .IsCheckedAll();
 
-            // job signal that end script is stopped
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = ToStop, Cursor
+            */
+
             SetStopped("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Stopped)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Stopped);
+                .HasActionUpdateStopped("End")
+                .HasActionUpdateStopped("Container")
+                .IsCheckedAll();
 
-            // user send to retry end script
-            // set container as running
+            /*
+                Container = Stopped
+                    First = Completed
+                    Mid = Completed
+                    End = Stopped, Cursor
+            */
+
             Run("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateToRun()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Container")
+                .HasActionUpdateToRun("End")
+                .IsCheckedAll();
 
-            // job begin to run the end script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = ToRun, Cursor
+            */
+
             SetRunning("End")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("End")
+                .IsCheckedAll();
 
-            // job complete end script
-            // set container as completed
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = Running, Cursor
+            */
+
             SetCompleted("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed);
-        }
+                .HasActionUpdateCompleted("End")
+                .HasActionClearingCursor("End")
+                .HasActionUpdateCompleted("Container")
+                .IsCheckedAll();
 
-        [TestMethod]
-        public void StopContainerOnFirstAndContainue()
-        {
-            // start run the flow
-            // set container to running
-            // set to run first script
-            Run("Container")
-                .TestCount(3)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running)
-                .TestInSequeceActionUpdateToRun();
-
-            // job begin to run the first script
-            SetRunning("First")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
-
-            // user set to stop on container
-            Stop("Container")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.ToStop);
-
-            // job signal that first script is stopped
-            SetStopped("First")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Stopped)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Stopped);
-
-            // user send to retry first script
-            // set container as running
-            Run("First")
-                .TestCount(2)
-                .TestInSequeceActionUpdateToRun()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
-
-            // job begin to run the first script
-            SetRunning("First")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
-
-            // job complete first script
-            // set to run mid script
-            SetCompleted("First")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
-
-            // job begin to run mid script
-            SetRunning("Mid")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
-
-            // job complete mid script
-            // set to run end script
-            SetCompleted("Mid")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
-
-            // job begin to run end script
-            SetRunning("End")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
-
-            // job complete end script
-            // set container as completed
-            SetCompleted("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed);
-        }
-
-        [TestMethod]
-        public void StopContainerOnMidAndContainue()
-        {
-            // start run the flow
-            // set container to running
-            // set to run first script
-            Run("Container")
-                .TestCount(3)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running)
-                .TestInSequeceActionUpdateToRun();
-
-            // job begin to run the first script
-            SetRunning("First")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
-
-            // job complete first script
-            // set to run mid script
-            SetCompleted("First")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
-
-            // job begin to run mid script
-            SetRunning("Mid")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
-
-            // user set to stop mid script
-            Stop("Container")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.ToStop);
-
-            // job signal that mid script is stopped
-            SetStopped("Mid")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Stopped)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Stopped);
-
-            // user send to retry mid script
-            // set container as running
-            Run("Mid")
-                .TestCount(2)
-                .TestInSequeceActionUpdateToRun()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
-
-            // job begin to run the mid script
-            SetRunning("Mid")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
-
-            // job complete mid script
-            // set to run end script
-            SetCompleted("Mid")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
-
-            // job begin to run end script
-            SetRunning("End")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
-
-            // job complete end script
-            // set container as completed
-            SetCompleted("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed);
-        }
-
-        [TestMethod]
-        public void StopContainerOnEndAndContainue()
-        {
-            // start run the flow
-            // set container to running
-            // set to run first script
-            Run("Container")
-                .TestCount(3)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running)
-                .TestInSequeceActionUpdateToRun();
-
-            // job begin to run the first script
-            SetRunning("First")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
-
-            // job complete first script
-            // set to run mid script
-            SetCompleted("First")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
-
-            // job begin to run mid script
-            SetRunning("Mid")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
-
-            // job complete mid script
-            // set to run end script
-            SetCompleted("Mid")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
-
-            // job begin to run end script
-            SetRunning("End")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
-
-            // user set to stop end script
-            Stop("Container")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.ToStop);
-
-            // job signal that end script is stopped
-            SetStopped("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Stopped)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Stopped);
-
-            // user send to retry end script
-            // set container as running
-            Run("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateToRun()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
-
-            // job begin to run the end script
-            SetRunning("End")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
-
-            // job complete end script
-            // set container as completed
-            SetCompleted("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed);
+            /*
+                Container = Completed
+                    First = Completed
+                    Mid = Completed
+                    End = Completed
+            */
         }
 
         [TestMethod]
         public void BreakPointOnFirstAndContainue()
         {
             SetBreakPoint("First")
-                .TestCount(1)
-                .TestInSequeceActionUpdateBreakPoint(true);
+                .HasActionSettingBreakPoint("First")
+                .IsCheckedAll();
 
-            // start run the flow
-            // container move the cursor, but stop on first script
-            // set the container as stopped
+            /*
+                Container = Waiting, Cursor
+                    First = Waiting
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             Run("Container")
-                .TestCount(2)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Stopped);
+                .HasActionClearingCursor("Container")
+                .HasActionSettingCursor("First")
+                .HasActionUpdateStopped("First")
+                .HasActionUpdateStopped("Container")
+                .IsCheckedAll();
 
-            CleanBreakPoint("First")
-                .TestCount(1)
-                .TestInSequeceActionUpdateBreakPoint(false);
+            /*
+                Container = Stopped
+                    First = Stopped, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
 
-            // start run the flow
-            // set container to running
-            // set to run first script
-            Run("Container")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running)
-                .TestInSequeceActionUpdateToRun();
+            Run("First")
+                .HasActionUpdateRunning("Container")
+                .HasActionUpdateToRun("First")
+                .IsCheckedAll();
 
-            // job begin to run the first script
+            /*
+                Container = Running
+                    First = ToRun, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             SetRunning("First")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("First")
+                .IsCheckedAll();
 
-            // job complete first script
-            // set to run mid script
+            /*
+                Container = Running
+                    First = Running, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             SetCompleted("First")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateCompleted("First")
+                .HasActionClearingCursor("First")
+                .HasActionSettingCursor("Mid")
+                .HasActionUpdateToRun("Mid")
+                .IsCheckedAll();
 
-            // job begin to run mid script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = ToRun, Cursor
+                    End = Waiting
+            */
+
             SetRunning("Mid")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Mid")
+                .IsCheckedAll();
 
-            // job complete mid script
-            // set to run end script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Running, Cursor
+                    End = Waiting
+            */
+
             SetCompleted("Mid")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateCompleted("Mid")
+                .HasActionClearingCursor("Mid")
+                .HasActionSettingCursor("End")
+                .HasActionUpdateToRun("End")
+                .IsCheckedAll();
 
-            // job begin to run end script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = ToRun, Cursor
+            */
+
             SetRunning("End")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("End")
+                .IsCheckedAll();
 
-            // job complete end script
-            // set container as completed
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = Running, Cursor
+            */
+
             SetCompleted("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed);
+                .HasActionUpdateCompleted("End")
+                .HasActionClearingCursor("End")
+                .HasActionUpdateCompleted("Container")
+                .IsCheckedAll();
+
+            /*
+                Container = Completed
+                    First = Completed
+                    Mid = Completed
+                    End = Completed
+            */
         }
 
         [TestMethod]
         public void BreakPointOnMidAndContainue()
         {
             SetBreakPoint("Mid")
-                .TestCount(1)
-                .TestInSequeceActionUpdateBreakPoint(true);
+                .HasActionSettingBreakPoint("Mid")
+                .IsCheckedAll();
 
-            // start run the flow
-            // set container to running
-            // set to run first script
+            /*
+                Container = Waiting, Cursor
+                    First = Waiting
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             Run("Container")
-                .TestCount(3)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running)
-                .TestInSequeceActionUpdateToRun();
+                .HasActionClearingCursor("Container")
+                .HasActionUpdateRunning("Container")
+                .HasActionSettingCursor("First")
+                .HasActionUpdateToRun("First")
+                .IsCheckedAll();
 
-            // job begin to run the first script
+            /*
+                Container = Running
+                    First = ToRun, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             SetRunning("First")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("First")
+                .IsCheckedAll();
 
-            // job complete first script
-            // just move the cursor to mid and break
-            // set the container as stopped
+            /*
+                Container = Running
+                    First = Running, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             SetCompleted("First")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Stopped);
+                .HasActionUpdateCompleted("First")
+                .HasActionClearingCursor("First")
+                .HasActionSettingCursor("Mid")
+                .HasActionUpdateStopped("Mid")
+                .HasActionUpdateStopped("Container")
+                .IsCheckedAll();
 
-            CleanBreakPoint("Mid")
-                .TestCount(1)
-                .TestInSequeceActionUpdateBreakPoint(false);
+            /*
+                Container = Stopped
+                    First = Completed
+                    Mid = Stopped, Cursor
+                    End = Waiting
+            */
 
-            // start run the flow
-            // set container to running
-            // set to run mid script
-            Run("Container")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running)
-                .TestInSequeceActionUpdateToRun();
+            Run("Mid")
+                .HasActionUpdateRunning("Container")
+                .HasActionUpdateToRun("Mid")
+                .IsCheckedAll();
 
-            // job begin to run mid script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = ToRun, Cursor
+                    End = Waiting
+            */
+
             SetRunning("Mid")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Mid")
+                .IsCheckedAll();
 
-            // job complete mid script
-            // set to run end script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Running, Cursor
+                    End = Waiting
+            */
+
             SetCompleted("Mid")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateCompleted("Mid")
+                .HasActionClearingCursor("Mid")
+                .HasActionSettingCursor("End")
+                .HasActionUpdateToRun("End")
+                .IsCheckedAll();
 
-            // job begin to run end script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = ToRun, Cursor
+            */
+
             SetRunning("End")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("End")
+                .IsCheckedAll();
 
-            // job complete end script
-            // set container as completed
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = Running, Cursor
+            */
+
             SetCompleted("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed);
+                .HasActionUpdateCompleted("End")
+                .HasActionClearingCursor("End")
+                .HasActionUpdateCompleted("Container")
+                .IsCheckedAll();
+
+            /*
+                Container = Completed
+                    First = Completed
+                    Mid = Completed
+                    End = Completed
+            */
         }
 
         [TestMethod]
         public void BreakPointOnEndAndContainue()
         {
             SetBreakPoint("End")
-                .TestCount(1)
-                .TestInSequeceActionUpdateBreakPoint(true);
+               .HasActionSettingBreakPoint("End")
+               .IsCheckedAll();
 
-            // start run the flow
-            // set container to running
-            // set to run first script
+            /*
+                Container = Waiting, Cursor
+                    First = Waiting
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             Run("Container")
-                .TestCount(3)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running)
-                .TestInSequeceActionUpdateToRun();
+                .HasActionClearingCursor("Container")
+                .HasActionUpdateRunning("Container")
+                .HasActionSettingCursor("First")
+                .HasActionUpdateToRun("First")
+                .IsCheckedAll();
 
-            // job begin to run the first script
+            /*
+                Container = Running
+                    First = ToRun, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             SetRunning("First")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("First")
+                .IsCheckedAll();
 
-            // job complete first script
-            // just move the cursor to mid
-            // set to run mid script
+            /*
+                Container = Running
+                    First = Running, Cursor
+                    Mid = Waiting
+                    End = Waiting
+            */
+
             SetCompleted("First")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateToRun();
+                .HasActionUpdateCompleted("First")
+                .HasActionClearingCursor("First")
+                .HasActionSettingCursor("Mid")
+                .HasActionUpdateToRun("Mid")
+                .IsCheckedAll();
 
-            // job begin to run mid script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = ToRun, Cursor
+                    End = Waiting
+            */
+
             SetRunning("Mid")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Mid")
+                .IsCheckedAll();
 
-            // job complete mid script
-            // just move the cursor to end and break
-            // set the container as stopped
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Running, Cursor
+                    End = Waiting
+            */
+
             SetCompleted("Mid")
-                .TestCount(3)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceCursorUpdate()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Stopped);
+                .HasActionUpdateCompleted("Mid")
+                .HasActionClearingCursor("Mid")
+                .HasActionSettingCursor("End")
+                .HasActionUpdateStopped("End")
+                .HasActionUpdateStopped("Container")
+                .IsCheckedAll();
 
-            CleanBreakPoint("End")
-                .TestCount(1)
-                .TestInSequeceActionUpdateBreakPoint(false);
+            /*
+                Container = Stopped
+                    First = Completed
+                    Mid = Completed
+                    End = Stopped, Cursor
+            */
 
-            // start run the flow
-            // set to run end script
-            // set container to running
             Run("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateToRun()
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("Container")
+                .HasActionUpdateToRun("End")
+                .IsCheckedAll();
 
-            // job begin to run end script
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = ToRun, Cursor
+            */
+
             SetRunning("End")
-                .TestCount(1)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Running);
+                .HasActionUpdateRunning("End")
+                .IsCheckedAll();
 
-            // job complete end script
-            // set container as completed
+            /*
+                Container = Running
+                    First = Completed
+                    Mid = Completed
+                    End = Running, Cursor
+            */
+
             SetCompleted("End")
-                .TestCount(2)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed)
-                .TestInSequeceActionUpdateStatus(ActionStatus.Completed);
+                .HasActionUpdateCompleted("End")
+                .HasActionClearingCursor("End")
+                .HasActionUpdateCompleted("Container")
+                .IsCheckedAll();
+
+            /*
+                Container = Completed
+                    First = Completed
+                    Mid = Completed
+                    End = Completed
+            */
         }
     }
 }

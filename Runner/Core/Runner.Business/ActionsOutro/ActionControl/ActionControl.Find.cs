@@ -28,31 +28,27 @@ namespace Runner.Business.ActionsOutro
                 .FirstOrDefault(a => a.Label == actionLabel);
         }
 
-        public Cursor FindCursor(int actionId)
-        {
-            var cursor = EntityRun.Cursors
-                .FirstOrDefault(c => c.ActionId == actionId);
-            Assert.MustNotNull(cursor, $"Cursor not found for Action: {actionId}");
-            return cursor;
-        }
+        //public Cursor FindCursor(int actionId)
+        //{
+        //    var cursor = EntityRun.Cursors
+        //        .FirstOrDefault(c => c.ActionId == actionId);
+        //    Assert.MustNotNull(cursor, $"Cursor not found for Action: {actionId}");
+        //    return cursor;
+        //}
 
-        public IEnumerable<Cursor> FindCursorOnPasseds(int actionId)
-        {
-            return EntityRun.Cursors
-                .Where(c => c.ActionsPasseds.Contains(actionId));
-        }
+        //public (Cursor MyCursor, Action CurrentAction) FindCurrentActionOnMyCursor(int actionId)
+        //{
+        //    var cursorHasPassedOverMe =
+        //        EntityRun.Cursors
+        //        .Where(c => c.ActionsPasseds.Contains(actionId))
+        //        .ToList();
+        //    Assert.Enumerable.CountEquals(cursorHasPassedOverMe, 1, $"Wrong cursor state for Action! {actionId}");
 
-        public (Cursor MyCursor, Action CurrentAction) FindCurrentActionOnMyCursor(int actionId)
-        {
-            var cursorHasPassedOverMe = FindCursorOnPasseds(actionId)
-                .ToList();
-            Assert.Enumerable.CountEquals(cursorHasPassedOverMe, 1, $"Wrong cursor state for Action! {actionId}");
-
-            var myCursor = cursorHasPassedOverMe[0];
-            var actionIdOnCursor = myCursor.ActionId;
-            var currentAction = FindAction(actionIdOnCursor);
-            return (myCursor, currentAction);
-        }
+        //    var myCursor = cursorHasPassedOverMe[0];
+        //    var actionIdOnCursor = myCursor.ActionId;
+        //    var currentAction = FindAction(actionIdOnCursor);
+        //    return (myCursor, currentAction);
+        //}
 
         public ActionTypesBase FindActionType(Action action)
         {
@@ -62,6 +58,13 @@ namespace Runner.Business.ActionsOutro
                 case ActionType.Container: return new ActionContainer(this, action);
                 default: throw new RunnerException($"Invalid ActionType: {action.Type}! Action: {action.ActionId}");
             }
+        }
+
+        public (Action Action, ActionTypesBase ActionType) FindActionAndType(int actionId)
+        {
+            var action = FindAction(actionId);
+            var actionType = FindActionType(action);
+            return (action, actionType);
         }
     }
 }

@@ -18,12 +18,13 @@ namespace Runner.Business.ActionsOutro.Types
             _action = action;
         }
 
+        public abstract IEnumerable<CommandEffect> ContinueRun();
         public abstract IEnumerable<CommandEffect> Run();
         public abstract IEnumerable<CommandEffect> BackRun();
         public abstract IEnumerable<CommandEffect> SetRunning();
         public abstract IEnumerable<CommandEffect> BackSetRunning();
         public abstract IEnumerable<CommandEffect> SetCompleted();
-        public abstract IEnumerable<CommandEffect> BackSetCompleted();
+        public abstract IEnumerable<CommandEffect> BackSetCompleted(int actionChildId);
         public abstract IEnumerable<CommandEffect> SetError();
         public abstract IEnumerable<CommandEffect> BackSetError();
         public abstract IEnumerable<CommandEffect> Stop();
@@ -34,69 +35,96 @@ namespace Runner.Business.ActionsOutro.Types
         public abstract IEnumerable<CommandEffect> CleanBreakPoint();
         public abstract IEnumerable<CommandEffect> BackBreakPoint();
 
-        protected IEnumerable<CommandEffect> PropagateBackRun(int actionId)
+        protected IEnumerable<CommandEffect> PropagateBackRun()
         {
-            var action = _control.FindAction(actionId);
-            var actionType = _control.FindActionType(action);
+            if (_action.Parent.HasValue)
+            {
+                var (action, actionType) = _control.FindActionAndType(_action.Parent.Value);
 
-            return actionType.BackRun();
+                foreach (var command in actionType.BackRun())
+                {
+                    yield return command;
+                };
+            }
         }
 
-        protected IEnumerable<CommandEffect> PropagateBackSetRunning(int actionId)
+        protected IEnumerable<CommandEffect> PropagateBackSetRunning()
         {
-            var action = _control.FindAction(actionId);
-            var actionType = _control.FindActionType(action);
+            if (_action.Parent.HasValue)
+            {
+                var (action, actionType) = _control.FindActionAndType(_action.Parent.Value);
 
-            return actionType.BackSetRunning();
+                foreach (var command in actionType.BackSetRunning())
+                {
+                    yield return command;
+                };
+            }
         }
 
-        protected IEnumerable<CommandEffect> PropagateBackSetCompleted(int actionId)
+        protected IEnumerable<CommandEffect> PropagateBackSetCompleted()
         {
-            var action = _control.FindAction(actionId);
-            var actionType = _control.FindActionType(action);
+            if (_action.Parent.HasValue)
+            {
+                var (action, actionType) = _control.FindActionAndType(_action.Parent.Value);
 
-            return actionType.BackSetCompleted();
+                foreach (var command in actionType.BackSetCompleted(_action.ActionId))
+                {
+                    yield return command;
+                };
+            }
         }
 
 
-        protected IEnumerable<CommandEffect> PropagateBackSetError(int actionId)
+        protected IEnumerable<CommandEffect> PropagateBackSetError()
         {
-            var action = _control.FindAction(actionId);
-            var actionType = _control.FindActionType(action);
+            if (_action.Parent.HasValue)
+            {
+                var (action, actionType) = _control.FindActionAndType(_action.Parent.Value);
 
-            return actionType.BackSetError();
+                foreach (var command in actionType.BackSetError())
+                {
+                    yield return command;
+                };
+            }
         }
 
-        protected IEnumerable<CommandEffect> PropagateBackStop(int actionId)
+        protected IEnumerable<CommandEffect> PropagateBackStop()
         {
-            var action = _control.FindAction(actionId);
-            var actionType = _control.FindActionType(action);
+            if (_action.Parent.HasValue)
+            {
+                var (action, actionType) = _control.FindActionAndType(_action.Parent.Value);
 
-            return actionType.BackStop();
+                foreach (var command in actionType.BackStop())
+                {
+                    yield return command;
+                };
+            }
         }
 
-        protected IEnumerable<CommandEffect> PropagateBackSetStoppped(int actionId)
+        protected IEnumerable<CommandEffect> PropagateBackSetStoppped()
         {
-            var action = _control.FindAction(actionId);
-            var actionType = _control.FindActionType(action);
+            if (_action.Parent.HasValue)
+            {
+                var (action, actionType) = _control.FindActionAndType(_action.Parent.Value);
 
-            return actionType.BackSetStopped();
+                foreach (var command in actionType.BackSetStopped())
+                {
+                    yield return command;
+                };
+            }
         }
 
-        protected IEnumerable<CommandEffect> MoveCursorFoward(Cursor cursor, int nextActionId)
+        protected IEnumerable<CommandEffect> PropagateBackBreakPoint()
         {
-            cursor.ActionsPasseds.Add(cursor.ActionId);
-            cursor.ActionId = nextActionId;
+            if (_action.Parent.HasValue)
+            {
+                var (action, actionType) = _control.FindActionAndType(_action.Parent.Value);
 
-            yield return new CommandEffect(ComandEffectType.CursorUpdate, cursor);
-        }
-
-        protected IEnumerable<CommandEffect> PropagateBackBreakPoint(int actionId)
-        {
-            var action = _control.FindAction(actionId);
-            var actionType = _control.FindActionType(action);
-
-            return actionType.BackBreakPoint();
+                foreach (var command in actionType.BackBreakPoint())
+                {
+                    yield return command;
+                };
+            }
         }
     }
 }
