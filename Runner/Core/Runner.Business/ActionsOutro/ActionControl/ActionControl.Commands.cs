@@ -12,68 +12,84 @@ namespace Runner.Business.ActionsOutro
 {
     public partial class ActionControl
     {
-        public IEnumerable<CommandEffect> Run(int actionId)
+        public List<CommandEffect> Run(int actionId)
         {
             var action = FindAction(actionId);
             var actionType = FindActionType(action);
 
-            return actionType.Run();
+            var ctx = new CommandContext(this, new List<CommandEffect>());
+            actionType.Run(ctx);
+            return ctx.Effects;
         }
 
-        public IEnumerable<CommandEffect> SetRunning(int actionId)
+        public List<CommandEffect> SetRunning(int actionId)
         {
             var action = FindAction(actionId);
             var actionType = FindActionType(action);
 
-            return actionType.SetRunning();
+            var ctx = new CommandContext(this, new List<CommandEffect>());
+            actionType.SetRunning(ctx);
+            return ctx.Effects;
         }
 
-        public IEnumerable<CommandEffect> SetCompleted(int actionId)
+        public List<CommandEffect> SetCompleted(int actionId)
         {
             var action = FindAction(actionId);
             var actionType = FindActionType(action);
 
-            return actionType.SetCompleted();
+            var ctx = new CommandContext(this, new List<CommandEffect>());
+            actionType.SetCompleted(ctx);
+            return ctx.Effects;
         }
 
-        public IEnumerable<CommandEffect> SetError(int actionId)
+        public List<CommandEffect> SetError(int actionId)
         {
             var action = FindAction(actionId);
             var actionType = FindActionType(action);
 
-            return actionType.SetError();
+            var ctx = new CommandContext(this, new List<CommandEffect>());
+            actionType.SetError(ctx);
+            return ctx.Effects;
         }
 
-        public IEnumerable<CommandEffect> Stop(int actionId)
+        public List<CommandEffect> Stop(int actionId)
         {
             var action = FindAction(actionId);
             var actionType = FindActionType(action);
 
-            return actionType.Stop();
+            var ctx = new CommandContext(this, new List<CommandEffect>());
+            actionType.Stop(ctx);
+            return ctx.Effects;
         }
 
-        public IEnumerable<CommandEffect> SetStopped(int actionId)
+        public List<CommandEffect> SetStopped(int actionId)
         {
             var action = FindAction(actionId);
             var actionType = FindActionType(action);
 
-            return actionType.SetStopped();
+            var ctx = new CommandContext(this, new List<CommandEffect>());
+            actionType.SetStopped(ctx);
+            return ctx.Effects;
         }
 
-        public IEnumerable<CommandEffect> SetBreakPoint(int actionId)
+        public List<CommandEffect> SetBreakPoint(int actionId)
         {
             var action = FindAction(actionId);
             var actionType = FindActionType(action);
 
-            return actionType.SetBreakPoint();
+            var ctx = new CommandContext(this, new List<CommandEffect>());
+            actionType.SetBreakPoint(ctx);
+            return ctx.Effects;
         }
 
-        public IEnumerable<CommandEffect> CleanBreakPoint(int actionId)
+        public List<CommandEffect> CleanBreakPoint(int actionId)
         {
             var action = FindAction(actionId);
             var actionType = FindActionType(action);
 
-            return actionType.CleanBreakPoint();
+            var ctx = new CommandContext(this, new List<CommandEffect>());
+            actionType.CleanBreakPoint(ctx);
+            return ctx.Effects;
         }
     }
 }

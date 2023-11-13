@@ -10,12 +10,12 @@ namespace Runner.Business.ActionsOutro.Types
 {
     public class ActionContainer : ActionTypesBase
     {
-        public ActionContainer(ActionControl control, Action action)
-            : base(control, action)
+        public ActionContainer(Action action)
+            : base(action)
         {
         }
 
-        public override IEnumerable<CommandEffect> ContinueRun()
+        public override FowardRunResult FowardRun(CommandContext ctx)
         {
             Assert.Enum.In(_action.Status, new[] {
                 ActionStatus.Waiting
@@ -26,26 +26,57 @@ namespace Runner.Business.ActionsOutro.Types
             if (_action.BreakPoint)
             {
                 _action.WithCursor = true;
-                yield return new CommandEffect(ComandEffectType.ActionUpdateWithCursor, _action);
+                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateWithCursor, _action));
 
                 _action.Status = ActionStatus.Stopped;
-                yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
+                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
 
-                foreach (var command in PropagateBackBreakPoint())
-                {
-                    yield return command;
-                };
+                return FowardRunResult.WasBreakPoint;
             }
             else
             {
-                foreach (var command in InterRun())
+                Assert.MustNotNull(_action.Childs, $"ActionContainer with invalid Childs! {_action.ActionId}-{_action.Label}");
+
+                if (_action.Childs.Any())
                 {
-                    yield return command;
+                    var firstActionIdChild = _action.Childs.First();
+                    var (nextAction, nextActionType) = ctx.Control.FindActionAndType(firstActionIdChild);
+
+                    var childFowardRunResult = nextActionType.FowardRun(ctx);
+                    switch (childFowardRunResult)
+                    {
+                        case FowardRunResult.WasBreakPoint:
+                            {
+                                _action.Status = ActionStatus.Stopped;
+                                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+                                return FowardRunResult.WasBreakPoint;
+                            }
+                        case FowardRunResult.WasCompleted:
+                            {
+                                _action.Status = ActionStatus.Completed;
+                                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+                                return FowardRunResult.WasCompleted;
+                            }
+                        case FowardRunResult.Running:
+                            {
+                                _action.Status = ActionStatus.Running;
+                                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+                                return FowardRunResult.Running;
+                            }
+                        default: throw new RunnerException($"ActionContainer receive invalid foward run result! {_action.ActionId}-{_action.Label}");
+                    }
+                }
+                else
+                {
+                    _action.Status = ActionStatus.Completed;
+                    ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+
+                    return FowardRunResult.WasCompleted;
                 }
             }
         }
 
-        public override IEnumerable<CommandEffect> Run()
+        public override void Run(CommandContext ctx)
         {
             Assert.Enum.In(_action.Status, new[] {
                 ActionStatus.Waiting,
@@ -56,51 +87,85 @@ namespace Runner.Business.ActionsOutro.Types
             Assert.MustTrue(_action.WithCursor, $"ActionContainer in without cursor to Run! {_action.ActionId}-{_action.Label}");
 
             _action.WithCursor = false;
-            yield return new CommandEffect(ComandEffectType.ActionUpdateWithCursor, _action);
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateWithCursor, _action));
 
-            foreach (var command in InterRun())
+            Assert.MustNotNull(_action.Childs, $"ActionParallel with invalid Childs! {_action.ActionId}-{_action.Label}");
+
+            if (_action.Childs.Any())
             {
-                yield return command;
-            }
-        }
-
-        private IEnumerable<CommandEffect> InterRun()
-        {
-            if (_action.Childs is not null && _action.Childs.Any())
-            {
-                _action.Status = ActionStatus.Running;
-
                 var firstActionIdChild = _action.Childs.First();
-                var (nextAction, nextActionType) = _control.FindActionAndType(firstActionIdChild);
+                var (nextAction, nextActionType) = ctx.Control.FindActionAndType(firstActionIdChild);
 
-                foreach (var command in nextActionType.ContinueRun())
-                {
-                    yield return command;
-                }
-
-                if (_action.Status == ActionStatus.Running)
-                {
-                    yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
-
-                    foreach (var command in PropagateBackRun())
-                    {
-                        yield return command;
-                    }
-                }
+                ExecuteFowardRun(ctx, nextActionType);
             }
             else
             {
                 _action.Status = ActionStatus.Completed;
-                yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
+                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
 
-                foreach (var command in PropagateBackSetCompleted())
+                if (_action.Parent.HasValue)
                 {
-                    yield return command;
+                    var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                    actionType.BackSetCompleted(ctx, _action.ActionId);
                 }
             }
         }
 
-        public override IEnumerable<CommandEffect> BackRun()
+        private void ExecuteFowardRun(CommandContext ctx, ActionTypesBase nextActionType)
+        {
+            var childFowardRunResult = nextActionType.FowardRun(ctx);
+            switch (childFowardRunResult)
+            {
+                case FowardRunResult.WasBreakPoint:
+                    {
+                        if (_action.Status != ActionStatus.Stopped)
+                        {
+                            _action.Status = ActionStatus.Stopped;
+                            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+
+                            if (_action.Parent.HasValue)
+                            {
+                                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                                actionType.BackBreakPoint(ctx);
+                            }
+                        }
+                        break;
+                    }
+                case FowardRunResult.WasCompleted:
+                    {
+                        if (_action.Status != ActionStatus.Completed)
+                        {
+                            _action.Status = ActionStatus.Completed;
+                            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+
+                            if (_action.Parent.HasValue)
+                            {
+                                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                                actionType.BackSetCompleted(ctx, _action.ActionId);
+                            }
+                        }
+                        break;
+                    }
+                case FowardRunResult.Running:
+                    {
+                        if (_action.Status != ActionStatus.Running)
+                        {
+                            _action.Status = ActionStatus.Running;
+                            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+
+                            if (_action.Parent.HasValue)
+                            {
+                                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                                actionType.BackRun(ctx);
+                            }
+                        }
+                        break;
+                    }
+                default: throw new RunnerException($"ActionContainer receive invalid foward run result! {_action.ActionId}-{_action.Label}");
+            }
+        }
+
+        public override void BackRun(CommandContext ctx)
         {
             if (_action.Status != ActionStatus.Running)
             {
@@ -110,38 +175,40 @@ namespace Runner.Business.ActionsOutro.Types
                 }, $"ActionContainer container in wrong status to BackRun! {_action.ActionId}-{_action.Label}");
 
                 _action.Status = ActionStatus.Running;
-                yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
+                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
             }
 
-            foreach (var command in PropagateBackRun())
+            if (_action.Parent.HasValue)
             {
-                yield return command;
+                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                actionType.BackRun(ctx);
             }
         }
 
-        public override IEnumerable<CommandEffect> SetRunning()
+        public override void SetRunning(CommandContext ctx)
         {
             throw new RunnerException("ActionContainer shound't never call running!");
         }
 
-        public override IEnumerable<CommandEffect> BackSetRunning()
+        public override void BackSetRunning(CommandContext ctx)
         {
             Assert.Enum.In(_action.Status, new[] {
                 ActionStatus.Running
             }, $"ActionContainer in wrong status to BackSetRunning! {_action.ActionId}-{_action.Label}");
 
-            foreach (var command in PropagateBackSetRunning())
+            if (_action.Parent.HasValue)
             {
-                yield return command;
-            };
+                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                actionType.BackSetRunning(ctx);
+            }
         }
 
-        public override IEnumerable<CommandEffect> SetCompleted()
+        public override void SetCompleted(CommandContext ctx)
         {
             throw new RunnerException("ActionContainer shound't never call completed!");
         }
 
-        public override IEnumerable<CommandEffect> BackSetCompleted(int actionChildId)
+        public override void BackSetCompleted(CommandContext ctx, int actionChildId)
         {
             Assert.Enum.In(_action.Status, new[] {
                 ActionStatus.Running,
@@ -157,104 +224,107 @@ namespace Runner.Business.ActionsOutro.Types
             if (nextChildIndex == _action.Childs.Count)
             {
                 _action.Status = ActionStatus.Completed;
-                yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
+                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
 
-                foreach (var command in PropagateBackSetCompleted())
+                if (_action.Parent.HasValue)
                 {
-                    yield return command;
-                };
+                    var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                    actionType.BackSetCompleted(ctx, _action.ActionId);
+                }
             }
             else
             {
                 var nextActionId = _action.Childs[nextChildIndex];
-                var (nextAction, nextActionType) = _control.FindActionAndType(nextActionId);
+                var (nextAction, nextActionType) = ctx.Control.FindActionAndType(nextActionId);
 
-                foreach (var command in nextActionType.ContinueRun())
-                {
-                    yield return command;
-                }
+                ExecuteFowardRun(ctx, nextActionType);
             }
         }
 
-        public override IEnumerable<CommandEffect> SetError()
+        public override void SetError(CommandContext ctx)
         {
             throw new RunnerException("ActionContainer shound't never call error!");
         }
 
-        public override IEnumerable<CommandEffect> BackSetError()
+        public override void BackSetError(CommandContext ctx)
         {
             Assert.Enum.In(_action.Status, new[] {
-                ActionStatus.Running
+                ActionStatus.Running,
+                ActionStatus.ToStop
             }, $"Action container in wrong status to BackSetError! {_action.ActionId}-{_action.Label}");
 
             _action.Status = ActionStatus.Error;
-            yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
 
-            foreach (var command in PropagateBackSetError())
+            if (_action.Parent.HasValue)
             {
-                yield return command;
-            };
+                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                actionType.BackSetError(ctx);
+            }
         }
 
-        public override IEnumerable<CommandEffect> Stop()
+        public override void Stop(CommandContext ctx)
         {
             throw new RunnerException("ActionContainer shound't never call stop!");
         }
 
-        public override IEnumerable<CommandEffect> BackStop()
+        public override void BackStop(CommandContext ctx)
         {
             Assert.Enum.In(_action.Status, new[] {
                 ActionStatus.Running
             }, $"ActionContainer in wrong status to Stop! {_action.ActionId}-{_action.Label}");
 
-            foreach (var command in PropagateBackStop())
+            if (_action.Parent.HasValue)
             {
-                yield return command;
-            };
+                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                actionType.BackStop(ctx);
+            }
         }
 
-        public override IEnumerable<CommandEffect> SetStopped()
+        public override void SetStopped(CommandContext ctx)
         {
             throw new RunnerException("ActionContainer shound't never call stopped!");
         }
 
-        public override IEnumerable<CommandEffect> BackSetStopped()
+        public override void BackSetStopped(CommandContext ctx)
         {
             Assert.Enum.In(_action.Status, new[] {
                 ActionStatus.Running
             }, $"ActionContainer in wrong status to Stopped! {_action.ActionId}-{_action.Label}");
 
             _action.Status = ActionStatus.Stopped;
-            yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
 
-            foreach (var command in PropagateBackSetStoppped())
+            if (_action.Parent.HasValue)
             {
-                yield return command;
-            };
+                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                actionType.BackSetStopped(ctx);
+            }
         }
 
-        public override IEnumerable<CommandEffect> SetBreakPoint()
+        public override void SetBreakPoint(CommandContext ctx)
         {
             throw new RunnerException("ActionContainer shound't never call set breakpoint!");
         }
 
-        public override IEnumerable<CommandEffect> CleanBreakPoint()
+        public override void CleanBreakPoint(CommandContext ctx)
         {
             throw new RunnerException("ActionContainer shound't never call clean breakpoint!");
         }
 
-        public override IEnumerable<CommandEffect> BackBreakPoint()
+        public override void BackBreakPoint(CommandContext ctx)
         {
             if (_action.Status != ActionStatus.Stopped)
             {
                 _action.Status = ActionStatus.Stopped;
-                yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
+                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
             }
 
-            foreach (var command in PropagateBackBreakPoint())
+            if (_action.Parent.HasValue)
             {
-                yield return command;
-            };
+                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                actionType.BackBreakPoint(ctx);
+            }
         }
     }
 }

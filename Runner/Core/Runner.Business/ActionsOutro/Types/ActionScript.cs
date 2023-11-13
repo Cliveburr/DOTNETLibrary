@@ -9,12 +9,12 @@ namespace Runner.Business.ActionsOutro.Types
 {
     public class ActionScript : ActionTypesBase
     {
-        public ActionScript(ActionControl control, Action action)
-            : base(control, action)
+        public ActionScript(Action action)
+            : base(action)
         {
         }
 
-        public override IEnumerable<CommandEffect> ContinueRun()
+        public override FowardRunResult FowardRun(CommandContext ctx)
         {
             Assert.Enum.In(_action.Status, new[] {
                 ActionStatus.Waiting
@@ -23,28 +23,25 @@ namespace Runner.Business.ActionsOutro.Types
             Assert.MustFalse(_action.WithCursor, $"ActionScript already with Cursor! {_action.ActionId}-{_action.Label}");
 
             _action.WithCursor = true;
-            yield return new CommandEffect(ComandEffectType.ActionUpdateWithCursor, _action);
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateWithCursor, _action));
 
             if (_action.BreakPoint)
             {
                 _action.Status = ActionStatus.Stopped;
-                yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
+                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
 
-                foreach (var command in PropagateBackBreakPoint())
-                {
-                    yield return command;
-                };
+                return FowardRunResult.WasBreakPoint;
             }
             else
             {
-                foreach (var command in Run())
-                {
-                    yield return command;
-                }
+                _action.Status = ActionStatus.ToRun;
+                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateToRun, _action));
+
+                return FowardRunResult.Running;
             }
         }
 
-        public override IEnumerable<CommandEffect> Run()
+        public override void Run(CommandContext ctx)
         {
             Assert.MustTrue(_action.WithCursor, $"ActionScript in without cursor to Run! {_action.ActionId}-{_action.Label}");
 
@@ -55,40 +52,42 @@ namespace Runner.Business.ActionsOutro.Types
             }, $"ActionScript in wrong status to Run! {_action.ActionId}-{_action.Label}");
 
             _action.Status = ActionStatus.ToRun;
-            yield return new CommandEffect(ComandEffectType.ActionUpdateToRun, _action);
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateToRun, _action));
 
-            foreach (var command in PropagateBackRun())
+            if (_action.Parent.HasValue)
             {
-                yield return command;
-            };
+                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                actionType.BackRun(ctx);
+            }
         }
 
-        public override IEnumerable<CommandEffect> BackRun()
+        public override void BackRun(CommandContext ctx)
         {
             throw new RunnerException("ActionScript shound't never run from back!");
         }
 
-        public override IEnumerable<CommandEffect> SetRunning()
+        public override void SetRunning(CommandContext ctx)
         {
             Assert.Enum.In(_action.Status, new[] {
                 ActionStatus.ToRun
             }, $"ActionScript in wrong status to Running! {_action.ActionId}-{_action.Label}");
 
             _action.Status = ActionStatus.Running;
-            yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
 
-            foreach (var command in PropagateBackSetRunning())
+            if (_action.Parent.HasValue)
             {
-                yield return command;
-            };
+                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                actionType.BackSetRunning(ctx);
+            }
         }
 
-        public override IEnumerable<CommandEffect> BackSetRunning()
+        public override void BackSetRunning(CommandContext ctx)
         {
             throw new RunnerException("ActionScript shound't never running from back!");
         }
 
-        public override IEnumerable<CommandEffect> SetCompleted()
+        public override void SetCompleted(CommandContext ctx)
         {
             Assert.Enum.In(_action.Status, new[] {
                 ActionStatus.Running,
@@ -96,83 +95,87 @@ namespace Runner.Business.ActionsOutro.Types
             }, $"ActionScript in wrong status to Completed! {_action.ActionId}-{_action.Label}");
 
             _action.Status = ActionStatus.Completed;
-            yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
 
             _action.WithCursor = false;
-            yield return new CommandEffect(ComandEffectType.ActionUpdateWithCursor, _action);
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateWithCursor, _action));
 
-            foreach (var command in PropagateBackSetCompleted())
+            if (_action.Parent.HasValue)
             {
-                yield return command;
-            };
+                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                actionType.BackSetCompleted(ctx, _action.ActionId);
+            }
         }
 
-        public override IEnumerable<CommandEffect> BackSetCompleted(int actionChildId)
+        public override void BackSetCompleted(CommandContext ctx, int actionChildId)
         {
             throw new RunnerException("ActionScript shound't never completed from back!");
         }
 
-        public override IEnumerable<CommandEffect> SetError()
+        public override void SetError(CommandContext ctx)
         {
             Assert.Enum.In(_action.Status, new[] {
                 ActionStatus.Running
             }, $"ActionScript in wrong status to Completed! {_action.ActionId}-{_action.Label}");
 
             _action.Status = ActionStatus.Error;
-            yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
 
-            foreach (var command in PropagateBackSetError())
+            if (_action.Parent.HasValue)
             {
-                yield return command;
-            };
+                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                actionType.BackSetError(ctx);
+            }
         }
 
-        public override IEnumerable<CommandEffect> BackSetError()
+        public override void BackSetError(CommandContext ctx)
         {
             throw new RunnerException("ActionScript shound't never error from back!");
         }
 
-        public override IEnumerable<CommandEffect> Stop()
+        public override void Stop(CommandContext ctx)
         {
             Assert.Enum.In(_action.Status, new[] {
                 ActionStatus.Running
             }, $"ActionScript in wrong status to Completed! {_action.ActionId}-{_action.Label}");
 
             _action.Status = ActionStatus.ToStop;
-            yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
 
-            foreach (var command in PropagateBackStop())
+            if (_action.Parent.HasValue)
             {
-                yield return command;
-            };
+                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                actionType.BackStop(ctx);
+            }
         }
 
-        public override IEnumerable<CommandEffect> BackStop()
+        public override void BackStop(CommandContext ctx)
         {
             throw new RunnerException("ActionScript shound't never stop from back!");
         }
 
-        public override IEnumerable<CommandEffect> SetStopped()
+        public override void SetStopped(CommandContext ctx)
         {
             Assert.Enum.In(_action.Status, new[] {
                 ActionStatus.ToStop
             }, $"ActionScript in wrong status to Completed! {_action.ActionId}-{_action.Label}");
 
             _action.Status = ActionStatus.Stopped;
-            yield return new CommandEffect(ComandEffectType.ActionUpdateStatus, _action);
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
 
-            foreach (var command in PropagateBackSetStoppped())
+            if (_action.Parent.HasValue)
             {
-                yield return command;
-            };
+                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                actionType.BackSetStopped(ctx);
+            }
         }
 
-        public override IEnumerable<CommandEffect> BackSetStopped()
+        public override void BackSetStopped(CommandContext ctx)
         {
             throw new RunnerException("ActionScript shound't never stopped from back!");
         }
 
-        public override IEnumerable<CommandEffect> SetBreakPoint()
+        public override void SetBreakPoint(CommandContext ctx)
         {
             Assert.Enum.In(_action.Status, new[] {
                 ActionStatus.Waiting,
@@ -181,16 +184,16 @@ namespace Runner.Business.ActionsOutro.Types
             }, $"ActionScript in wrong status to set breakpoint! {_action.ActionId}-{_action.Label}");
 
             _action.BreakPoint = true;
-            yield return new CommandEffect(ComandEffectType.ActionUpdateBreakPoint, _action);
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateBreakPoint, _action));
         }
 
-        public override IEnumerable<CommandEffect> CleanBreakPoint()
+        public override void CleanBreakPoint(CommandContext ctx)
         {
             _action.BreakPoint = false;
-            yield return new CommandEffect(ComandEffectType.ActionUpdateBreakPoint, _action);
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateBreakPoint, _action));
         }
 
-        public override IEnumerable<CommandEffect> BackBreakPoint()
+        public override void BackBreakPoint(CommandContext ctx)
         {
             throw new RunnerException("ActionScript shound't never breakpoint from back!");
         }

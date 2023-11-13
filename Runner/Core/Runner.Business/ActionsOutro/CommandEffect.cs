@@ -16,6 +16,11 @@ namespace Runner.Business.ActionsOutro
             Type = type;
             Action = action;
         }
+
+        public override string ToString()
+        {
+            return $"Command {Type} - Label: {Action.Label}, Status: {Action.Status}, WithCursor: {Action.WithCursor}";
+        }
     }
 
     public enum ComandEffectType
