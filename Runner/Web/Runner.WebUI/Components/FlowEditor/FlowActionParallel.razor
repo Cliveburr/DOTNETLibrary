@@ -2,7 +2,7 @@
 @inject ClipboardInterop clipboardInterop
 @inject NotificationService notificationService
 
-<div class="flowactioncontainer" @onclick=OnOpenEditor @onclick:stopPropagation=true>
+<div class="flowactionparallel" @onclick=OnOpenEditor @onclick:stopPropagation=true>
     <div class="flowlabel">
         <p>@ValidLabel()</p>
     </div>
@@ -108,10 +108,10 @@
             Node.Childs = new List<Business.Entities.FlowAction>();
         }
         Node.Childs.Add(new Business.Entities.FlowAction
-        {
-            Label = "New Action",
-            Type = Business.Actions.ActionType.Script
-        });
+                {
+                    Label = "New Action",
+                    Type = Business.Actions.ActionType.Script
+                });
         ClosePanel();
         StateHasChanged();
     }
@@ -125,9 +125,9 @@
         }
     }
 
-    private void OnParallel_Click()
+    private void OnContainer_Click()
     {
-        Node.Type = Business.Actions.ActionType.Parallel;
+        Node.Type = Business.Actions.ActionType.Container;
         ClosePanel();
         if (Parent is not null)
         {
@@ -190,79 +190,79 @@
     private RenderFragment EditorForm()
     {
         return
-        @<div class="is-flex is-flex-direction-column m-4">
-            <h3 class="title is-3">Container</h3>
-            <div class="buttons">
-                <button type="button" class="button is-info is-small" @onclick="OnMoveUp_Click">
+    @<div class="is-flex is-flex-direction-column m-4">
+        <h3 class="title is-3">Parallel</h3>
+        <div class="buttons">
+            <button type="button" class="button is-info is-small" @onclick="OnMoveUp_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-arrow-turn-up"></i>
+                </span>
+            </button>
+            <button type="button" class="button is-info is-small" @onclick="OnMoveDown_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-arrow-turn-down"></i>
+                </span>
+            </button>
+            <button type="button" class="button is-link is-small" @onclick="OnCopy_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-clipboard"></i>
+                </span>
+                <span>Copy</span>
+            </button>
+            <button type="button" class="button is-danger is-small" @onclick="OnCut_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-scissors"></i>
+                </span>
+                <span>Cut</span>
+            </button>
+            <button type="button" class="button is-warning is-small" @onclick="OnPaste_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-paste"></i>
+                </span>
+                <span>Paste</span>
+            </button>
+        </div>
+        <div class="buttons">
+            <button type="button" class="button is-primary is-small" @onclick="OnAdd_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-circle-plus"></i>
+                </span>
+                <span>Add</span>
+            </button>
+            @if (Parent != null)
+            {
+                <button type="button" class="button is-danger is-small" @onclick="OnRemove_Click">
                     <span class="icon is-small">
-                        <i class="fa-solid fa-arrow-turn-up"></i>
-                    </span>
-                </button>
-                <button type="button" class="button is-info is-small" @onclick="OnMoveDown_Click">
-                    <span class="icon is-small">
-                        <i class="fa-solid fa-arrow-turn-down"></i>
-                    </span>
-                </button>
-                <button type="button" class="button is-link is-small" @onclick="OnCopy_Click">
-                    <span class="icon is-small">
-                        <i class="fa-solid fa-clipboard"></i>
-                    </span>
-                    <span>Copy</span>
-                </button>
-                <button type="button" class="button is-danger is-small" @onclick="OnCut_Click">
-                    <span class="icon is-small">
-                        <i class="fa-solid fa-scissors"></i>
-                    </span>
-                    <span>Cut</span>
-                </button>
-                <button type="button" class="button is-warning is-small" @onclick="OnPaste_Click">
-                    <span class="icon is-small">
-                        <i class="fa-solid fa-paste"></i>
-                    </span>
-                    <span>Paste</span>
-                </button>
-            </div>
-            <div class="buttons">
-                <button type="button" class="button is-primary is-small" @onclick="OnAdd_Click">
-                    <span class="icon is-small">
-                        <i class="fa-solid fa-circle-plus"></i>
-                    </span>
-                    <span>Add</span>
-                </button>
-                @if (Parent != null)
-                {
-                    <button type="button" class="button is-danger is-small" @onclick="OnRemove_Click">
-                        <span class="icon is-small">
                         <i class="fa-solid fa-xmark"></i>
-                        </span>
-                        <span>Remove</span>
-                    </button>
-                }
-                <button type="button" class="button is-primary is-small" @onclick="OnParallel_Click">
-                    <span class="icon is-small">
-                        <i class="fa-solid fa-align-justify fa-rotate-90"></i>
                     </span>
-                    <span>Parallel</span>
+                    <span>Remove</span>
                 </button>
+            }
+            <button type="button" class="button is-primary is-small" @onclick="OnContainer_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-box"></i>
+                </span>
+                <span>Container</span>
+            </button>
+        </div>
+        <div class="field">
+            <label class="label">Label</label>
+            <div class="control">
+                <input class="input" type="text" @bind=Node.Label placeholder="Label">
             </div>
-            <div class="field">
-                <label class="label">Label</label>
-                <div class="control">
-                    <input class="input" type="text" @bind=Node.Label placeholder="Label">
-                </div>
+        </div>
+        <div class="field">
+            <label class="label">Agent Pool</label>
+            <div class="control">
+                <input class="input" type="text" @bind=Node.AgentPool placeholder="Agent Pool">
             </div>
-            <div class="field">
-                <label class="label">Agent Pool</label>
-                <div class="control">
-                    <input class="input" type="text" @bind=Node.AgentPool placeholder="Agent Pool">
-                </div>
+        </div>
+        <div class="field">
+            <label class="label">Tags</label>
+            <div class="control">
+                <input class="input" type="text" placeholder="Tags">
             </div>
-            <div class="field">
-                <label class="label">Tags</label>
-                <div class="control">
-                    <input class="input" type="text" placeholder="Tags">
-                </div>
-            </div>
-        </div>;
+        </div>
+    </div>;
     }
 }

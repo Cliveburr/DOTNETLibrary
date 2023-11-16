@@ -1,20 +1,8 @@
 ﻿@implements IFlowActionView
 @inject ClipboardInterop clipboardInterop
-@inject NotificationService notificationService
 
-<div class="flowactioncontainer" @onclick=OnOpenEditor @onclick:stopPropagation=true>
-    <div class="flowlabel">
-        <p>@ValidLabel()</p>
-    </div>
-    @if (Node.Childs is not null)
-    {
-        <div class="flowchilds">
-            @foreach (var action in Node.Childs)
-            {
-                <FlowActionSelector Node=action Parent=this />
-            }
-        </div>
-    }
+<div class="flowaction" @onclick=OnOpenEditor @onclick:stopPropagation=true @onmouseover:stopPropagation=true>
+    <p>@ValidLabel()</p>
 </div>
 
 @code {
@@ -61,11 +49,6 @@
 
     public void RemoveChild(Runner.Business.Entities.FlowAction node)
     {
-        if (Node.Childs is not null)
-        {
-            Node.Childs.Remove(node);
-            StateHasChanged();
-        }
     }
 
     public void UpdateState()
@@ -75,45 +58,10 @@
 
     public void MoveUp(Runner.Business.Entities.FlowAction node)
     {
-        if (Node.Childs is not null)
-        {
-            var index = Node.Childs.IndexOf(node);
-            if (index > 0)
-            {
-                Node.Childs.Remove(node);
-                Node.Childs.Insert(index - 1, node);
-                StateHasChanged();
-            }
-        }
     }
 
     public void MoveDown(Runner.Business.Entities.FlowAction node)
     {
-        if (Node.Childs is not null)
-        {
-            var index = Node.Childs.IndexOf(node);
-            if (index < Node.Childs.Count - 1)
-            {
-                Node.Childs.Remove(node);
-                Node.Childs.Insert(index + 1, node);
-                StateHasChanged();
-            }
-        }
-    }
-
-    private void OnAdd_Click()
-    {
-        if (Node.Childs is null)
-        {
-            Node.Childs = new List<Business.Entities.FlowAction>();
-        }
-        Node.Childs.Add(new Business.Entities.FlowAction
-        {
-            Label = "New Action",
-            Type = Business.Actions.ActionType.Script
-        });
-        ClosePanel();
-        StateHasChanged();
     }
 
     private void OnRemove_Click()
@@ -122,6 +70,16 @@
         {
             ClosePanel();
             Parent.RemoveChild(Node);
+        }
+    }
+
+    private void OnContainer_Click()
+    {
+        Node.Type = Business.Actions.ActionType.Container;
+        ClosePanel();
+        if (Parent is not null)
+        {
+            Parent.UpdateState();
         }
     }
 
@@ -166,32 +124,11 @@
         return clipboardInterop.WriteTextAsync(text);
     }
 
-    private async Task OnPaste_Click()
-    {
-        var text = await clipboardInterop.ReadTextAsync();
-        try
-        {
-            var node = System.Text.Json.JsonSerializer.Deserialize<Runner.Business.Entities.FlowAction>(text);
-            if (Node.Childs is null)
-            {
-                Node.Childs = new List<Business.Entities.FlowAction>();
-            }
-            if (node is not null)
-            {
-                Node.Childs.Add(node);
-            }
-        }
-        catch
-        {
-            await notificationService.AddInfo("Invalid clipboard text!");
-        }
-    }
-
     private RenderFragment EditorForm()
     {
         return
         @<div class="is-flex is-flex-direction-column m-4">
-            <h3 class="title is-3">Container</h3>
+            <h3 class="title is-3">Script</h3>
             <div class="buttons">
                 <button type="button" class="button is-info is-small" @onclick="OnMoveUp_Click">
                     <span class="icon is-small">
@@ -215,35 +152,29 @@
                     </span>
                     <span>Cut</span>
                 </button>
-                <button type="button" class="button is-warning is-small" @onclick="OnPaste_Click">
-                    <span class="icon is-small">
-                        <i class="fa-solid fa-paste"></i>
-                    </span>
-                    <span>Paste</span>
-                </button>
             </div>
             <div class="buttons">
-                <button type="button" class="button is-primary is-small" @onclick="OnAdd_Click">
+                <button type="button" class="button is-primary is-small" @onclick="OnContainer_Click">
                     <span class="icon is-small">
-                        <i class="fa-solid fa-circle-plus"></i>
+                        <i class="fa-solid fa-box"></i>
                     </span>
-                    <span>Add</span>
+                    <span>Container</span>
                 </button>
-                @if (Parent != null)
-                {
-                    <button type="button" class="button is-danger is-small" @onclick="OnRemove_Click">
-                        <span class="icon is-small">
-                        <i class="fa-solid fa-xmark"></i>
-                        </span>
-                        <span>Remove</span>
-                    </button>
-                }
                 <button type="button" class="button is-primary is-small" @onclick="OnParallel_Click">
                     <span class="icon is-small">
                         <i class="fa-solid fa-align-justify fa-rotate-90"></i>
                     </span>
                     <span>Parallel</span>
                 </button>
+                @if (Parent is not null)
+                {
+                    <button type="button" class="button is-danger is-small" @onclick="OnRemove_Click">
+                        <span class="icon is-small">
+                            <i class="fa-solid fa-xmark"></i>
+                        </span>
+                        <span>Remove</span>
+                    </button>
+                }
             </div>
             <div class="field">
                 <label class="label">Label</label>

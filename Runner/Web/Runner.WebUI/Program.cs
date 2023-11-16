@@ -17,7 +17,8 @@ builder.Services
     .AddScoped<GlobalJavascript>()
     .AddScoped<ModalService>()
     .AddScoped<NotificationService>()
-    .AddScoped<BaseService>();
+    .AddScoped<BaseService>()
+    .AddScoped<ClipboardInterop>();
 
 builder.Services
     .AddRunnerServices("mongodb://localhost:27017", "Runner");

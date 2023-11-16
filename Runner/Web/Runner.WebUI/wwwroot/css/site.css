@@ -87,10 +87,29 @@ html, body {
   cursor: pointer;
 }
 
-.flowactionbase {
+.flowactionedit {
   display: flex;
-  flex-direction: column;
   gap: 6px;
+}
+
+.flowaction {
+  background: linear-gradient(to top, rgba(110, 139, 227, 0.631372549) 0%, rgba(174, 208, 234, 0.5490196078) 50%);
+  min-width: 218px;
+  padding: 4px;
+  border: 1px solid #aed0ea;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+}
+.flowaction:hover {
+  border: 1px solid #279ef9;
+}
+.flowaction > p {
+  margin-left: 4px;
+  margin-right: 4px;
+  font-weight: bold;
+  color: #2779aa;
 }
 
 .flowactioncontainer {
@@ -98,9 +117,14 @@ html, body {
   flex-direction: column;
   background: #eee;
   gap: 6px;
-  padding: 6px;
   border-radius: 6px;
-  box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1), 0 0px 0 1px rgba(10, 10, 10, 0.02);
+  box-shadow: -1px 0em 1em 1em rgba(10, 10, 10, 0.13), 0 0px 0 1px rgba(11, 11, 11, 0.02);
+  border: 1px solid #fafdff;
+  min-width: 218px;
+  cursor: pointer;
+}
+.flowactioncontainer:hover {
+  border: 1px solid #b4a8a8;
 }
 .flowactioncontainer > .flowlabel {
   display: flex;
@@ -111,32 +135,43 @@ html, body {
   color: #000022;
   font-weight: bold;
 }
-.flowactioncontainer > .flowlabel > button {
-  background-color: rgba(255, 255, 255, 0.5411764706);
-}
-
-.flowactioncontainers {
+.flowactioncontainer > .flowchilds {
   display: flex;
+  flex-direction: column;
   gap: 6px;
-  align-items: flex-start;
+  padding: 6px;
+  align-items: stretch;
 }
 
-.flowaction {
-  background: linear-gradient(to top, rgba(110, 139, 227, 0.631372549) 0%, rgba(174, 208, 234, 0.5490196078) 50%);
-  width: 218px;
-  padding: 4px;
-  border: 1px solid #aed0ea;
+.flowactionparallel {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  background: #eee;
+  gap: 6px;
+  border-radius: 6px;
+  box-shadow: -1px 0em 1em 1em rgba(10, 10, 10, 0.13), 0 0px 0 1px rgba(11, 11, 11, 0.02);
+  border: 1px solid #fafdff;
+  min-width: 218px;
+  cursor: pointer;
 }
-.flowaction > p {
-  margin-left: 4px;
-  margin-right: 4px;
+.flowactionparallel:hover {
+  border: 1px solid #b4a8a8;
+}
+.flowactionparallel > .flowlabel {
+  display: flex;
+  justify-content: center;
+}
+.flowactionparallel > .flowlabel > p {
+  font-size: 1.1em;
+  color: #000022;
   font-weight: bold;
-  color: #2779aa;
 }
-.flowaction > button {
-  background-color: rgba(255, 255, 255, 0.5411764706);
+.flowactionparallel > .flowchilds {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  padding: 6px;
+  align-items: start;
 }
 
 .rightpanelopen {

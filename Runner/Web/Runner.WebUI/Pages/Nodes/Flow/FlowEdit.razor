@@ -17,9 +17,9 @@
     </button>
 </div>
 
-<div class="flowactioncontainers">
+<div class="flowactionedit">
     <CascadingValue Name="GetPanel" TValue="Func<RightPanel>" Value="new Func<RightPanel?>(() => Panel)">
-        <FlowAction Node="FlowNode.Root" />
+        <FlowActionSelector Node="FlowNode.Root" />
     </CascadingValue>
 </div>
 
@@ -36,4 +36,10 @@
         await nodeService.UpdateFlow(FlowNode);
         baseService.Reload();
     }
+
+    public void UpdateState()
+    {
+        StateHasChanged();
+    }
+
 }

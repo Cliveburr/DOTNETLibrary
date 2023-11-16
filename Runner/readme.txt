@@ -14,3 +14,8 @@ Logged
 // mudar status no run
 // detectar run totalmente completo
 // rodar 1 container após varios paralelos
+
+
+- n permitir remover parent null
+- add childs
+- mudar tipo
