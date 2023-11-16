@@ -12,19 +12,6 @@ namespace Runner.Business.Entities
     [BsonDiscriminator("Run")]
     public class Run : NodeBase
     {
-        public required List<Actions.Action> Actions { get; set; }
-        public required List<ActionContainer> Containers { get; set; }
-        public int RootContainerId { get; set; }
-        public int IdIndexes { get; set; }
-        public RunStatus Status { get; set; }
-        public DateTime Created { get; set; }
-        public DateTime Completed { get; set; }
-        public required List<RunLog> Log { get; set; }
-    }
-
-    [BsonDiscriminator("Run")]
-    public class Run2 : NodeBase
-    {
         public required List<ActionsOutro.Action> Actions { get; set; }
         public int RootActionId { get; set; }
         public int IdIndexes { get; set; }
