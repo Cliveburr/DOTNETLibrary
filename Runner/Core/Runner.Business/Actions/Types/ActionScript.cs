@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Runner.Business.ActionsOutro.Types
+namespace Runner.Business.Actions.Types
 {
     public class ActionScript : ActionTypesBase
     {
@@ -140,7 +140,7 @@ namespace Runner.Business.ActionsOutro.Types
             }, $"ActionScript in wrong status to Completed! {_action.ActionId}-{_action.Label}");
 
             _action.Status = ActionStatus.ToStop;
-            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateToStop, _action));
 
             if (_action.Parent.HasValue)
             {

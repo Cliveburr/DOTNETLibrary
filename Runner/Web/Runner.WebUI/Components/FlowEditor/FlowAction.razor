@@ -39,19 +39,19 @@
 
     private void OnRemoveAction_Click()
     {
-        if (Parent.Node.Actions != null)
-        {
-            Parent.Node.Actions.Remove(Node);
-            Parent.UpdateState();
-            if (GetPanel != null)
-            {
-                var panel = GetPanel();
-                if (panel != null)
-                {
-                    panel.CleanPanel();
-                }
-            }
-        }
+        // if (Parent.Node.Actions != null)
+        // {
+        //     Parent.Node.Actions.Remove(Node);
+        //     Parent.UpdateState();
+        //     if (GetPanel != null)
+        //     {
+        //         var panel = GetPanel();
+        //         if (panel != null)
+        //         {
+        //             panel.CleanPanel();
+        //         }
+        //     }
+        // }
     }
 
     private RenderFragment EditorForm()

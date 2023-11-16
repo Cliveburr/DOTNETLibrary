@@ -173,10 +173,11 @@ namespace Runner.Business.Services
                 Name = name,
                 Type = NodeType.Flow,
                 Parent = parent.Id,
-                Root = new FlowActionContainer
+                Root = new FlowAction
                 {
                     Label = "Root",
-                    Actions = new List<FlowAction>
+                    Type = Actions.ActionType.Script,
+                    Childs = new List<FlowAction>
                     {
                         new FlowAction
                         {

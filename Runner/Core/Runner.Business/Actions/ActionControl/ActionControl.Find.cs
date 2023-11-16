@@ -1,5 +1,4 @@
-﻿using Runner.Business.Actions;
-using Runner.Business.ActionsOutro.Types;
+﻿using Runner.Business.Actions.Types;
 using Runner.Business.Entities;
 using System;
 using System.Collections.Generic;
@@ -7,9 +6,8 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ActionContainer = Runner.Business.ActionsOutro.Types.ActionContainer;
 
-namespace Runner.Business.ActionsOutro
+namespace Runner.Business.Actions
 {
     public partial class ActionControl
     {

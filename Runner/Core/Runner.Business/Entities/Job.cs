@@ -14,7 +14,6 @@ namespace Runner.Business.Entities
         public ObjectId? AgentId { get; set; }
         public ObjectId RunId { get; set; }
         public int ActionId { get; set; }
-        public int ActionContainerId { get; set; }
         public DateTime Queued { get; set; }
         public JobStatus Status { get; set; }
         public DateTime? Started { get; set; }

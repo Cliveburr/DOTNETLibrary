@@ -12,8 +12,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using static MongoDB.Bson.Serialization.Serializers.SerializerHelper;
-using static System.Collections.Specialized.BitVector32;
 
 namespace Runner.Business.Services
 {
@@ -35,7 +33,7 @@ namespace Runner.Business.Services
 
             // checar se ter permissão de Create no parent
 
-            var run = ActionControl.BuildRun(flow);
+            var run = ActionControl.Build(flow);
 
             run.Type = NodeType.Run;
             run.Parent = flow.Id;
@@ -46,9 +44,9 @@ namespace Runner.Business.Services
 
             await Node.CreateAsync(run);
 
-            var control = ActionControl.Set(run);
+            var control = ActionControl.From(run);
 
-            var effects = control.StartRun();
+            var effects = control.Run(run.RootActionId);
 
             await ProcessEffects(run, effects);
         }
@@ -61,33 +59,27 @@ namespace Runner.Business.Services
                 {
                     case ComandEffectType.ActionUpdateStatus:
                         {
-                            Assert.MustNotNull(effect.Action, "Invalid CommandEffect ActionUpdateStatus missing Action");
                             await ExecuteActionUpdateStatus(run, effect.Action);
                             break;
                         }
-                    case ComandEffectType.ActionContainerUpdatePosition:
+                    case ComandEffectType.ActionUpdateToRun:
                         {
-                            Assert.MustNotNull(effect.ActionContainer, "Invalid CommandEffect ActionContainerUpdatePosition missing ActionContainer");
-                            await ExecuteActionContainerUpdatePosition(run, effect.ActionContainer);
+                            await ExecuteActionUpdateToRun(run, effect.Action);
                             break;
                         }
-                    case ComandEffectType.ActionContainerCreateJobToRun:
+                    case ComandEffectType.ActionUpdateWithCursor:
                         {
-                            Assert.MustNotNull(effect.ActionContainer, "Invalid CommandEffect ActionContainerCreateJobToRun missing ActionContainer");
-                            Assert.MustNotNull(effect.Action, "Invalid CommandEffect ActionContainerCreateJobToRun missing Action");
-                            await ExecuteActionContainerCreateJobToRun(run, effect.ActionContainer, effect.Action);
+                            await ExecuteActionUpdateWithCursor(run, effect.Action);
                             break;
                         }
-                    case ComandEffectType.ActionContainerUpdateStatus:
+                    case ComandEffectType.ActionUpdateBreakPoint:
                         {
-                            Assert.MustNotNull(effect.ActionContainer, "Invalid CommandEffect ActionContainerUpdateStatus missing ActionContainer");
-                            await ExecuteActionContainerUpdateStatus(run, effect.ActionContainer);
+                            await ExecuteActionUpdateBreakPoint(run, effect.Action);
                             break;
                         }
-                    case ComandEffectType.ActionContainerUpdatePositionAndStatus:
+                    case ComandEffectType.ActionUpdateToStop:
                         {
-                            Assert.MustNotNull(effect.ActionContainer, "Invalid CommandEffect ActionContainerUpdatePositionAndStatus missing ActionContainer");
-                            await ExecuteActionContainerUpdatePositionAndStatus(run, effect.ActionContainer);
+                            await ExecuteActionUpdateToStop(run, effect.Action);
                             break;
                         }
                     default:
@@ -96,9 +88,11 @@ namespace Runner.Business.Services
             }
         }
 
-        private async Task ExecuteActionContainerCreateJobToRun(Run run, ActionContainer actionContainer, Actions.Action action)
+        private async Task ExecuteActionUpdateToRun(Run run, Actions.Action action)
         {
-            await _jobService.CreateJob(run, actionContainer, action);
+            await ExecuteActionUpdateStatus(run, action);
+
+            await _jobService.CreateJob(run, action);
         }
 
         private async Task ExecuteActionUpdateStatus(Run run, Actions.Action action)
@@ -112,35 +106,31 @@ namespace Runner.Business.Services
             await Node.UpdateAsync(r => r.Id == run.Id && r.Actions.Any(a => a.ActionId == action.ActionId), update);
         }
 
-        private async Task ExecuteActionContainerUpdatePosition(Run run, ActionContainer actionContainer)
+        private async Task ExecuteActionUpdateWithCursor(Run run, Actions.Action action)
         {
             var update = Builders<Run>.Update
-                .Set(a => a.Containers.FirstMatchingElement().Position, actionContainer.Position);
+                .Set(r => r.Actions.FirstMatchingElement().WithCursor, action.WithCursor);
 
-            await Node.UpdateAsync(r => r.Id == run.Id && r.Containers
-                .Any(c => c.ActionContainerId == actionContainer.ActionContainerId), update);
+            await Node.UpdateAsync(r => r.Id == run.Id && r.Actions.Any(a => a.ActionId == action.ActionId), update);
         }
 
-        private async Task ExecuteActionContainerUpdateStatus(Run run, ActionContainer actionContainer)
+        private async Task ExecuteActionUpdateBreakPoint(Run run, Actions.Action action)
         {
             var update = Builders<Run>.Update
-                .Set(a => a.Containers.FirstMatchingElement().Status, actionContainer.Status);
+                .Set(r => r.Actions.FirstMatchingElement().BreakPoint, action.BreakPoint);
 
-            await Node.UpdateAsync(r => r.Id == run.Id && r.Containers
-                .Any(c => c.ActionContainerId == actionContainer.ActionContainerId), update);
+            await Node.UpdateAsync(r => r.Id == run.Id && r.Actions.Any(a => a.ActionId == action.ActionId), update);
         }
 
-        private async Task ExecuteActionContainerUpdatePositionAndStatus(Run run, ActionContainer actionContainer)
+        private async Task ExecuteActionUpdateToStop(Run run, Actions.Action action)
         {
-            var update = Builders<Run>.Update
-                .Set(a => a.Containers.FirstMatchingElement().Status, actionContainer.Status)
-                .Set(a => a.Containers[-1].Position, actionContainer.Position);
+            await ExecuteActionUpdateStatus(run, action);
 
-            await Node.UpdateAsync(r => r.Id == run.Id && r.Containers
-                .Any(c => c.ActionContainerId == actionContainer.ActionContainerId), update);
+            //TODO: call stop on agent
+            //await _jobService.CreateJob(run, action);
         }
 
-        public async Task SetRunning(ObjectId runId, int actionContainerId)
+        public async Task SetRunning(ObjectId runId, int actionId)
         {
             Assert.MustNotNull(_userLogged.User, "Need to be logged to run script!");
 
@@ -150,14 +140,14 @@ namespace Runner.Business.Services
                 .FirstOrDefaultAsync<Run>(a => a.Id == runId);
             Assert.MustNotNull(run, "Run not found! " + runId);
 
-            var control = ActionControl.Set(run);
+            var control = ActionControl.From(run);
 
-            var effects = control.SetRunning(actionContainerId);
+            var effects = control.SetRunning(actionId);
 
             await ProcessEffects(run, effects);
         }
 
-        public async Task SetError(ObjectId runId, int actionContainerId, string text)
+        public async Task SetError(ObjectId runId, int actionId, string text)
         {
             Assert.MustNotNull(_userLogged.User, "Need to be logged to error script!");
 
@@ -167,14 +157,14 @@ namespace Runner.Business.Services
                 .FirstOrDefaultAsync<Run>(a => a.Id == runId);
             Assert.MustNotNull(run, "Run not found! " + runId);
 
-            var control = ActionControl.Set(run);
+            var control = ActionControl.From(run);
 
-            var effects = control.SetError(actionContainerId);
+            var effects = control.SetError(actionId);
 
             await ProcessEffects(run, effects);
         }
 
-        public async Task SetCompleted(ObjectId runId, int actionContainerId)
+        public async Task SetCompleted(ObjectId runId, int actionId)
         {
             Assert.MustNotNull(_userLogged.User, "Need to be logged to error script!");
 
@@ -184,9 +174,9 @@ namespace Runner.Business.Services
                 .FirstOrDefaultAsync<Run>(a => a.Id == runId);
             Assert.MustNotNull(run, "Run not found! " + runId);
 
-            var control = ActionControl.Set(run);
+            var control = ActionControl.From(run);
 
-            var effects = control.SetCompleted(actionContainerId);
+            var effects = control.SetCompleted(actionId);
 
             await ProcessEffects(run, effects);
         }

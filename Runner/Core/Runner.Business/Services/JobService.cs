@@ -61,14 +61,13 @@ namespace Runner.Business.Services
                 .FirstOrDefaultAsync(j => j.Id == jobId);
         }
 
-        public async Task CreateJob(Run run, ActionContainer actionContainer, Actions.Action action)
+        public async Task CreateJob(Run run, Actions.Action action)
         {
             var job = new Job
             {
-                AgentPool = action.AgentPool,
-                Tags = action.Tags,
+                AgentPool = action.AgentPool ?? string.Empty,
+                Tags = action.Tags ?? new List<string>(),
                 ActionId = action.ActionId,
-                ActionContainerId = actionContainer.ActionContainerId,
                 RunId = run.Id,
                 Queued = DateTime.Now,
                 Status = JobStatus.Waiting

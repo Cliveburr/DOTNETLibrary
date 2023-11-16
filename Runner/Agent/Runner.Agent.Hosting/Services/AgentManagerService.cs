@@ -300,7 +300,7 @@ namespace Runner.Agent.Hosting.Services
                 Assert.MustNotNull(job, "Job not found! " + agentConnect.RunningJobId.Value);
 
                 var runService = agentConnect.Scope.ServiceProvider.GetRequiredService<RunService>();
-                await runService.SetRunning(job.RunId, job.ActionContainerId);
+                await runService.SetRunning(job.RunId, job.ActionId);
 
                 await jobService.SetRunning(job, agentConnect.AgentId);
             }
@@ -317,7 +317,7 @@ namespace Runner.Agent.Hosting.Services
                 Assert.MustNotNull(job, "Job not found! " + agentConnect.RunningJobId.Value);
 
                 var runService = agentConnect.Scope.ServiceProvider.GetRequiredService<RunService>();
-                await runService.SetError(job.RunId, job.ActionContainerId, request.Error);
+                await runService.SetError(job.RunId, job.ActionId, request.Error);
 
                 await jobService.SetError(job);
             }
@@ -334,7 +334,7 @@ namespace Runner.Agent.Hosting.Services
                 Assert.MustNotNull(job, "Job not found! " + agentConnect.RunningJobId.Value);
 
                 var runService = agentConnect.Scope.ServiceProvider.GetRequiredService<RunService>();
-                await runService.SetCompleted(job.RunId, job.ActionContainerId);
+                await runService.SetCompleted(job.RunId, job.ActionId);
 
                 await jobService.SetCompleted(job);
 

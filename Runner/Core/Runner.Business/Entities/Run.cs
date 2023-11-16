@@ -12,7 +12,7 @@ namespace Runner.Business.Entities
     [BsonDiscriminator("Run")]
     public class Run : NodeBase
     {
-        public required List<ActionsOutro.Action> Actions { get; set; }
+        public required List<Actions.Action> Actions { get; set; }
         public int RootActionId { get; set; }
         public int IdIndexes { get; set; }
         public RunStatus Status { get; set; }

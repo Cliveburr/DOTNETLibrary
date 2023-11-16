@@ -1,4 +1,4 @@
-﻿using Runner.Business.ActionsOutro;
+﻿using Runner.Business.Actions;
 using Runner.Business.Entities;
 using System;
 using System.Collections.Generic;
@@ -13,45 +13,45 @@ namespace Runner.Business.Tests.Actions
     {
         protected override ActionControl GetControl()
         {
-            var flow = new Flow2
+            var flow = new Flow
             {
                 Name = "Test",
-                Root = new FlowAction2
+                Root = new FlowAction
                 {
                     Label = "Root",
                     Type = ActionType.Container,
-                    Childs = new List<FlowAction2>
+                    Childs = new List<FlowAction>
                     {
-                        new FlowAction2
+                        new FlowAction
                         {
                             Label = "ContainerFirst",
                             Type = ActionType.Container,
-                            Childs = new List<FlowAction2>
+                            Childs = new List<FlowAction>
                             {
-                                new FlowAction2
+                                new FlowAction
                                 {
                                     Label = "First",
                                     Type = ActionType.Script
                                 },
-                                new FlowAction2
+                                new FlowAction
                                 {
                                     Label = "Second",
                                     Type = ActionType.Script
                                 }
                             }
                         },
-                        new FlowAction2
+                        new FlowAction
                         {
                             Label = "Third",
                             Type = ActionType.Script
                         },
-                        new FlowAction2
+                        new FlowAction
                         {
                             Label = "ContainerSecond",
                             Type = ActionType.Container,
-                            Childs = new List<FlowAction2>
+                            Childs = new List<FlowAction>
                             {
-                                new FlowAction2
+                                new FlowAction
                                 {
                                     Label = "Four",
                                     Type = ActionType.Script

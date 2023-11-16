@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Test = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 using Action = Runner.Business.Actions.Action;
-using Runner.Business.ActionsOutro;
+using Runner.Business.Actions;
 
 namespace Runner.Business.Tests.Helpers
 {
@@ -76,7 +76,7 @@ namespace Runner.Business.Tests.Helpers
             var action = _effects
                 .FirstOrDefault(e =>
                     e.Action.Label == actionLabel
-                    && e.Type == ComandEffectType.ActionUpdateStatus
+                    && e.Type == ComandEffectType.ActionUpdateToStop
                     && e.Action.Status == ActionStatus.ToStop);
             Test.IsNotNull(action);
             _effects.Remove(action);

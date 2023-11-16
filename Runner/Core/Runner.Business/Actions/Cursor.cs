@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Runner.Business.ActionsOutro
+namespace Runner.Business.Actions
 {
     public class Cursor
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Runner.Business.ActionsOutro
+namespace Runner.Business.Actions
 {
     public class CommandEffect
     {
@@ -28,6 +28,7 @@ namespace Runner.Business.ActionsOutro
         ActionUpdateStatus = 0,
         ActionUpdateToRun = 1,
         ActionUpdateWithCursor = 2,
-        ActionUpdateBreakPoint = 3
+        ActionUpdateBreakPoint = 3,
+        ActionUpdateToStop = 4
     }
 }

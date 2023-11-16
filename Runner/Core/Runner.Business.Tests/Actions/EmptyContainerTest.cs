@@ -1,4 +1,4 @@
-﻿using Runner.Business.ActionsOutro;
+﻿using Runner.Business.Actions;
 using Runner.Business.Entities;
 using Runner.Business.Tests.Helpers;
 using System;
@@ -14,14 +14,14 @@ namespace Runner.Business.Tests.Actions
     {
         protected override ActionControl GetControl()
         {
-            var flow = new Flow2
+            var flow = new Flow
             {
                 Name = "Test",
-                Root = new FlowAction2
+                Root = new FlowAction
                 {
                     Label = "Container",
                     Type = ActionType.Container,
-                    Childs = new List<FlowAction2>
+                    Childs = new List<FlowAction>
                     {
                     }
                 }

@@ -1,12 +1,12 @@
-﻿<div class="flowactionbase">
+﻿@* <div class="flowactionbase">
     <div class="flowactioncontainer" @onclick=OnOpenEditor>
         <div class="flowlabel">
             <p>@ValidLabel()</p>
-            @* <button class="button is-small" @onclick=OnOpenEditor>
+            <button class="button is-small" @onclick=OnOpenEditor>
                 <span class="icon is-small">
                     <i class="fa-solid fa-bars"></i>
                 </span>
-            </button> *@
+            </button>
         </div>
         @if (Node.Actions != null)
         @foreach (var action in Node.Actions)
@@ -22,11 +22,11 @@
         }
     </div>
 </div>
-
+@* 
 @code {
 
     [Parameter]
-    public required Runner.Business.Entities.FlowActionContainer Node { get; set; }
+    public required Runner.Business.Entities.Flow Node { get; set; }
 
     [Parameter]
     public FlowActionContainer? Parent { get; set; }
@@ -148,3 +148,4 @@
         </div>;
     }
 }
+ *@
