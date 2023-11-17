@@ -59,3 +59,4 @@ bin/
 obj/
 packages/
 TestResults/
+/Runner/Agent/Runner.Agent/appsettings.Development.json
