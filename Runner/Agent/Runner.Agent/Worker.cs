@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Configuration;
 using Runner.Agent.Model;
 
 namespace Runner.Agent
@@ -6,12 +7,14 @@ namespace Runner.Agent
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
+        private readonly IConfiguration _configuration;
         private HubConnection _connection;
         private CancellationToken _cancellationToken;
 
-        public Worker(ILogger<Worker> logger)
+        public Worker(ILogger<Worker> logger, IConfiguration configuration)
         {
             _logger = logger;
+            _configuration = configuration;
 
             _connection = new HubConnectionBuilder()
                 .WithAutomaticReconnect(new KeepAlwaysConnected())
@@ -89,12 +92,20 @@ namespace Runner.Agent
 
             try
             {
+                var accessToken = _configuration.GetValue<string>("AccessToken");
+                var agentPool = _configuration.GetValue<string>("AgentPool");
+                var tags = _configuration.GetSection("Tags").Get<List<string>>();
+                if (accessToken is null || agentPool is null)
+                {
+                    throw new ArgumentNullException("Invalid Agent configuration!");
+                }
+
                 await _connection.InvokeAsync("Register", new RegisterRequest
                 {
                     MachineName = Environment.MachineName,
-                    AccessToken = "EoJWeoOcNUBhZzEjRPKsHOUrgrOWy1DtBj/k7HGT5VI0NnJKloBlokBo0qGB+bjurMZWxspAV5/E2pvm9t2Xka0T32sIbGqDu61SrhogsDUBlas0Bp7w1KPRkRM1XgvA+6S9WCjxAtoE2akIU0kHgFkuuDznZDL59gM8qDikmP71upEebGpGMAmuacXPbIm74JWtZQxAqlJM6SaEVEZnqNCSSoezmAXuXljlBfAoav/ckEfiJ7i5FN7WTSxYZTwnOt2Jkkw2AravPXCJ/CDSqjomkExtrDvjXTtmQ0BP2tSYo0R7b4xerH6CwG4lqCxcdBazyGCtjpL4XOy/ejtlMbYegZTDWp1jaXQsCii21UpbcqlPGnoZj3GVRelCoaBX2KrWA7ykYBJ38AV8ig3dx7RGCE1IbjsA49mciwPWFQzFj+r+jy+w3Xav9dVIkJogLHpgKkljrItKeJGx8RbCkFQuSIaC4cVgfox+9ghjl3+1u17xExyYR9VaFdGgdBQqiRnQw5WbRgwyGaERF1EVAMOt7qJc9aAJXRUQUHnwxwNLIbQKeEbxPz6YukSjFQDeuUjFVmZrQsBxNqtJsNpAozmK2Zpwe4zRM+xNpa7NRZzF3wZsTTPmWZkqTuQj3S2hSZ5eu308DvhwDe5ZtwPXznGMAXOcXiiWMdP2R2A6DxA=",
-                    AgentPool = "/test/pasta/agents",
-                    Tags = new List<string>()
+                    AccessToken = accessToken,
+                    AgentPool = agentPool,
+                    Tags = tags ?? new List<string>()
                 }, _cancellationToken);
             }
             catch (Exception err)

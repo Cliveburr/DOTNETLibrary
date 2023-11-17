@@ -8,11 +8,12 @@ using System.Threading.Tasks;
 
 namespace Runner.Business.WatcherNotification
 {
-    public delegate void OnJobCreatedDelegate(Job job);
+    public delegate void OnJobEventDelegate(Job job);
+    public delegate void OnRunEventDelegate(Run run);
 
     public interface IAgentWatcherNotification
     {
-        event OnJobCreatedDelegate? OnJobCreated;
-        void InvokeJobCreated(Job job);
+        event OnJobEventDelegate? OnJobCreated;
+        event OnRunEventDelegate? OnRunUpdated;
     }
 }

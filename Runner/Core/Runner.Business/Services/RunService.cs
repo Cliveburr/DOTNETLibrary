@@ -6,6 +6,7 @@ using Runner.Business.Authentication;
 using Runner.Business.DataAccess;
 using Runner.Business.Entities;
 using Runner.Business.Entities.Agent;
+using Runner.Business.WatcherNotification;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,12 +20,14 @@ namespace Runner.Business.Services
     {
         private readonly UserLogged _userLogged;
         private readonly JobService _jobService;
+        private ManualAgentWatcherNotification _manualAgentWatcherNotification;
 
-        public RunService(Database database, JobService jobService, UserLogged userLogged)
+        public RunService(Database database, JobService jobService, UserLogged userLogged, IAgentWatcherNotification agentWatcherNotification)
             : base(database)
         {
             _jobService = jobService;
             _userLogged = userLogged;
+            _manualAgentWatcherNotification = (ManualAgentWatcherNotification)agentWatcherNotification;
         }
 
         public async Task CreateRun(Flow flow)
@@ -86,6 +89,9 @@ namespace Runner.Business.Services
                         throw new Exception("Invalid CommandEffect Type: " + effect.Type);
                 }
             }
+
+            await CheckRunState(run.Id);
+            _manualAgentWatcherNotification.InvokeRunUpdated(run);
         }
 
         private async Task ExecuteActionUpdateToRun(Run run, Actions.Action action)
@@ -104,6 +110,8 @@ namespace Runner.Business.Services
                 .Set(r => r.Actions.FirstMatchingElement().Status, action.Status);
 
             await Node.UpdateAsync(r => r.Id == run.Id && r.Actions.Any(a => a.ActionId == action.ActionId), update);
+
+            await CheckRunState(run.Id);
         }
 
         private async Task ExecuteActionUpdateWithCursor(Run run, Actions.Action action)
@@ -199,6 +207,86 @@ namespace Runner.Business.Services
                 });
 
             await Node.UpdateAsync(run, update);
+        }
+
+        public async Task CheckRunState(ObjectId runId)
+        {
+            Assert.MustNotNull(_userLogged.User, "Need to be logged to run!");
+
+            // checar se ter permissão
+
+            var run = await Node
+                .FirstOrDefaultAsync<Run>(a => a.Id == runId);
+            Assert.MustNotNull(run, "Run not found! " + runId);
+
+            var actionsStatus = run.Actions
+                .Select(a => a.Status)
+                .ToList();
+
+            var actualStatus = RunStatus.Waiting;
+
+            var isSomeoneRunning = actionsStatus
+                .Any(cs => cs == ActionStatus.Running ||
+                    cs == ActionStatus.ToStop ||
+                    cs == ActionStatus.ToRun);
+            if (isSomeoneRunning)
+            {
+                actualStatus = RunStatus.Running;
+            }
+            else
+            {
+                var isSomeoneError = actionsStatus
+                    .Any(cs => cs == ActionStatus.Error);
+                if (isSomeoneError)
+                {
+                    actualStatus = RunStatus.Error;
+                }
+                else
+                {
+                    var isAllCompleted = !actionsStatus
+                        .Any(ac => ac != ActionStatus.Completed);
+                    if (isAllCompleted)
+                    {
+                        actualStatus = RunStatus.Completed;
+                    }
+                }
+            }
+
+
+            if (run.Status != actualStatus)
+            {
+                var logText = string.Empty;
+                DateTime? completedDatetime = null; //TODO: fazer update condicional
+
+                run.Status = actualStatus;
+                switch (run.Status)
+                {
+                    case RunStatus.Waiting:
+                        logText = "Run is waiting!";
+                        break;
+                    case RunStatus.Running:
+                        logText = "Run started";
+                        break;
+                    case RunStatus.Completed:
+                        logText = "Run completed";
+                        completedDatetime = DateTime.Now;
+                        break;
+                    case RunStatus.Error:
+                        logText = "Run with error";
+                        break;
+                }
+
+                var update = Builders<Run>.Update
+                    .Set(r => r.Status, run.Status)
+                    .Set(r => r.Completed, completedDatetime)
+                    .Push(r => r.Log, new RunLog
+                    {
+                        Created = DateTime.Now,
+                        Text = logText
+                    });
+
+                await Node.UpdateAsync(run, update);
+            }
         }
 
         public Task<List<RunList>> ReadRuns(Flow flow)

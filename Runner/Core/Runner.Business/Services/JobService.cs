@@ -17,12 +17,12 @@ namespace Runner.Business.Services
 {
     public class JobService : ServiceBase
     {
-        private IAgentWatcherNotification _agentWatcherNotification;
+        private ManualAgentWatcherNotification _manualAgentWatcherNotification;
 
         public JobService(Database database, IAgentWatcherNotification agentWatcherNotification)
             : base(database)
         {
-            _agentWatcherNotification = agentWatcherNotification;
+            _manualAgentWatcherNotification = (ManualAgentWatcherNotification)agentWatcherNotification;
         }
 
         public Task<List<Job>> ReadJobs(Agent agent)
@@ -75,15 +75,15 @@ namespace Runner.Business.Services
 
             await Job.CreateAsync(job);
 
-            _agentWatcherNotification.InvokeJobCreated(job);
+            _manualAgentWatcherNotification.InvokeJobCreated(job);
         }
 
         public Task SetRunning(Job job, ObjectId agentId)
         {
             var update = Builders<Job>.Update
                 .Set(j => j.Status, JobStatus.Running)
-                .Set(i => i.Started, DateTime.Now)
-                .Set(i => i.AgentId, agentId);
+                .Set(j => j.Started, DateTime.Now)
+                .Set(j => j.AgentId, agentId);
 
             return Job.UpdateAsync(job, update);
         }
@@ -92,7 +92,7 @@ namespace Runner.Business.Services
         {
             var update = Builders<Job>.Update
                 .Set(j => j.Status, JobStatus.Error)
-                .Set(i => i.End, DateTime.Now);
+                .Set(j => j.End, DateTime.Now);
 
             return Job.UpdateAsync(job, update);
         }
@@ -101,7 +101,7 @@ namespace Runner.Business.Services
         {
             var update = Builders<Job>.Update
                 .Set(j => j.Status, JobStatus.Completed)
-                .Set(i => i.End, DateTime.Now);
+                .Set(j => j.End, DateTime.Now);
 
             return Job.UpdateAsync(job, update);
         }

@@ -10,11 +10,17 @@ namespace Runner.Business.WatcherNotification
 {
     public class ManualAgentWatcherNotification : IAgentWatcherNotification
     {
-        public event OnJobCreatedDelegate? OnJobCreated;
+        public event OnJobEventDelegate? OnJobCreated;
+        public event OnRunEventDelegate? OnRunUpdated;
 
         public void InvokeJobCreated(Job job)
         {
             OnJobCreated?.Invoke(job);
+        }
+
+        public void InvokeRunUpdated(Run run)
+        {
+            OnRunUpdated?.Invoke(run);
         }
     }
 }

@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Authentication;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using static System.Collections.Specialized.BitVector32;
 using static System.Formats.Asn1.AsnWriter;
@@ -217,7 +218,7 @@ namespace Runner.Agent.Hosting.Services
                                     agentTags.AddRange(agentAvaliable.Agent.ExtraTags);
                                 }
 
-                                var actionTags = action.Tags;
+                                var actionTags = action.Tags ?? new List<string>();
 
                                 if (agentTags.Intersect(actionTags).Count() == agentTags.Count)
                                 {
@@ -254,39 +255,56 @@ namespace Runner.Agent.Hosting.Services
         }
 
         private SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1);
+        private bool _justOneWait = false;
 
         private async Task CheckAgentForJobs()
         {
+            if (_justOneWait)
+            {
+                return;
+            }
+            else
+            {
+                _justOneWait = true;
+            }
+
             await _semaphoreSlim.WaitAsync();
 
-            using (var scope = _serviceProvider.CreateScope())
+            _justOneWait = false;
+
+            try
             {
-                var jobService = scope.ServiceProvider.GetRequiredService<JobService>();
-
-                var jobsWaiting = await jobService.ReadJobsWaiting();
-
-                var jobWithAgents = await MixJobWithAgents(jobsWaiting);
-
-                foreach (var jobWithAgent in jobWithAgents)
+                using (var scope = _serviceProvider.CreateScope())
                 {
-                    try
+                    var jobService = scope.ServiceProvider.GetRequiredService<JobService>();
+
+                    var jobsWaiting = await jobService.ReadJobsWaiting();
+
+                    var jobWithAgents = await MixJobWithAgents(jobsWaiting);
+
+                    foreach (var jobWithAgent in jobWithAgents)
                     {
-                        var request = new RunScriptRequest
+                        try
                         {
-                        };
+                            var request = new RunScriptRequest
+                            {
+                            };
 
-                        await _agentHub.Clients.Client(jobWithAgent.AgentConnect.ConnectionId).SendAsync("RunScript", request);
+                            await _agentHub.Clients.Client(jobWithAgent.AgentConnect.ConnectionId).SendAsync("RunScript", request);
 
-                        jobWithAgent.AgentConnect.RunningJobId = jobWithAgent.Job.Id;
-                    }
-                    catch (Exception ex)
-                    {
-                        //todo:
+                            jobWithAgent.AgentConnect.RunningJobId = jobWithAgent.Job.Id;
+                        }
+                        catch (Exception ex)
+                        {
+                            //todo:
+                        }
                     }
                 }
             }
-
-            _semaphoreSlim.Release();
+            finally
+            {
+                _semaphoreSlim.Release();
+            }
         }
 
         internal async Task ScriptStarted(string connectionId)

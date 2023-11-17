@@ -17,7 +17,7 @@ namespace Runner.Business.Entities
         public int IdIndexes { get; set; }
         public RunStatus Status { get; set; }
         public DateTime Created { get; set; }
-        public DateTime Completed { get; set; }
+        public DateTime? Completed { get; set; }
         public required List<RunLog> Log { get; set; }
     }
 
@@ -40,6 +40,6 @@ namespace Runner.Business.Entities
         public required string Name { get; set; }
         public RunStatus Status { get; set; }
         public DateTime Created { get; set; }
-        public DateTime Completed { get; set; }
+        public DateTime? Completed { get; set; }
     }
 }
