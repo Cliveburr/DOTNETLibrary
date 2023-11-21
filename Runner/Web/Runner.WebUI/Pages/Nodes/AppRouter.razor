@@ -1,0 +1,64 @@
+﻿@page "/app/{*PageRoute}"
+@using Runner.Business.Entities
+@inject BaseService baseService
+@inject NodeService nodeService
+
+@if (_view is not null)
+{
+    <DynamicComponent Type="_view" Parameters="_viewParameters" />
+}
+
+@code {
+
+    private Type? _view;
+    private Dictionary<string, object?> _viewParameters = new Dictionary<string, object?>();
+
+    [Parameter]
+    public string? PageRoute { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        _view = null;
+
+        if (string.IsNullOrEmpty(PageRoute))
+        {
+            RouteHome();
+            return;
+        }
+
+        var parts = new System.Collections.Queue(PageRoute
+            .Split("/", StringSplitOptions.RemoveEmptyEntries));
+
+        var node = await nodeService.ReadLocation(parts);
+        if (node is null)
+        {
+            RouteHome();
+            return;
+        }
+
+        _viewParameters.Clear();
+
+        _viewParameters["Node"] = node;
+        _view = RouteNode(node.Type);
+        StateHasChanged();
+    }
+
+    private void RouteHome()
+    {
+        baseService.Navigation.NavigateTo("/");
+    }
+
+    private Type RouteNode(NodeType type)
+    {
+        switch (type)
+        {
+            case NodeType.App: return typeof(Nodes.App);
+            case NodeType.Folder: return typeof(Nodes.Folder);
+            case NodeType.AgentPool: return typeof(Nodes.AgentPool);
+            case NodeType.Agent: return typeof(Nodes.Agent);
+            case NodeType.Flow: return typeof(Nodes.Flow.Flow);
+            case NodeType.Run: return typeof(Nodes.Run);
+            default: throw new RunnerException($"Invalid NodeType: {type}");
+        }
+    }
+}

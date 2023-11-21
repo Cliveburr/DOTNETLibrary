@@ -7,10 +7,14 @@ using Runner.WebUI.Components.Modal;
 using Runner.WebUI.Components.Notification;
 using Runner.WebUI.Components;
 using Runner.Agent.Hosting.Helpers;
+using Runner.WebUI.Pages.Main;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
+
+//builder.Services.AddRazorPages();
+//builder.Services.AddServerSideBlazor();
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
 
 builder.Services
     .AddScoped<WebAuthenticationService>()
@@ -30,11 +34,14 @@ var app = builder.Build();
 
 
 app.UseStaticFiles();
+app.UseAntiforgery();
 
-app.UseRouting();
+app.MapRazorComponents<App>()
+   .AddInteractiveServerRenderMode();
 
-app.MapBlazorHub();
-app.MapFallbackToPage("/_Host");
+//app.UseRouting();
+//app.MapBlazorHub();
+//app.MapFallbackToPage("/_Host");
 
 app.MapAgentHub();
 

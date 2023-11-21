@@ -1,4 +1,4 @@
-﻿@using Runner.Business.Entities;
+﻿@* @using Runner.Business.Entities;
 @using Runner.WebUI.Pages.Nodes;
 @inherits ErrorBoundaryBase;
 @inject WebAuthenticationService authenticationService
@@ -62,7 +62,7 @@ else
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs args)
     {
-        _view = typeof(Loading);
+        //_view = typeof(Loading);
         _viewParameters.Clear();
         StateHasChanged();
 
@@ -103,11 +103,11 @@ else
         {
             if (navigationManager.Uri.ToLower().EndsWith("register"))
             {
-                _view = typeof(Register);
+                //_view = typeof(Register);
             }
             else
             {
-                _view = typeof(Login);
+                //_view = typeof(Login);
             }
             _viewParameters.Clear();
             StateHasChanged();
@@ -139,7 +139,7 @@ else
         {
             case "me":
                 {
-                    _view = RouteMe(parts);
+                    //_view = RouteMe(parts);
                     break;
                 }
             case "app":
@@ -154,7 +154,7 @@ else
                     else
                     {
                         _viewParameters["Node"] = node;
-                        _view = RouteNode(node.Type);
+                        //_view = RouteNode(node.Type);
                     }
                     break;
                 }
@@ -169,27 +169,27 @@ else
         StateHasChanged();
     }
 
-    private Type RouteMe(System.Collections.Queue parts)
-    {
-        var path = parts.Count > 0 ? (string)parts.Dequeue()! : "";
-        switch (path)
-        {
-            case "apps": return typeof(Me.Apps);
-            default: return typeof(Me.Home); // talvez subir erro
-        }
-    }
+    // private Type RouteMe(System.Collections.Queue parts)
+    // {
+    //     var path = parts.Count > 0 ? (string)parts.Dequeue()! : "";
+    //     switch (path)
+    //     {
+    //         case "apps": return typeof(Me.Apps);
+    //         default: return typeof(Me.Home); // talvez subir erro
+    //     }
+    // }
 
-    private Type RouteNode(NodeType type)
-    {
-        switch (type)
-        {
-            case NodeType.App: return typeof(Nodes.App);
-            case NodeType.Folder: return typeof(Nodes.Folder);
-            case NodeType.AgentPool: return typeof(Nodes.AgentPool);
-            case NodeType.Agent: return typeof(Nodes.Agent);
-            case NodeType.Flow: return typeof(Nodes.Flow.Flow);
-            case NodeType.Run: return typeof(Nodes.Run);
-            default: return typeof(Me.Home); // talvez subir erro
-        }
-    }
-}
+    // private Type RouteNode(NodeType type)
+    // {
+    //     switch (type)
+    //     {
+    //         case NodeType.App: return typeof(Nodes.App);
+    //         case NodeType.Folder: return typeof(Nodes.Folder);
+    //         case NodeType.AgentPool: return typeof(Nodes.AgentPool);
+    //         case NodeType.Agent: return typeof(Nodes.Agent);
+    //         case NodeType.Flow: return typeof(Nodes.Flow.Flow);
+    //         case NodeType.Run: return typeof(Nodes.Run);
+    //         default: return typeof(Me.Home); // talvez subir erro
+    //     }
+    // }
+} *@

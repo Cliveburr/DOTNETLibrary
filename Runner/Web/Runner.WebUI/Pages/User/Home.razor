@@ -1,4 +1,5 @@
-﻿@inject WebAuthenticationService authenticationService
+﻿@page "/"
+@inject WebAuthenticationService authenticationService
 @inject BaseService baseService
 
 <div class="container">
@@ -19,12 +20,12 @@
             </span>
             <span>Logoff</span>
         </button>
-        <button type="button" class="button is-success" @onclick="OnApps_Click">
+        <NavLink class="button is-success" href="/apps">
             <span class="icon is-small">
                 <NodeTypeIcon Type="Business.Entities.NodeType.App" />
             </span>
             <span>Apps</span>
-        </button>
+        </NavLink>
     </div>
 
     <div class="box mt-3">
@@ -111,11 +112,6 @@
     {
         await authenticationService.Logoff();
         baseService.Navigation.NavigateTo("/");
-    }
-
-    public void OnApps_Click()
-    {
-        baseService.Navigation.NavigateTo("/me/apps");
     }
 
     private void click()

@@ -1,0 +1,34 @@
+﻿@inject WebAuthenticationService authenticationService
+@inject NavigationManager navigationManager
+@inherits LayoutComponentBase
+
+<Navbar />
+@Body
+<ModalComponent></ModalComponent>
+<NotificationComponent></NotificationComponent>
+
+@code {
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await authenticationService.CheckAccessToken();
+        }
+
+        if (authenticationService.IsLogged)
+        {
+            if (navigationManager.MatchFullPath("register", "login"))
+            {
+                navigationManager.NavigateTo("/");
+            }
+        }
+        else
+        {
+            if (!navigationManager.MatchFullPath("register", "login"))
+            {
+                navigationManager.NavigateTo("/login");
+            }
+        }
+    }
+}
