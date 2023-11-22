@@ -134,8 +134,41 @@ namespace Runner.Business.Services
         {
             await ExecuteActionUpdateStatus(run, action);
 
-            //TODO: call stop on agent
-            //await _jobService.CreateJob(run, action);
+            await _jobService.StopJob(run, action);
+        }
+
+        public async Task Run(ObjectId runId, int actionId)
+        {
+            Assert.MustNotNull(_userLogged.User, "Need to be logged to run script!");
+
+            // checar se ter permissão
+
+            var run = await Node
+                .FirstOrDefaultAsync<Run>(a => a.Id == runId);
+            Assert.MustNotNull(run, "Run not found! " + runId);
+
+            var control = ActionControl.From(run);
+
+            var effects = control.Run(actionId);
+
+            await ProcessEffects(run, effects);
+        }
+
+        public async Task Stop(ObjectId runId, int actionId)
+        {
+            Assert.MustNotNull(_userLogged.User, "Need to be logged to run script!");
+
+            // checar se ter permissão
+
+            var run = await Node
+                .FirstOrDefaultAsync<Run>(a => a.Id == runId);
+            Assert.MustNotNull(run, "Run not found! " + runId);
+
+            var control = ActionControl.From(run);
+
+            var effects = control.Stop(actionId);
+
+            await ProcessEffects(run, effects);
         }
 
         public async Task SetRunning(ObjectId runId, int actionId)

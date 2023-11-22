@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Amazon.Runtime.Internal;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Connections;
@@ -23,7 +24,7 @@ using static System.Formats.Asn1.AsnWriter;
 
 namespace Runner.Agent.Hosting.Services
 {
-    public class AgentManagerService
+    public class AgentManagerService : IDisposable
     {
         private readonly IHubContext<AgentHub> _agentHub;
         private readonly IServiceProvider _serviceProvider;
@@ -47,6 +48,13 @@ namespace Runner.Agent.Hosting.Services
             _agentWatcherNotification = agentWatcherNotification;
 
             _agentWatcherNotification.OnJobCreated += OnJobCreated;
+            _agentWatcherNotification.OnStopJob += OnStopJob;
+        }
+
+        public void Dispose()
+        {
+            _agentWatcherNotification.OnJobCreated -= OnJobCreated;
+            _agentWatcherNotification.OnStopJob -= OnStopJob;
         }
 
         internal async Task Register(string connectionId, RegisterRequest request)
@@ -105,6 +113,15 @@ namespace Runner.Agent.Hosting.Services
             {
                 return _agents
                     .FirstOrDefault(a => a.AgentId == agent.Id);
+            }
+        }
+
+        private AgentConnect? FindConnected(Job job)
+        {
+            lock (_agents)
+            {
+                return _agents
+                    .FirstOrDefault(a => a.RunningJobId == job.Id);
             }
         }
 
@@ -304,6 +321,16 @@ namespace Runner.Agent.Hosting.Services
             finally
             {
                 _semaphoreSlim.Release();
+            }
+        }
+
+        private void OnStopJob(Job job)
+        {
+            var agentConnect = FindConnected(job);
+            if (agentConnect != null)
+            {
+                _agentHub.Clients.Client(agentConnect.ConnectionId).SendAsync("StopScript")
+                    .Wait();
             }
         }
 

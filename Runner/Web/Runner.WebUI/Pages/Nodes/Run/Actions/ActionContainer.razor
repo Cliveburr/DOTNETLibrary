@@ -1,0 +1,69 @@
+﻿
+<div class="runactioncontainer" @onclick=OnOpenEditor @onclick:stopPropagation=true>
+    <div class="runlabel">
+        <ActionStatusView Status=Action.Status></ActionStatusView>
+        <p>@ValidLabel()</p>
+        <div></div>
+    </div>
+    @if (Action.Childs is not null)
+    {
+        <div class="runchilds">
+            @foreach (var action in GetChilds())
+            {
+                <RunViewSelector Action=action />
+            }
+        </div>
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public required Runner.Business.Actions.Action Action { get; set; }
+
+    [CascadingParameter(Name = "RunView")]
+    public required RunView View { get; set; }
+
+    private string ValidLabel()
+    {
+        return string.IsNullOrEmpty(Action.Label) ?
+            " " :
+            Action.Label;
+    }
+
+    private List<Runner.Business.Actions.Action> GetChilds()
+    {
+        return Action.Childs!
+            .Select(c => View.AsRun.Actions.First(a => a.ActionId == c))
+            .ToList();
+    }
+
+    private void OnOpenEditor()
+    {
+        // if (GetPanel != null)
+        // {
+        //     var panel = GetPanel();
+        //     if (panel != null)
+        //     {
+        //         panel.SetOpen(EditorForm());
+        //     }
+        // }
+    }
+
+    // public void OnRunUpdated()
+    // {
+    //     var newAction = View.AsRun.Actions
+    //         .FirstOrDefault(a => a.ActionId == Action.ActionId);
+    //     if (newAction is not null)
+    //     {
+    //         if (newAction.Label != Action.Label
+    //             || newAction.Status != Action.Status
+    //             || newAction.WithCursor != Action.WithCursor
+    //             || newAction.BreakPoint != Action.BreakPoint)
+    //         {
+    //             StateHasChanged();
+    //         }
+    //         Action = newAction;
+    //     }
+    // }
+}

@@ -14,6 +14,7 @@ namespace Runner.Business.WatcherNotification
     public interface IAgentWatcherNotification
     {
         event OnJobEventDelegate? OnJobCreated;
+        event OnJobEventDelegate? OnStopJob;
         event OnRunEventDelegate? OnRunUpdated;
     }
 }

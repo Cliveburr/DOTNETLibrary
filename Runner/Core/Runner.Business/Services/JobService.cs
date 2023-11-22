@@ -78,6 +78,29 @@ namespace Runner.Business.Services
             _manualAgentWatcherNotification.InvokeJobCreated(job);
         }
 
+        public async Task StopJob(Run run, Actions.Action action)
+        {
+            var job = await Job.FirstOrDefaultAsync(j =>
+                j.RunId == run.Id
+                && j.ActionId == action.ActionId
+                && (j.Status == JobStatus.Waiting || j.Status == JobStatus.Running));
+            Assert.MustNotNull(job, $"Invalid Job for RunId: {run.Id}, ActionId: {action.ActionId}");
+
+            if (job.Status == JobStatus.Waiting)
+            {
+                var update = Builders<Job>.Update
+                    .Set(j => j.Status, JobStatus.Completed)
+                    .Set(j => j.Started, DateTime.Now)
+                    .Set(j => j.End, DateTime.Now);
+
+                await Job.UpdateAsync(job, update);
+            }
+            else
+            {
+                _manualAgentWatcherNotification.InvokeStopJob(job);
+            }
+        }
+
         public Task SetRunning(Job job, ObjectId agentId)
         {
             var update = Builders<Job>.Update

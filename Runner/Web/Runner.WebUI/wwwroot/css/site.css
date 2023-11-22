@@ -218,6 +218,112 @@ html, body {
   box-shadow: -5px 1em 1em -0.125em rgba(113, 76, 76, 0.1), -10px -2px 0 1px rgba(10, 10, 10, 0.02);
 }
 
+.actionview {
+  display: flex;
+  gap: 6px;
+}
+
+.runaction {
+  background: linear-gradient(to top, rgba(110, 139, 227, 0.631372549) 0%, rgba(174, 208, 234, 0.5490196078) 50%);
+  min-width: 218px;
+  padding: 4px;
+  border: 1px solid #aed0ea;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+}
+.runaction:hover {
+  border: 1px solid #279ef9;
+}
+.runaction > .runlabel {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+}
+.runaction > .runlabel > div {
+  display: flex;
+  align-items: baseline;
+}
+.runaction > .runlabel > div > p {
+  margin-left: 4px;
+  font-weight: bold;
+  color: #2779aa;
+}
+
+.runactioncontainer {
+  display: flex;
+  flex-direction: column;
+  background: #eee;
+  gap: 6px;
+  border-radius: 6px;
+  box-shadow: -1px 0em 1em 1em rgba(10, 10, 10, 0.13), 0 0px 0 1px rgba(11, 11, 11, 0.02);
+  border: 1px solid #fafdff;
+  min-width: 218px;
+  cursor: pointer;
+}
+.runactioncontainer:hover {
+  border: 1px solid #b4a8a8;
+}
+.runactioncontainer > .runlabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-left: 4px;
+}
+.runactioncontainer > .runlabel > p {
+  font-size: 1.1em;
+  color: #000022;
+  font-weight: bold;
+}
+.runactioncontainer > .runchilds {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  align-items: stretch;
+}
+
+.runactionparallel {
+  display: flex;
+  flex-direction: column;
+  background: #eee;
+  gap: 6px;
+  border-radius: 6px;
+  box-shadow: -1px 0em 1em 1em rgba(10, 10, 10, 0.13), 0 0px 0 1px rgba(11, 11, 11, 0.02);
+  border: 1px solid #fafdff;
+  min-width: 218px;
+  cursor: pointer;
+}
+.runactionparallel:hover {
+  border: 1px solid #b4a8a8;
+}
+.runactionparallel > .runlabel {
+  display: flex;
+  justify-content: center;
+}
+.runactionparallel > .runlabel > p {
+  font-size: 1.1em;
+  color: #000022;
+  font-weight: bold;
+}
+.runactionparallel > .runchilds {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  padding: 6px;
+  align-items: start;
+}
+
+.statusFlag {
+  width: 15px;
+  height: 15px;
+  -webkit-border-radius: 7.5px;
+  -moz-border-radius: 7.5px;
+  border-radius: 7.5px;
+}
+
 /* Bulma Utilities */
 .pagination-previous,
 .pagination-next,

@@ -1,0 +1,88 @@
+﻿@implements IDisposable;
+@using Runner.Business.Entities;
+@using Runner.Business.WatcherNotification;
+@using Runner.WebUI.Components.FlowEditor;
+@inject BaseService baseService
+@inject RunService runService
+@inject IAgentWatcherNotification agentWatcherNotification
+
+<div class="container">
+
+    <div class="box mt-4">
+        <h3 class="title is-3">Folder: @Node.Name <NodeTypeIcon Type="Node.Type" /></h3>
+    </div>
+
+    <div class="buttons mt-3">
+        <button type="button" class="button is-primary" @onclick="baseService.BackNode">
+            <span class="icon is-small">
+                <i class="fa-solid fa-square-caret-left"></i>
+            </span>
+        </button>
+    </div>
+
+    <div class="actionview">
+        <CascadingValue Name="RunView" TValue="RunView" Value="this">
+            <RunViewSelector @ref=actionView Action="GetRootAction()" />
+        </CascadingValue>
+    </div>
+
+</div>
+
+<RightPanel @ref=Panel />
+
+@code {
+
+    [Parameter]
+    public required NodeBase Node { get; set; }
+
+    public RightPanel? Panel { get; private set; }
+
+    private Runner.Business.Entities.Run? _asRun;
+    public Runner.Business.Entities.Run AsRun
+    {
+        get
+        {
+            if (_asRun is null)
+            {
+                _asRun = (Runner.Business.Entities.Run)Node;
+            }
+            return _asRun;
+        }
+    }
+
+    private RunViewSelector? actionView;
+
+    //public event Action? OnRunUpdated;
+
+    protected override void OnInitialized()
+    {
+        agentWatcherNotification.OnRunUpdated += WatcherNotification_OnRunUpdated;
+    }
+
+    public void Dispose()
+    {
+        agentWatcherNotification.OnRunUpdated -= WatcherNotification_OnRunUpdated;
+    }
+
+    private void WatcherNotification_OnRunUpdated(Runner.Business.Entities.Run run)
+    {
+        _asRun = run;
+        //OnRunUpdated?.Invoke();
+    }
+
+    private Runner.Business.Actions.Action GetRootAction()
+    {
+        return AsRun.Actions
+            .First(a => a.ActionId == AsRun.RootActionId);
+    }
+
+    public Task StopAction(Runner.Business.Actions.Action action)
+    {
+        return runService.Stop(AsRun.Id, action.ActionId);
+    }
+
+    public Task RunAction(Runner.Business.Actions.Action action)
+    {
+        return runService.Run(AsRun.Id, action.ActionId);
+    }
+}

@@ -57,7 +57,7 @@
             case NodeType.AgentPool: return typeof(Nodes.AgentPool);
             case NodeType.Agent: return typeof(Nodes.Agent);
             case NodeType.Flow: return typeof(Nodes.Flow.Flow);
-            case NodeType.Run: return typeof(Nodes.Run);
+            case NodeType.Run: return typeof(Nodes.Run.RunView);
             default: throw new RunnerException($"Invalid NodeType: {type}");
         }
     }

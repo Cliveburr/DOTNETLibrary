@@ -136,16 +136,31 @@ namespace Runner.Business.Actions.Types
         public override void Stop(CommandContext ctx)
         {
             Assert.Enum.In(_action.Status, new[] {
-                ActionStatus.Running
+                ActionStatus.Running,
+                ActionStatus.ToRun
             }, $"ActionScript in wrong status to Completed! {_action.ActionId}-{_action.Label}");
 
-            _action.Status = ActionStatus.ToStop;
-            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateToStop, _action));
-
-            if (_action.Parent.HasValue)
+            if (_action.Status == ActionStatus.Running)
             {
-                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
-                actionType.BackStop(ctx);
+                _action.Status = ActionStatus.ToStop;
+                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateToStop, _action));
+
+                if (_action.Parent.HasValue)
+                {
+                    var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                    actionType.BackStop(ctx);
+                }
+            }
+            else
+            {
+                _action.Status = ActionStatus.Stopped;
+                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateToStop, _action));
+
+                if (_action.Parent.HasValue)
+                {
+                    var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                    actionType.BackSetStopped(ctx);
+                }
             }
         }
 

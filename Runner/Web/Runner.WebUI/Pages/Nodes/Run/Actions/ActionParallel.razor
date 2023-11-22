@@ -1,0 +1,14 @@
+﻿<h3>ActionParallel</h3>
+
+@code {
+
+    [Parameter]
+    public required Runner.Business.Actions.Action Action { get; set; }
+
+    [CascadingParameter(Name = "RunView")]
+    public required RunView View { get; set; }
+
+    // public void OnRunUpdated()
+    // {
+    // }
+}
