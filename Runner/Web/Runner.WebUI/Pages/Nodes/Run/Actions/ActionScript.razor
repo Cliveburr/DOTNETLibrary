@@ -5,6 +5,10 @@
     <div class="runlabel">
         <div>
             <ActionStatusView Status=Action.Status></ActionStatusView>
+            @if (Action.BreakPoint)
+            {
+                <i class="fa-solid fa-circle-stop" style="color: #cc3030; margin-left: 3px; font-size: 16px;"></i>
+            }
             <p>@ValidLabel()</p>
         </div>
         <div>
@@ -62,19 +66,10 @@
 
     private void OnOpenEditor()
     {
-        // if (GetPanel != null)
-        // {
-        //     var panel = GetPanel();
-        //     if (panel != null)
-        //     {
-        //         panel.SetOpen(EditorForm());
-        //     }
-        // }
-    }
-
-    private void OnCursor_Click()
-    {
-
+        if (View.Panel is not null)
+        {
+            View.Panel.SetOpen(EditorForm());
+        }
     }
 
     private Task OnStop_Click()
@@ -87,20 +82,65 @@
         return View.RunAction(Action);
     }
 
-    // public void View_OnRunUpdated()
-    // {
-    //     var newAction = View.AsRun.Actions
-    //         .FirstOrDefault(a => a.ActionId == Action.ActionId);
-    //     if (newAction is not null)
-    //     {
-    //         if (newAction.Label != Action.Label
-    //             || newAction.Status != Action.Status
-    //             || newAction.WithCursor != Action.WithCursor
-    //             || newAction.BreakPoint != Action.BreakPoint)
-    //         {
-    //             StateHasChanged();
-    //         }
-    //         Action = newAction;
-    //     }
-    // }
+    private async Task OnBreakpoint_Click()
+    {
+        if (Action.BreakPoint)
+        {
+            await View.CleanBreakPoint(Action);
+        }
+        else
+        {
+            await View.SetBreakPoint(Action);
+        }
+        if (View.Panel is not null)
+        {
+            View.Panel.Close();
+        }
+    }
+
+    private RenderFragment EditorForm()
+    {
+        return
+        @<div class="is-flex is-flex-direction-column m-4">
+            <h3 class="title is-3">Script</h3>
+            <div class="buttons">
+                @if (Action.BreakPoint)
+                {
+                    <button type="button" class="button is-danger is-outline" @onclick="OnBreakpoint_Click">
+                        <span class="icon is-small">
+                            <i class="fa-solid fa-xmark"></i>
+                        </span>
+                        <span>Disable BreakPoint</span>
+                    </button>
+                }
+                else
+                {
+                    <button type="button" class="button is-danger" @onclick="OnBreakpoint_Click">
+                        <span class="icon is-small">
+                            <i class="fa-solid fa-xmark"></i>
+                        </span>
+                        <span>Enable BreakPoint</span>
+                    </button>
+                }
+            </div>
+            <div class="field">
+                <label class="label">Label</label>
+                <div class="control">
+                <input class="input" type="text" @bind=Action.Label placeholder="Label" readonly>
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Agent Pool</label>
+                <div class="control">
+                    <input class="input" type="text" @bind=Action.AgentPool placeholder="Agent Pool" readonly>
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Tags</label>
+                <div class="control">
+                    <input class="input" type="text" placeholder="Tags" readonly>
+                </div>
+            </div>
+        </div>;
+    }
 }

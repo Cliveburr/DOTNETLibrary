@@ -34,6 +34,8 @@ namespace Runner.Business.DataAccess
             BsonClassMap.RegisterClassMap<Agent>();
             BsonClassMap.RegisterClassMap<Flow>();
             BsonClassMap.RegisterClassMap<Run>();
+            BsonClassMap.RegisterClassMap<Entities.Data>();
+            BsonClassMap.RegisterClassMap<Entities.DataType>();
         }
 
         private void CheckUpdates()

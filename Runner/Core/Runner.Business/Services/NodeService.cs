@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using Runner.Business.Authentication;
+using Runner.Business.Data.Value;
 using Runner.Business.DataAccess;
 using Runner.Business.Entities;
 using Runner.Business.Entities.Agent;
@@ -195,6 +196,64 @@ namespace Runner.Business.Services
             // checar se ter permissão de Create no parent
 
             return Node.SaveAsync(flow);
+        }
+
+        public Task CreateDataType(string name, NodeBase parent)
+        {
+            Assert.MustNotNull(_userLogged.User, "Need to be logged to create data type!");
+
+            // checar se ter permissão de Create no parent
+
+            return Create(new DataType
+            {
+                Name = name,
+                Type = NodeType.DataType,
+                Parent = parent.Id,
+                Struct = new Data.Types.DataTypeStruct
+                {
+                    Properties = new List<Data.Types.DataTypeProperty>
+                    {
+                    }
+                }
+            });
+        }
+
+        public Task UpdateDataType(DataType datatype)
+        {
+            Assert.MustNotNull(_userLogged.User, "Need to be logged to create app!");
+
+            // checar se ter permissão de Create no parent
+
+            return Node.SaveAsync(datatype);
+        }
+
+        public Task CreateData(string name, NodeBase parent)
+        {
+            Assert.MustNotNull(_userLogged.User, "Need to be logged to create data!");
+
+            // checar se ter permissão de Create no parent
+
+            return Create(new Entities.Data
+            {
+                Name = name,
+                Type = NodeType.Data,
+                Parent = parent.Id,
+                Struct = new Data.Value.DataStruct
+                {
+                    Properties = new List<DataProperty>
+                    {
+                    }
+                }
+            });
+        }
+
+        public Task UpdateData(Entities.Data data)
+        {
+            Assert.MustNotNull(_userLogged.User, "Need to be logged to create app!");
+
+            // checar se ter permissão de Create no parent
+
+            return Node.SaveAsync(data);
         }
 
         private string AssertMachineNameToAgentName(string machineName)

@@ -13,13 +13,17 @@ namespace Runner.Business.Entities
         AgentPool = 2,
         Agent = 3,
         Flow = 4,
-        Run = 5
+        Run = 5,
+        Data = 6,
+        DataType = 7
     }
 
     public enum CreableNodeType : byte
     {
         Folder = 1,
         AgentPool = 2,
-        Flow = 4
+        Flow = 4,
+        Data = 6,
+        DataType = 7
     }
 }

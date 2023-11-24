@@ -58,6 +58,8 @@
             case NodeType.Agent: return typeof(Nodes.Agent);
             case NodeType.Flow: return typeof(Nodes.Flow.Flow);
             case NodeType.Run: return typeof(Nodes.Run.RunView);
+            case NodeType.Data: return typeof(Nodes.Data);
+            case NodeType.DataType: return typeof(Nodes.DataType);
             default: throw new RunnerException($"Invalid NodeType: {type}");
         }
     }

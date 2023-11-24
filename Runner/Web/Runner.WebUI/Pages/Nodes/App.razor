@@ -103,6 +103,12 @@
                     await OnRefresh_Click();
                     break;
                 }
+            case NodeType.DataType:
+                {
+                    await nodeService.CreateDataType(questionName.Value, Node);
+                    await OnRefresh_Click();
+                    break;
+                }
             default:
                 throw new Exception("Invalid type!");
         }

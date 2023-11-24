@@ -15,6 +15,12 @@
         </span>
         <span>Refresh</span>
     </button>
+    <button type="button" class="button is-success" @onclick="OnNew_Click">
+        <span class="icon is-small">
+            <i class="fa-solid fa-person"></i>
+        </span>
+        <span>New</span>
+    </button>
     <button type="button" class="button is-success" @onclick="OnRun_Click">
         <span class="icon is-small">
             <i class="fa-solid fa-person-running"></i>
@@ -69,9 +75,14 @@
         StateHasChanged();
     }
 
-    public async Task OnRun_Click()
+    public Task OnNew_Click()
     {
-        await runService.CreateRun(FlowNode);
+        return runService.CreateRun(FlowNode, false);
+    }
+
+    public Task OnRun_Click()
+    {
+        return runService.CreateRun(FlowNode, true);
     }
 
     public void OnNavigateApp_Click(RunList node)

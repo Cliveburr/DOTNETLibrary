@@ -1,0 +1,126 @@
+﻿@using Runner.Business.Data.Types
+@using Runner.Business.Entities;
+@inject NodeService nodeService
+@inject BaseService baseService
+
+<div class="container">
+
+    <div class="box mt-4">
+        <h3 class="title is-3">DataType: @Node.Name <NodeTypeIcon Type="Node.Type" /></h3>
+    </div>
+
+    <div class="buttons mt-3">
+        <button type="button" class="button is-primary" @onclick="baseService.BackNode">
+            <span class="icon is-small">
+                <i class="fa-solid fa-square-caret-left"></i>
+            </span>
+        </button>
+        <button type="button" class="button is-success" @onclick="OnSave_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-floppy-disk"></i>
+            </span>
+            <span>Save</span>
+        </button>
+    </div>
+
+    <div class="box mt-3">
+    @* <nav class="panel mt-3">
+        <p class="panel-heading">
+            Properties
+        </p>
+        <div class="panel-block"> *@
+        @foreach (var prop in AsDataType.Struct.Properties)
+        {
+            <div class="columns">
+                <div class="column is-3">
+                    <p class="control has-icons-left">
+                        <input class="input" @bind=prop.Name type="text" placeholder="Name">
+                        <span class="icon is-left">
+                            <i class="fa-solid fa-key"></i>
+                        </span>
+                    </p>
+                </div>
+                <div class="column is-3">
+                    <div class="control has-icons-left">
+                        <div class="select">
+                            <select>
+                                <option selected>Type</option>
+                                <option>Select dropdown</option>
+                                <option>With options</option>
+                            </select>
+                        </div>
+                        <div class="icon is-small is-left">
+                            <i class="fa-solid fa-superscript"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="column is-2">
+                    <div class="field">
+                        <p class="control">
+                            <label class="checkbox">
+                                <input type="checkbox" @bind=prop.IsRequired>
+                                Required
+                            </label>
+                        </p>
+                    </div>
+                </div>
+                <div class="column is-3">
+                    <p class="control has-icons-left">
+                        <input class="input" @bind=prop.Default type="text" placeholder="Default">
+                        <span class="icon is-left">
+                            <i class="fa-solid fa-suitcase"></i>
+                        </span>
+                    </p>
+                </div>
+                <div class="column is-1">
+                    <button class="button is-danger" @onclick=@(() => OnRemove_Click(prop))>
+                        <span class="icon is-small">
+                            <i class="fas fa-times"></i>
+                        </span>
+                    </button>
+                </div>
+            </div>
+            <button type="button" class="button is-success" @onclick="OnCreate_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-circle-plus"></i>
+                </span>
+                <span>Add</span>
+            </button>
+        }
+        @* </div>
+    </nav> *@
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public required NodeBase Node { get; set; }
+
+    private Runner.Business.Entities.DataType AsDataType { get => (Runner.Business.Entities.DataType)Node; }
+
+    private void OnCreate_Click()
+    {
+        AsDataType.Struct.Properties.Add(new DataTypeProperty
+        {
+            Name = "New Property",
+            Type = DataTypeEnum.String,
+            IsRequired = false,
+            Default = string.Empty
+        });
+    }
+
+    private void OnRemove_Click(DataTypeProperty prop)
+    {
+        if (AsDataType.Struct.Properties.Contains(prop))
+        {
+            AsDataType.Struct.Properties.Remove(prop);
+        }
+    }
+
+    private async Task OnSave_Click()
+    {
+        await nodeService.UpdateDataType(AsDataType);
+        baseService.BackNode();
+    }
+}

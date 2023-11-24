@@ -26,6 +26,7 @@ namespace Runner.Agent
             _connection.Reconnecting += _connection_Reconnecting;
 
             _connection.On("RunScript", new Type[] { typeof(RunScriptRequest) }, RunScript);
+            _connection.On("StopScript", new Type[] { typeof(RunScriptRequest) }, StopScript);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -143,9 +144,17 @@ namespace Runner.Agent
 
             await ScriptStarted();
 
+            await Task.Delay(3000);
+
             await ScriptLog(request);
 
             await ScriptFinish(request);
+        }
+
+        private async Task StopScript(object[] parameters)
+        {
+            _logger.LogInformation("Stop script at: {time}", DateTimeOffset.Now);
+
         }
 
         private async Task ScriptStarted()

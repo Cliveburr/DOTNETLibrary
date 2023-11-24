@@ -30,6 +30,10 @@
 
 <RightPanel @ref=Panel />
 
+<div class="runlogview">
+    <textarea class="textarea is-link" placeholder="Log" readonly>@GetLog()</textarea>
+</div>
+
 @code {
 
     [Parameter]
@@ -70,6 +74,14 @@
         //OnRunUpdated?.Invoke();
     }
 
+    private string GetLog()
+    {
+        return string.Join(Environment.NewLine, AsRun.Log
+            .OrderByDescending(l => l.Created)
+            .Take(100)
+            .Select(l => $"{l.Created.ToString("dd/MM/yyyy HH:mm:ss")} - {l.Text}"));
+    }
+
     private Runner.Business.Actions.Action GetRootAction()
     {
         return AsRun.Actions
@@ -84,5 +96,15 @@
     public Task RunAction(Runner.Business.Actions.Action action)
     {
         return runService.Run(AsRun.Id, action.ActionId);
+    }
+
+    public Task SetBreakPoint(Runner.Business.Actions.Action action)
+    {
+        return runService.SetBreakPoint(AsRun.Id, action.ActionId);
+    }
+
+    public Task CleanBreakPoint(Runner.Business.Actions.Action action)
+    {
+        return runService.CleanBreakPoint(AsRun.Id, action.ActionId);
     }
 }

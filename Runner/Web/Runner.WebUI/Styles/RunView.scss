@@ -118,3 +118,22 @@ $gaps: 6px;
     -moz-border-radius: 7.5px;
     border-radius: 7.5px;
 }
+
+.runlogview {
+    bottom: 0px;
+    position: absolute;
+    width: 100%;
+    height: 250px;
+    background-color: #a2c4f3;
+    z-index: 700;
+    box-shadow: -2px -1em 1em -0.125em rgb(113 76 76 / 10%), 0px -6px 0 1px rgba(10, 10, 10, 0.02);
+    display: flex;
+
+    > .textarea {
+        height: 100%;
+        background-color: rgb(26, 32, 41);
+        color: rgb(209, 210, 212);
+        font-family: Menlo, Consolas, "Courier New", monospace;
+        font-size: 12px
+    }
+}

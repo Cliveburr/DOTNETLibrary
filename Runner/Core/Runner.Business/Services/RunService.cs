@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Runner.Business.Services
 {
@@ -30,7 +31,7 @@ namespace Runner.Business.Services
             _manualAgentWatcherNotification = (ManualAgentWatcherNotification)agentWatcherNotification;
         }
 
-        public async Task CreateRun(Flow flow)
+        public async Task CreateRun(Flow flow, bool setToRun)
         {
             Assert.MustNotNull(_userLogged.User, "Need to be logged to create app!");
 
@@ -42,16 +43,34 @@ namespace Runner.Business.Services
             run.Parent = flow.Id;
             run.Status = RunStatus.Waiting;
             run.Created = DateTime.Now;
+            if (setToRun)
+            {
+                run.Log.Add(new RunLog
+                {
+                    Created = DateTime.Now,
+                    Text = "New run was created"
+                });
+            }
+            else
+            {
+                run.Log.Add(new RunLog
+                {
+                    Created = DateTime.Now,
+                    Text = "New run was created in waiting"
+                });
+            }
 
             // start transaction
-
             await Node.CreateAsync(run);
 
-            var control = ActionControl.From(run);
+            if (setToRun)
+            {
+                var control = ActionControl.From(run);
 
-            var effects = control.Run(run.RootActionId);
+                var effects = control.Run(run.RootActionId);
 
-            await ProcessEffects(run, effects);
+                await ProcessEffects(run, effects);
+            }
         }
 
         private async Task ProcessEffects(Run run, List<CommandEffect> effects)
@@ -110,8 +129,6 @@ namespace Runner.Business.Services
                 .Set(r => r.Actions.FirstMatchingElement().Status, action.Status);
 
             await Node.UpdateAsync(r => r.Id == run.Id && r.Actions.Any(a => a.ActionId == action.ActionId), update);
-
-            await CheckRunState(run.Id);
         }
 
         private async Task ExecuteActionUpdateWithCursor(Run run, Actions.Action action)
@@ -148,10 +165,10 @@ namespace Runner.Business.Services
             Assert.MustNotNull(run, "Run not found! " + runId);
 
             var control = ActionControl.From(run);
-
             var effects = control.Run(actionId);
-
             await ProcessEffects(run, effects);
+
+            await WriteLogInner(run, "Set to run");
         }
 
         public async Task Stop(ObjectId runId, int actionId)
@@ -165,10 +182,10 @@ namespace Runner.Business.Services
             Assert.MustNotNull(run, "Run not found! " + runId);
 
             var control = ActionControl.From(run);
-
             var effects = control.Stop(actionId);
-
             await ProcessEffects(run, effects);
+
+            await WriteLogInner(run, "Set to stop");
         }
 
         public async Task SetRunning(ObjectId runId, int actionId)
@@ -182,10 +199,11 @@ namespace Runner.Business.Services
             Assert.MustNotNull(run, "Run not found! " + runId);
 
             var control = ActionControl.From(run);
-
             var effects = control.SetRunning(actionId);
-
             await ProcessEffects(run, effects);
+
+            var action = control.FindAction(actionId);
+            await WriteLogInner(run, $"Action \"{action.Label}\" running...");
         }
 
         public async Task SetError(ObjectId runId, int actionId, string text)
@@ -199,10 +217,11 @@ namespace Runner.Business.Services
             Assert.MustNotNull(run, "Run not found! " + runId);
 
             var control = ActionControl.From(run);
-
             var effects = control.SetError(actionId);
-
             await ProcessEffects(run, effects);
+
+            var action = control.FindAction(actionId);
+            await WriteLogInner(run, $"Error on \"{action.Label}\": {text}");
         }
 
         public async Task SetCompleted(ObjectId runId, int actionId)
@@ -216,10 +235,11 @@ namespace Runner.Business.Services
             Assert.MustNotNull(run, "Run not found! " + runId);
 
             var control = ActionControl.From(run);
-
             var effects = control.SetCompleted(actionId);
-
             await ProcessEffects(run, effects);
+
+            var action = control.FindAction(actionId);
+            await WriteLogInner(run, $"Action \"{action.Label}\" was completed!");
         }
 
         public async Task WriteLog(ObjectId runId, string text)
@@ -231,7 +251,12 @@ namespace Runner.Business.Services
             var run = await Node
                 .FirstOrDefaultAsync<Run>(a => a.Id == runId);
             Assert.MustNotNull(run, "Run not found! " + runId);
-            
+
+            await WriteLogInner(run, text);
+        }
+
+        private async Task WriteLogInner(Run run, string text)
+        {
             var update = Builders<Run>.Update
                 .Push(r => r.Log, new RunLog
                 {
@@ -240,6 +265,42 @@ namespace Runner.Business.Services
                 });
 
             await Node.UpdateAsync(run, update);
+        }
+
+        public async Task SetBreakPoint(ObjectId runId, int actionId)
+        {
+            Assert.MustNotNull(_userLogged.User, "Need to be logged to error script!");
+
+            // checar se ter permissão
+
+            var run = await Node
+                .FirstOrDefaultAsync<Run>(a => a.Id == runId);
+            Assert.MustNotNull(run, "Run not found! " + runId);
+
+            var control = ActionControl.From(run);
+            var effects = control.SetBreakPoint(actionId);
+            await ProcessEffects(run, effects);
+
+            var action = control.FindAction(actionId);
+            await WriteLogInner(run, $"BreakPoint on action \"{action.Label}\" setted");
+        }
+
+        public async Task CleanBreakPoint(ObjectId runId, int actionId)
+        {
+            Assert.MustNotNull(_userLogged.User, "Need to be logged to error script!");
+
+            // checar se ter permissão
+
+            var run = await Node
+                .FirstOrDefaultAsync<Run>(a => a.Id == runId);
+            Assert.MustNotNull(run, "Run not found! " + runId);
+
+            var control = ActionControl.From(run);
+            var effects = control.CleanBreakPoint(actionId);
+            await ProcessEffects(run, effects);
+
+            var action = control.FindAction(actionId);
+            await WriteLogInner(run, $"BreakPoint on action \"{action.Label}\" was cleared");
         }
 
         public async Task CheckRunState(ObjectId runId)
