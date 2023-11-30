@@ -28,6 +28,11 @@ namespace Runner.Business.DataAccess
             _collection = collection;
         }
 
+        public Task<IClientSessionHandle> StartSessionAsync()
+        {
+            return _collection.Database.Client.StartSessionAsync();
+        }
+
         public IFindFluent<T, T?> Find(Expression<Func<T, bool>> filter, FindOptions? options = null)
         {
             return _collection.Find(filter, options);
@@ -71,6 +76,11 @@ namespace Runner.Business.DataAccess
         public Task SaveAsync(T obj)
         {
             return _collection.FindOneAndReplaceAsync(e => e.Id == obj.Id, obj);
+        }
+
+        public Task DeleteAsync(T obj)
+        {
+            return _collection.DeleteOneAsync(e => e.Id == obj.Id);
         }
 
         public Task UpdateAsync(T obj, UpdateDefinition<T> update, UpdateOptions? options = null)

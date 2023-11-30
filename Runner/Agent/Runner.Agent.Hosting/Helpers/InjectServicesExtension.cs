@@ -26,6 +26,14 @@ namespace Runner.Agent.Hosting.Helpers
         public static void MapAgentHub(this WebApplication app)
         {
             app.MapHub<AgentHub>("/hub/agent");
+
+            //using (var scope = app.Services.CreateScope())
+            //{
+            //    var services = scope.ServiceProvider;
+
+            //    var agentManagerService = services.GetRequiredService<AgentManagerService>();
+            //    agentManagerService.CheckForAgentsMissStatus();
+            //}
         }
     }
 }

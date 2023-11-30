@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using Runner.Business.Data.Value;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,8 @@ namespace Runner.Business.Entities
     [BsonDiscriminator("Data")]
     public class Data : NodeBase
     {
+        public string? DataTypePath { get; set; }
+        public ObjectId? DataType { get; set; }
         public required DataStruct Struct { get; set; }
     }
 }

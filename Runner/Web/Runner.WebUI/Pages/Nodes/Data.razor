@@ -1,5 +1,147 @@
-﻿<h3>Data</h3>
+﻿@using Runner.Business.Data
+@using Runner.Business.Data.Types
+@using Runner.Business.Entities;
+@inject NodeService nodeService
+@inject BaseService baseService
+
+<div class="container">
+
+    <div class="box mt-4">
+        <h3 class="title is-3">Data: @Node.Name <NodeTypeIcon Type="Node.Type" /></h3>
+    </div>
+
+    <div class="buttons mt-3">
+        <button type="button" class="button is-primary" @onclick="baseService.BackNode">
+            <span class="icon is-small">
+                <i class="fa-solid fa-square-caret-left"></i>
+            </span>
+        </button>
+        <button type="button" class="button is-success" @onclick="OnSave_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-floppy-disk"></i>
+            </span>
+            <span>Save</span>
+        </button>
+        <button type="button" class="button is-danger" @onclick="OnDelete_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-trash"></i>
+            </span>
+            <span>Delete</span>
+        </button>
+    </div>
+
+    <div class="box mt-3">
+        <div class="field has-addons">
+            <div class="control">
+                <input class="input" type="text" @bind=AsData.DataTypePath placeholder="Apply DataType">
+            </div>
+            <div class="control">
+                <button class="button is-info" @onclick=OnApply_Click>
+                    Apply
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="box mt-3">
+        @if (datas is not null)
+            @foreach (var data in datas)
+        {
+            <div class="columns">
+                <div class="column is-3">
+                    <p class="control has-icons-left">
+                        <input class="input" @bind=data.Data.Name type="text" placeholder="Name" readonly>
+                        <span class="icon is-left">
+                            <i class="fa-solid fa-key"></i>
+                        </span>
+                    </p>
+                </div>
+                <div class="column is-3">
+                    <p class="control has-icons-left">
+                        @switch (data.Type.Type)
+                        {
+                            case DataTypeEnum.String:
+                                {
+                                    <StringDataType @bind-Value=data.Data.Value />
+                                    break;
+                                }
+                        }
+                        <span class="icon is-left">
+                            <i class="fa-solid fa-suitcase"></i>
+                        </span>
+                    </p>
+                </div>
+            </div>
+        }
+    </div>
+</div>
 
 @code {
 
+    #pragma warning disable CS8618
+    private Runner.Business.Entities.Data AsData { get; set; }
+#pragma warning restore CS8618
+
+    [Parameter]
+    public required NodeBase Node { get; set; }
+
+    private List<DataWithType>? datas;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AsData = (Runner.Business.Entities.Data)Node;
+
+        if (AsData.DataType.HasValue)
+        {
+            var dataType = await nodeService.ReadById(AsData.DataType.Value) as Business.Entities.DataType;
+            if (dataType is null)
+            {
+                await baseService.Notification.AddInfo("DataType is invalid!", 0);
+                return;
+            }
+
+            datas = DataWithTypeApply.Mix(AsData.Struct.Properties, dataType.Struct.Properties);
+        }
+    }
+
+    private async Task OnSave_Click()
+    {
+        if (datas is not null)
+        {
+            var errors = Runner.Business.Data.Validator.DataValidator.Validate(datas);
+            if (errors.Any())
+            {
+                foreach (var error in errors)
+                {
+                    await baseService.Notification.AddInfo("Validation fail " + error.Text, 0);
+                }
+                return;
+            }
+        }
+
+        await nodeService.UpdateData(AsData);
+        baseService.BackNode();
+    }
+
+    private async Task OnApply_Click()
+    {
+        var dataType = await nodeService.ReadLocation(AsData.DataTypePath ?? string.Empty) as Business.Entities.DataType;
+        if (dataType is null)
+        {
+            await baseService.Notification.AddInfo("DataType not found!");
+            return;
+        }
+
+        AsData.DataType = dataType.Id;
+        datas = DataWithTypeApply.Mix(AsData.Struct.Properties, dataType.Struct.Properties);
+    }
+
+    private async Task OnDelete_Click()
+    {
+        if (await baseService.Modal.Confirm("Delete", "Confirm delete this node?"))
+        {
+            await nodeService.Delete(Node);
+            baseService.BackNode();
+        }
+    }
 }

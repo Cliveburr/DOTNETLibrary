@@ -3,6 +3,7 @@
 @using Runner.Business.WatcherNotification;
 @using Runner.WebUI.Components.FlowEditor;
 @inject BaseService baseService
+@inject NodeService nodeService
 @inject RunService runService
 @inject IAgentWatcherNotification agentWatcherNotification
 
@@ -106,5 +107,14 @@
     public Task CleanBreakPoint(Runner.Business.Actions.Action action)
     {
         return runService.CleanBreakPoint(AsRun.Id, action.ActionId);
+    }
+
+    private async Task OnDelete_Click()
+    {
+        if (await baseService.Modal.Confirm("Delete", "Confirm delete this node?"))
+        {
+            await nodeService.Delete(Node);
+            baseService.BackNode();
+        }
     }
 }

@@ -26,6 +26,12 @@
             </span>
             <span>Create</span>
         </button>
+        <button type="button" class="button is-danger" @onclick="OnDelete_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-trash"></i>
+            </span>
+            <span>Delete</span>
+        </button>
     </div>
 
     <div class="box mt-3">
@@ -109,6 +115,12 @@
                     await OnRefresh_Click();
                     break;
                 }
+            case NodeType.Data:
+                {
+                    await nodeService.CreateData(questionName.Value, Node);
+                    await OnRefresh_Click();
+                    break;
+                }
             default:
                 throw new Exception("Invalid type!");
         }
@@ -117,5 +129,14 @@
     public void OnNavigateApp_Click(NodeBase node)
     {
         baseService.FowardNode(node.Name);
+    }
+
+    private async Task OnDelete_Click()
+    {
+        if (await baseService.Modal.Confirm("Delete", "Confirm delete this node?"))
+        {
+            await nodeService.Delete(Node);
+            baseService.Navigation.NavigateTo("/");
+        }
     }
 }

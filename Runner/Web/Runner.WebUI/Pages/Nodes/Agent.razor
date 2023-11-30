@@ -1,5 +1,6 @@
 ﻿@using Runner.Business.Entities;
 @inject JobService jobService
+@inject NodeService nodeService
 @inject BaseService baseService
 
 <div class="container">
@@ -71,5 +72,14 @@
     public void OnNavigateApp_Click(NodeBase node)
     {
         baseService.FowardNode(node.Name);
+    }
+
+    private async Task OnDelete_Click()
+    {
+        if (await baseService.Modal.Confirm("Delete", "Confirm delete this node?"))
+        {
+            await nodeService.Delete(Node);
+            baseService.BackNode();
+        }
     }
 }

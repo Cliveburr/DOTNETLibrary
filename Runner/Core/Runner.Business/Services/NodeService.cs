@@ -347,5 +347,42 @@ namespace Runner.Business.Services
                 await Node.UpdateAsync(agent, update);
             }
         }
+
+        public async Task Delete(NodeBase node)
+        {
+            //using (var session = await Node.StartSessionAsync())
+            //{
+            //    try
+            //    {
+            //        session.StartTransaction();
+                    await DeleteRecursive(node);
+            //        await session.CommitTransactionAsync();
+            //    }
+            //    catch
+            //    {
+            //        await session.AbortTransactionAsync();
+            //        throw;
+            //    }
+            //}
+        }
+
+        private async Task DeleteRecursive(NodeBase node)
+        {
+            Assert.MustNotNull(_userLogged.User, "Need to be logged to delete node!");
+
+            // checar se ter permissão para deletar
+            // checa condições especiais dependendo do tipo do node
+
+            var childs = await ReadChilds(node);
+            if (childs.Any())
+            {
+                foreach (var child in childs)
+                {
+                    await DeleteRecursive(child);
+                }
+            }
+
+            await Node.DeleteAsync(node);
+        }
     }
 }

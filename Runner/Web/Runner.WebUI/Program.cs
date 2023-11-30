@@ -32,7 +32,6 @@ builder.Services
 
 var app = builder.Build();
 
-
 app.UseStaticFiles();
 app.UseAntiforgery();
 

@@ -21,6 +21,12 @@
             </span>
             <span>Save</span>
         </button>
+        <button type="button" class="button is-danger" @onclick="OnDelete_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-trash"></i>
+            </span>
+            <span>Delete</span>
+        </button>
     </div>
 
     <div class="box mt-3">
@@ -41,13 +47,9 @@
                     </p>
                 </div>
                 <div class="column is-3">
-                    <div class="control has-icons-left">
-                        <div class="select">
-                            <select>
-                                <option selected>Type</option>
-                                <option>Select dropdown</option>
-                                <option>With options</option>
-                            </select>
+                    <div class="control has-icons-left is-expanded">
+                        <div class="select is-fullwidth">
+                            <EnumSelect @bind-Value=prop.Type />
                         </div>
                         <div class="icon is-small is-left">
                             <i class="fa-solid fa-superscript"></i>
@@ -66,7 +68,14 @@
                 </div>
                 <div class="column is-3">
                     <p class="control has-icons-left">
-                        <input class="input" @bind=prop.Default type="text" placeholder="Default">
+                        @switch (prop.Type)
+                        {
+                            case DataTypeEnum.String:
+                                {
+                                    <StringDataType @bind-Value=prop.Default />
+                                    break;
+                                }
+                        }
                         <span class="icon is-left">
                             <i class="fa-solid fa-suitcase"></i>
                         </span>
@@ -80,13 +89,13 @@
                     </button>
                 </div>
             </div>
-            <button type="button" class="button is-success" @onclick="OnCreate_Click">
-                <span class="icon is-small">
-                    <i class="fa-solid fa-circle-plus"></i>
-                </span>
-                <span>Add</span>
-            </button>
         }
+        <button type="button" class="button is-success" @onclick="OnCreate_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-circle-plus"></i>
+            </span>
+            <span>Add</span>
+        </button>
         @* </div>
     </nav> *@
     </div>
@@ -94,10 +103,17 @@
 
 @code {
 
+    #pragma warning disable CS8618
+    private Runner.Business.Entities.DataType AsDataType { get; set; }
+#pragma warning restore CS8618
+
     [Parameter]
     public required NodeBase Node { get; set; }
 
-    private Runner.Business.Entities.DataType AsDataType { get => (Runner.Business.Entities.DataType)Node; }
+    protected override void OnInitialized()
+    {
+        AsDataType = (Runner.Business.Entities.DataType)Node;
+    }
 
     private void OnCreate_Click()
     {
@@ -122,5 +138,14 @@
     {
         await nodeService.UpdateDataType(AsDataType);
         baseService.BackNode();
+    }
+
+    private async Task OnDelete_Click()
+    {
+        if (await baseService.Modal.Confirm("Delete", "Confirm delete this node?"))
+        {
+            await nodeService.Delete(Node);
+            baseService.BackNode();
+        }
     }
 }

@@ -12,4 +12,8 @@
     <ProjectReference Include="..\..\Core\Runner.Business\Runner.Business.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Components\From\" />
+  </ItemGroup>
+
 </Project>

@@ -145,4 +145,53 @@
             <button class="modal-close is-large" aria-label="close" @onclick=data.ResumeCancel></button>
         </div>;
     }
+
+    public Task<bool> Confirm(string title, string question)
+    {
+        return Task.Run<bool>(() =>
+        {
+            var data = new ModalData
+            {
+                StringValue = string.Empty,
+                OkValue = false,
+                Resume = new ManualResetEvent(false)
+            };
+            modal = BuildConfirm(data, title, question);
+            isShow = true;
+            InvokeAsync(() => StateHasChanged()).Wait();
+
+            data.Resume.WaitOne();
+
+            var ok = data.OkValue;
+
+            modal = null;
+            isShow = false;
+            InvokeAsync(() => StateHasChanged()).Wait();
+
+            return ok;
+        });
+    }
+
+    private RenderFragment BuildConfirm(ModalData data, string title, string question)
+    {
+        return
+        @<div class="modal is-active">
+            <div class="modal-background" @onclick=data.ResumeCancel></div>
+            <div class="modal-card">
+                <header class="modal-card-head">
+                    <p class="modal-card-title">@title</p>
+                    <button class="delete" aria-label="close" @onclick=data.ResumeCancel></button>
+                </header>
+                <section class="modal-card-body">
+                    <div class="block">@question</div>
+                </section>
+                <footer class="modal-card-foot">
+                    <button class="button is-success" @onclick=data.ResumeOk>Yes</button>
+                    <button class="button" @onclick=data.ResumeCancel>No</button>
+                </footer>
+            </div>
+            <button class="modal-close is-large" aria-label="close" @onclick=data.ResumeCancel></button>
+        </div>
+    ;
+    }
 }

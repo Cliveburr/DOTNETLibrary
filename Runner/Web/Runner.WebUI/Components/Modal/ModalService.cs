@@ -17,5 +17,11 @@ namespace Runner.WebUI.Components.Modal
             Assert.MustNotNull(Component, "Modal is not ready!");
             return Component.NodeTypeSelection();
         }
+
+        public Task<bool> Confirm(string title, string question)
+        {
+            Assert.MustNotNull(Component, "Modal is not ready!");
+            return Component.Confirm(title, question);
+        }
     }
 }
