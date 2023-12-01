@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
+using Runner.Agent.Isolation;
 using Runner.Agent.Model;
+using Runner.Agent.Scripts;
 
 namespace Runner.Agent
 {
@@ -144,11 +146,51 @@ namespace Runner.Agent
 
             await ScriptStarted();
 
-            await Task.Delay(3000);
+            if (!ScriptsManager.CheckIfExist(request))
+            {
+                var getScriptResponse = await GetScript(new GetScriptRequest
+                {
+                    Id = request.Id,
+                    Version = request.Version
+                });
+                if (getScriptResponse is null)
+                {
+                    return;
+                }
+                ScriptsManager.Create(request, getScriptResponse);
+            }
 
-            await ScriptLog(request);
+            ScriptFinishRequest? scriptFinishRequest = null;
+            // criar um AppDomain
+            using (var isolation = new ScriptIsolation())
+            {
+                // chamar o script passando o parametro de entrada
+                // permitir gravar log no meio do processo
+                // await ScriptLog(request);
+                var result = await isolation.Execute(request);
 
-            await ScriptFinish(request);
+                scriptFinishRequest = new ScriptFinishRequest
+                {
+                };
+            }
+
+            // ao terminar retornar valores final
+            await ScriptFinish(scriptFinishRequest);
+        }
+
+        private async Task<GetScriptResponse?> GetScript(GetScriptRequest request)
+        {
+            _logger.LogInformation("Script started at: {time}", DateTimeOffset.Now);
+
+            try
+            {
+                return await _connection.InvokeAsync<GetScriptResponse>("GetScript", request, _cancellationToken);
+            }
+            catch (Exception err)
+            {
+                await ScriptError(err);
+                return null;
+            }
         }
 
         private async Task StopScript(object[] parameters)
@@ -171,13 +213,9 @@ namespace Runner.Agent
             }
         }
 
-        private async Task ScriptFinish(RunScriptRequest runRequest)
+        private async Task ScriptFinish(ScriptFinishRequest request)
         {
             _logger.LogInformation("Script finish at: {time}", DateTimeOffset.Now);
-
-            var request = new ScriptFinishRequest
-            {
-            };
 
             try
             {
