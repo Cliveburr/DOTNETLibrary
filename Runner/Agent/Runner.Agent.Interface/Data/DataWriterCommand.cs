@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Runner.Agent.Model
+namespace Runner.Agent.Interface.Data
 {
-    public class GetScriptResponse
+    public enum DataWriterCommand : byte
     {
-        public required byte[] ZipContent { get; set; }
+        Set = 0,
+        Delete = 1
     }
 }

@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Runner.Agent.Isolation
+namespace Runner.Agent.Interface.Data
 {
-    public class ProxDomain
+    public enum DataTypeEnum : byte
     {
+        String = 0
     }
 }

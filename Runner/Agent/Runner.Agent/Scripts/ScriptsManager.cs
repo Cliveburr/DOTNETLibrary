@@ -1,6 +1,7 @@
 ﻿using Runner.Agent.Model;
 using System;
 using System.Collections.Generic;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,9 +10,9 @@ namespace Runner.Agent.Scripts
 {
     public static class ScriptsManager
     {
-        private static string ScriptDirectory(RunScriptRequest request)
+        public static string ScriptDirectory(RunScriptRequest request)
         {
-            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Scripts", request.Id, $"v{request.Version}");
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "src", request.Id, $"v{request.Version}");
         }
 
         public static bool CheckIfExist(RunScriptRequest request)
@@ -33,14 +34,14 @@ namespace Runner.Agent.Scripts
                 Helpers.IO.ClearDirectory(scriptPath);
             }
 
-            foreach (var file in getScriptResponse.Files)
+            using (var memoryStream = new MemoryStream(getScriptResponse.ZipContent))
+            using (var zip = new ZipArchive(memoryStream))
             {
-                var fullFileName = Path.Combine(scriptPath, file.Name);
-                File.WriteAllBytes(fullFileName, file.Content);
-
-                var fileInfo = new FileInfo(fullFileName);
-                fileInfo.CreationTime = file.CreateDateTime;
-                fileInfo.LastWriteTime = file.LastUpdateDateTime;
+                foreach (var file in zip.Entries)
+                {
+                    var fullFileName = Path.Combine(scriptPath, file.FullName);
+                    file.ExtractToFile(fullFileName);
+                }
             }
         }
     }

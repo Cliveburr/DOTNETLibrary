@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Runner.Agent.Model
+namespace Runner.Agent.Interface.Scripts
 {
-    public class GetScriptResponse
+    public interface IScript
     {
-        public required byte[] ZipContent { get; set; }
+        Task Run(ScriptRunContext context);
     }
 }

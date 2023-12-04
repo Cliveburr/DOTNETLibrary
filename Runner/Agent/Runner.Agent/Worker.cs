@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Runner.Agent.Isolation;
 using Runner.Agent.Model;
 using Runner.Agent.Scripts;
+using System.Collections.Generic;
 
 namespace Runner.Agent
 {
@@ -12,6 +13,7 @@ namespace Runner.Agent
         private readonly IConfiguration _configuration;
         private HubConnection _connection;
         private CancellationToken _cancellationToken;
+        private CancellationTokenSource? _executionCancellation;
 
         public Worker(ILogger<Worker> logger, IConfiguration configuration)
         {
@@ -160,21 +162,19 @@ namespace Runner.Agent
                 ScriptsManager.Create(request, getScriptResponse);
             }
 
-            ScriptFinishRequest? scriptFinishRequest = null;
-            // criar um AppDomain
-            using (var isolation = new ScriptIsolation())
+            var _executionCancellation = new CancellationTokenSource();
+            var executeCancelationToken = CancellationTokenSource.CreateLinkedTokenSource(_executionCancellation.Token, _cancellationToken);
+            var result = await ScriptIsolation.Execute(request, ScriptLog, executeCancelationToken.Token);
+            _executionCancellation = null;
+
+            var scriptFinishRequest = new ScriptFinishRequest
             {
-                // chamar o script passando o parametro de entrada
-                // permitir gravar log no meio do processo
-                // await ScriptLog(request);
-                var result = await isolation.Execute(request);
+                IsSuccess = result.IsSuccess,
+                ContinueOnError = result.ContinueOnError,
+                ErrorMessage = result.ErrorMessage,
+                Output = result.Output?.Changes,
+            };
 
-                scriptFinishRequest = new ScriptFinishRequest
-                {
-                };
-            }
-
-            // ao terminar retornar valores final
             await ScriptFinish(scriptFinishRequest);
         }
 
@@ -193,10 +193,16 @@ namespace Runner.Agent
             }
         }
 
-        private async Task StopScript(object[] parameters)
+        private Task StopScript(object[] parameters)
         {
             _logger.LogInformation("Stop script at: {time}", DateTimeOffset.Now);
 
+            if (_executionCancellation is not null && !_executionCancellation.IsCancellationRequested)
+            {
+                _executionCancellation.Cancel();
+            }
+
+            return Task.CompletedTask;
         }
 
         private async Task ScriptStarted()
@@ -227,23 +233,16 @@ namespace Runner.Agent
             }
         }
 
-        private async Task ScriptLog(RunScriptRequest runRequest)
+        private async Task ScriptLog(string text)
         {
             _logger.LogInformation("Script log at: {time}", DateTimeOffset.Now);
 
             var request = new ScriptLogRequest
             {
-                Text = "test"
+                Text = text
             };
 
-            try
-            {
-                await _connection.InvokeAsync("ScriptLog", request, _cancellationToken);
-            }
-            catch (Exception err)
-            {
-                await ScriptError(err);
-            }
+            await _connection.InvokeAsync("ScriptLog", request, _cancellationToken);
         }
 
         private async Task ScriptError(Exception scriptErr)

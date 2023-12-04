@@ -5,13 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Runner.Agent.Isolation
+namespace Runner.Agent.Interface.Scripts
 {
-    public record ExecuteResult
+    public class ScriptRunContext
     {
         public bool IsSuccess { get; set; }
         public bool ContinueOnError { get; set; }
         public string? ErrorMessage { get; set; }
-        public DataWriter? Output { get; set; }
+        public required DataReader Input { get; set; }
+        public required DataWriter Output { get; set; }
+        public required Func<string, Task> Log { get; set; }
+        public CancellationToken CancellationToken { get; set; }
     }
 }
