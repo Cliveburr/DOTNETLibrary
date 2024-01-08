@@ -4,12 +4,11 @@ using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Connections;
 using Runner.Agent.Hosting.Hubs;
-using Runner.Agent.Hosting.Model.AgentManager;
+using Runner.Agent.Interface.Model;
 using Runner.Business.Actions;
 using Runner.Business.Authentication;
-using Runner.Business.Entities;
-using Runner.Business.Entities.Agent;
-using Runner.Business.Entities.Identity;
+using Runner.Business.Entities.AccessToken;
+using Runner.Business.Entities.Job;
 using Runner.Business.Services;
 using Runner.Business.WatcherNotification;
 using System;
@@ -19,6 +18,8 @@ using System.Security.Authentication;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Runner.Business.Entities.Node;
+using Runner.Business.Entities.Node.Agent;
 
 namespace Runner.Agent.Hosting.Services
 {
@@ -105,7 +106,7 @@ namespace Runner.Agent.Hosting.Services
             }
         }
 
-        private AgentConnect? FindConnected(Business.Entities.Agent.Agent agent)
+        private AgentConnect? FindConnected(Business.Entities.Node.Agent.Agent agent)
         {
             lock (_agents)
             {
@@ -187,7 +188,7 @@ namespace Runner.Agent.Hosting.Services
             foreach (var job in jobs)
             {
                 var jobNormalizedAgentPool = NormalizeAgentPool(job.AgentPool);
-                var agentsAvaliable = new List<(Business.Entities.Agent.Agent Agent, NodeService NodeService, AgentConnect AgentConnect)>();
+                var agentsAvaliable = new List<(Business.Entities.Node.Agent.Agent Agent, NodeService NodeService, AgentConnect AgentConnect)>();
 
                 foreach (var agentConnected in _agents)
                 {
@@ -205,7 +206,7 @@ namespace Runner.Agent.Hosting.Services
                         var agentPool = await nodeService.ReadLocation(agentConnected.AgentPool) as AgentPool;
                         if (agentPool != null && agentPool.Enabled)
                         {
-                            var agent = await nodeService.ReadById(agentConnected.AgentId) as Business.Entities.Agent.Agent;
+                            var agent = await nodeService.ReadById(agentConnected.AgentId) as Business.Entities.Node.Agent.Agent;
                             if (agent != null && agent.Enabled && agent.Status == AgentStatus.Idle)
                             {
                                 agentsAvaliable.Add((agent, nodeService, agentConnected));
@@ -216,7 +217,7 @@ namespace Runner.Agent.Hosting.Services
 
                 if (agentsAvaliable.Any())
                 {
-                    var agentsWithTags = new List<(Business.Entities.Agent.Agent Agent, NodeService NodeService, AgentConnect AgentConnect)>();
+                    var agentsWithTags = new List<(Business.Entities.Node.Agent.Agent Agent, NodeService NodeService, AgentConnect AgentConnect)>();
 
                     foreach (var agentAvaliable in agentsAvaliable)
                     {
@@ -303,6 +304,11 @@ namespace Runner.Agent.Hosting.Services
                         {
                             var request = new RunScriptRequest
                             {
+                                Id = jobWithAgent.Job.Id.ToString(),
+                                Assembly = "",
+                                Type = "",
+                                Version = 1,
+                                Input = new Dictionary<string, object?>()
                             };
 
                             await _agentHub.Clients.Client(jobWithAgent.AgentConnect.ConnectionId).SendAsync("RunScript", request);

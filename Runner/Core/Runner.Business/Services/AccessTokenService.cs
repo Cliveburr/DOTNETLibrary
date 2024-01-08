@@ -1,7 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using Runner.Business.DataAccess;
-using Runner.Business.Entities.Identity;
+using Runner.Business.Entities.AccessToken;
 using System;
 using System.Collections.Generic;
 using System.Linq;

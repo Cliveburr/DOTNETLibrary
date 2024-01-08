@@ -1,6 +1,6 @@
 ﻿using Runner.Business.Actions;
 using Runner.Business.Actions.Types;
-using Runner.Business.Entities;
+using Runner.Business.Entities.Node;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

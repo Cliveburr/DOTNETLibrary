@@ -1,6 +1,6 @@
 ﻿@using Runner.Business.Data
 @using Runner.Business.Data.Types
-@using Runner.Business.Entities;
+@using Runner.Business.Entities.Node;
 @inject NodeService nodeService
 @inject BaseService baseService
 
@@ -78,8 +78,8 @@
 
 @code {
 
-    #pragma warning disable CS8618
-    private Runner.Business.Entities.Data AsData { get; set; }
+#pragma warning disable CS8618
+    private Business.Entities.Node.Data AsData { get; set; }
 #pragma warning restore CS8618
 
     [Parameter]
@@ -89,11 +89,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        AsData = (Runner.Business.Entities.Data)Node;
+        AsData = (Business.Entities.Node.Data)Node;
 
         if (AsData.DataType.HasValue)
         {
-            var dataType = await nodeService.ReadById(AsData.DataType.Value) as Business.Entities.DataType;
+            var dataType = await nodeService.ReadById(AsData.DataType.Value) as Business.Entities.Node.DataType;
             if (dataType is null)
             {
                 await baseService.Notification.AddInfo("DataType is invalid!", 0);
@@ -125,7 +125,7 @@
 
     private async Task OnApply_Click()
     {
-        var dataType = await nodeService.ReadLocation(AsData.DataTypePath ?? string.Empty) as Business.Entities.DataType;
+        var dataType = await nodeService.ReadLocation(AsData.DataTypePath ?? string.Empty) as Business.Entities.Node.DataType;
         if (dataType is null)
         {
             await baseService.Notification.AddInfo("DataType not found!");

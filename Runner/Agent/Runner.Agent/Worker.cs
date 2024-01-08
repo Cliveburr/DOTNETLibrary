@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
+using Runner.Agent.Interface.Model;
 using Runner.Agent.Isolation;
-using Runner.Agent.Model;
 using Runner.Agent.Scripts;
 using System.Collections.Generic;
 
@@ -29,8 +29,8 @@ namespace Runner.Agent
             _connection.Closed += _connection_Closed;
             _connection.Reconnecting += _connection_Reconnecting;
 
-            _connection.On("RunScript", new Type[] { typeof(RunScriptRequest) }, RunScript);
-            _connection.On("StopScript", new Type[] { typeof(RunScriptRequest) }, StopScript);
+            _connection.On("RunScript", [typeof(RunScriptRequest)], RunScript);
+            _connection.On("StopScript", [], StopScript);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -134,9 +134,9 @@ namespace Runner.Agent
             }
         }
 
-        private async Task RunScript(object[] parameters)
+        private async Task RunScript(object?[] parameters)
         {
-            var request = parameters.Length > 0 ?
+            var request = parameters?.Length > 0 ?
                 parameters[0] as RunScriptRequest :
                 null;
             _logger.LogInformation("Run script at: {time}", DateTimeOffset.Now);
@@ -193,7 +193,7 @@ namespace Runner.Agent
             }
         }
 
-        private Task StopScript(object[] parameters)
+        private Task StopScript(object?[] parameters)
         {
             _logger.LogInformation("Stop script at: {time}", DateTimeOffset.Now);
 

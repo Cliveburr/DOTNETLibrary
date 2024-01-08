@@ -1,4 +1,4 @@
-﻿using Runner.Business.Entities.Identity;
+﻿using Runner.Business.Entities.AccessToken;
 using Runner.Business.Services;
 using System;
 using System.Collections.Generic;

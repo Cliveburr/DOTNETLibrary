@@ -1,5 +1,5 @@
 ﻿@page "/apps"
-@using Runner.Business.Entities;
+@using Runner.Business.Entities.Node;
 @inject BaseService baseService
 @inject NodeService nodeService
 
@@ -78,7 +78,7 @@
         }
     }
 
-    public void OnNavigateApp_Click(Business.Entities.App app)
+    public void OnNavigateApp_Click(App app)
     {
         baseService.Navigation.NavigateTo("/app/" + app.Name);
     }

@@ -1,5 +1,5 @@
 ﻿using Runner.Business.Actions;
-using Runner.Business.Entities;
+using Runner.Business.Entities.Node;
 using Runner.Business.Tests.Helpers;
 using System;
 using System.Collections.Generic;

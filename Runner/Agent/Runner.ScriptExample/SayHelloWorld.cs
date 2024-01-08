@@ -1,4 +1,4 @@
-﻿using Runner.Agent.Interface.Scripts;
+﻿using Runner.Script.Interface.Scripts;
 
 namespace Runner.ScriptExample
 {

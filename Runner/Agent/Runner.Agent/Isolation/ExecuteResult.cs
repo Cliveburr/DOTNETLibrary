@@ -1,4 +1,4 @@
-﻿using Runner.Agent.Interface.Data;
+﻿using Runner.Script.Interface.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;

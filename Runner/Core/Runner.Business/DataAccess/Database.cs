@@ -9,7 +9,9 @@ using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Bson.Serialization;
 using Runner.Business.Entities;
-using Runner.Business.Entities.Agent;
+using Runner.Business.Entities.Job;
+using Runner.Business.Entities.Node;
+using Runner.Business.Entities.Node.Agent;
 
 namespace Runner.Business.DataAccess
 {
@@ -34,8 +36,10 @@ namespace Runner.Business.DataAccess
             BsonClassMap.RegisterClassMap<Agent>();
             BsonClassMap.RegisterClassMap<Flow>();
             BsonClassMap.RegisterClassMap<Run>();
-            BsonClassMap.RegisterClassMap<Entities.Data>();
-            BsonClassMap.RegisterClassMap<Entities.DataType>();
+            BsonClassMap.RegisterClassMap<Entities.Node.Data>();
+            BsonClassMap.RegisterClassMap<DataType>();
+            BsonClassMap.RegisterClassMap<Script>();
+            BsonClassMap.RegisterClassMap<ScriptPackage>();
         }
 
         private void CheckUpdates()

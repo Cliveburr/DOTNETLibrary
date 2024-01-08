@@ -1,7 +1,7 @@
-﻿using Runner.Agent.Model;
+﻿using Runner.Agent.Interface.Model;
 using Runner.Agent.Scripts;
-using Runner.Agent.Interface.Data;
-using Runner.Agent.Interface.Scripts;
+using Runner.Script.Interface.Data;
+using Runner.Script.Interface.Scripts;
 using System;
 using System.Collections.Generic;
 using System.Linq;

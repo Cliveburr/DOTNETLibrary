@@ -1,4 +1,5 @@
-﻿@implements IFlowActionView
+﻿@using Runner.Business.Entities.Node
+@implements IFlowActionView
 @inject ClipboardInterop clipboardInterop
 @inject NotificationService notificationService
 
@@ -20,7 +21,7 @@
 @code {
 
     [Parameter]
-    public required Runner.Business.Entities.FlowAction Node { get; set; }
+    public required FlowAction Node { get; set; }
 
     [Parameter]
     public required IFlowActionView? Parent { get; set; }
@@ -59,7 +60,7 @@
         }
     }
 
-    public void RemoveChild(Runner.Business.Entities.FlowAction node)
+    public void RemoveChild(FlowAction node)
     {
         if (Node.Childs is not null)
         {
@@ -73,7 +74,7 @@
         StateHasChanged();
     }
 
-    public void MoveUp(Runner.Business.Entities.FlowAction node)
+    public void MoveUp(FlowAction node)
     {
         if (Node.Childs is not null)
         {
@@ -87,7 +88,7 @@
         }
     }
 
-    public void MoveDown(Runner.Business.Entities.FlowAction node)
+    public void MoveDown(FlowAction node)
     {
         if (Node.Childs is not null)
         {
@@ -105,9 +106,9 @@
     {
         if (Node.Childs is null)
         {
-            Node.Childs = new List<Business.Entities.FlowAction>();
+            Node.Childs = new List<Runner.Business.Entities.Node.FlowAction>();
         }
-        Node.Childs.Add(new Business.Entities.FlowAction
+        Node.Childs.Add(new Business.Entities.Node.FlowAction
                 {
                     Label = "New Action",
                     Type = Business.Actions.ActionType.Script
@@ -171,10 +172,10 @@
         var text = await clipboardInterop.ReadTextAsync();
         try
         {
-            var node = System.Text.Json.JsonSerializer.Deserialize<Runner.Business.Entities.FlowAction>(text);
+            var node = System.Text.Json.JsonSerializer.Deserialize<Runner.Business.Entities.Node.FlowAction>(text);
             if (Node.Childs is null)
             {
-                Node.Childs = new List<Business.Entities.FlowAction>();
+                Node.Childs = new List<Runner.Business.Entities.Node.FlowAction>();
             }
             if (node is not null)
             {

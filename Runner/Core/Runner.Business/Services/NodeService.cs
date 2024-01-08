@@ -4,14 +4,15 @@ using Runner.Business.Authentication;
 using Runner.Business.Data.Value;
 using Runner.Business.DataAccess;
 using Runner.Business.Entities;
-using Runner.Business.Entities.Agent;
-using Runner.Business.Entities.Identity;
+using Runner.Business.Entities.AccessToken;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Runner.Business.Entities.Node;
+using Runner.Business.Entities.Node.Agent;
 
 namespace Runner.Business.Services
 {
@@ -233,7 +234,7 @@ namespace Runner.Business.Services
 
             // checar se ter permissão de Create no parent
 
-            return Create(new Entities.Data
+            return Create(new Entities.Node.Data
             {
                 Name = name,
                 Type = NodeType.Data,
@@ -247,7 +248,7 @@ namespace Runner.Business.Services
             });
         }
 
-        public Task UpdateData(Entities.Data data)
+        public Task UpdateData(Entities.Node.Data data)
         {
             Assert.MustNotNull(_userLogged.User, "Need to be logged to create app!");
 

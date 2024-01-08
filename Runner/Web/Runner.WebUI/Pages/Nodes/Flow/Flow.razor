@@ -1,5 +1,6 @@
 ﻿@using Runner.Business.Entities;
 @using Runner.WebUI.Components.FlowEditor;
+@using Runner.Business.Entities.Node;
 @inject BaseService baseService
 
 <div class="container">
@@ -52,7 +53,7 @@
     [Parameter]
     public required NodeBase Node { get; set; }
 
-    public Business.Entities.Flow FlowNode { get => (Business.Entities.Flow)Node; }
+    public Business.Entities.Node.Flow FlowNode { get => (Business.Entities.Node.Flow)Node; }
 
     private RightPanel? panel;
     private int tabId;

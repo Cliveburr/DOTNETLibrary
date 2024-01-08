@@ -1,4 +1,4 @@
-﻿using Runner.Business.Entities;
+﻿using Runner.Business.Entities.Node;
 
 namespace Runner.WebUI.Components.FlowEditor
 {

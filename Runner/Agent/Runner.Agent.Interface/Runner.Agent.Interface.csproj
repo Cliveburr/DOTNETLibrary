@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Runner.Script.Interface\Runner.Script.Interface.csproj" />
+  </ItemGroup>
+
 </Project>

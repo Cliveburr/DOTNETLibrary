@@ -1,5 +1,5 @@
 ﻿@using Runner.Business.Data.Types
-@using Runner.Business.Entities;
+@using Runner.Business.Entities.Node;
 @inject NodeService nodeService
 @inject BaseService baseService
 
@@ -103,8 +103,8 @@
 
 @code {
 
-    #pragma warning disable CS8618
-    private Runner.Business.Entities.DataType AsDataType { get; set; }
+#pragma warning disable CS8618
+    private Business.Entities.Node.DataType AsDataType { get; set; }
 #pragma warning restore CS8618
 
     [Parameter]
@@ -112,7 +112,7 @@
 
     protected override void OnInitialized()
     {
-        AsDataType = (Runner.Business.Entities.DataType)Node;
+        AsDataType = (Business.Entities.Node.DataType)Node;
     }
 
     private void OnCreate_Click()

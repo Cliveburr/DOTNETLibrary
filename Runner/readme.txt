@@ -25,3 +25,49 @@ agent
 	_update
 		v1
 		restart
+
+task.tag
+	nexlog
+configuration
+	nexlog,demo
+
+Runner.Task.Hosting
+	Entities
+		Task
+			- id
+			- name
+		TaskConfiguration
+			- taskId
+			- configuration
+			- tags
+		TaskRunner
+			- id
+			- machineName
+			- instanceName
+			- localTags
+			- tags
+			- enabled
+		TaskRunnerHeartbeat
+			- taskRunnerId
+			- datetime
+		TaskInstance
+		TaskInstanceLog
+
+
+- criar uma nova task, implementa a ITask, seta a defaultConfiguration e tags via atributo e pronto
+
+TasksWorker
+	- ao iniciar
+		buscar todas classes nesse assembly que implementa a ITask
+		checar se existem na tabela Task e criar se n existe
+	- loop em 1s
+		pega as localTags do appsettings.json
+		checa atualizando a TaskRunner com essa instancia atualizando o pegando o tags
+		atualiza e limpa o TaskRunnerHeartbeat
+		junta primeiro localTags com o tags do banco
+		
+		checa as tasks que pode rodar,
+			bate as tags do runner com as tags das tasks, e considera se um tag bater
+
+		busca todas possiveis configurações para as tasks consideradas
+			

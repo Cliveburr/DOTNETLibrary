@@ -2,6 +2,7 @@
 @using Runner.Business.Entities;
 @using Runner.Business.WatcherNotification;
 @using Runner.WebUI.Components.FlowEditor;
+@using Runner.Business.Entities.Node;
 @inject BaseService baseService
 @inject NodeService nodeService
 @inject RunService runService
@@ -42,14 +43,14 @@
 
     public RightPanel? Panel { get; private set; }
 
-    private Runner.Business.Entities.Run? _asRun;
-    public Runner.Business.Entities.Run AsRun
+    private Run? _asRun;
+    public Run AsRun
     {
         get
         {
             if (_asRun is null)
             {
-                _asRun = (Runner.Business.Entities.Run)Node;
+                _asRun = (Run)Node;
             }
             return _asRun;
         }
@@ -69,7 +70,7 @@
         agentWatcherNotification.OnRunUpdated -= WatcherNotification_OnRunUpdated;
     }
 
-    private void WatcherNotification_OnRunUpdated(Runner.Business.Entities.Run run)
+    private void WatcherNotification_OnRunUpdated(Run run)
     {
         _asRun = run;
         //OnRunUpdated?.Invoke();

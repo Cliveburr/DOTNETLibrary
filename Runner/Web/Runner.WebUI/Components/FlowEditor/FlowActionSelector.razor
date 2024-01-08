@@ -1,4 +1,5 @@
-﻿
+﻿@using Runner.Business.Entities.Node
+
 @switch (Node.Type)
 {
     case Business.Actions.ActionType.Script:
@@ -15,7 +16,7 @@
 @code {
 
     [Parameter]
-    public required Runner.Business.Entities.FlowAction Node { get; set; }
+    public required FlowAction Node { get; set; }
 
     [Parameter]
     public required IFlowActionView? Parent { get; set; }

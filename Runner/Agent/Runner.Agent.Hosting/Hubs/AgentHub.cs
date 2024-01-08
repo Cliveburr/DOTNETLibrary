@@ -1,7 +1,7 @@
 ﻿using Amazon.Runtime.Internal;
 using Microsoft.AspNetCore.SignalR;
-using Runner.Agent.Hosting.Model.AgentManager;
 using Runner.Agent.Hosting.Services;
+using Runner.Agent.Interface.Model;
 using Runner.Business.Services;
 using System;
 using System.Collections.Generic;

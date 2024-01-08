@@ -1,4 +1,5 @@
-﻿@implements IFlowActionView
+﻿@using Runner.Business.Entities.Node
+@implements IFlowActionView
 @inject ClipboardInterop clipboardInterop
 
 <div class="flowaction" @onclick=OnOpenEditor @onclick:stopPropagation=true @onmouseover:stopPropagation=true>
@@ -8,7 +9,7 @@
 @code {
 
     [Parameter]
-    public required Runner.Business.Entities.FlowAction Node { get; set; }
+    public required FlowAction Node { get; set; }
 
     [Parameter]
     public required IFlowActionView? Parent { get; set; }
@@ -47,7 +48,7 @@
         }
     }
 
-    public void RemoveChild(Runner.Business.Entities.FlowAction node)
+    public void RemoveChild(FlowAction node)
     {
     }
 
@@ -56,11 +57,11 @@
         StateHasChanged();
     }
 
-    public void MoveUp(Runner.Business.Entities.FlowAction node)
+    public void MoveUp(FlowAction node)
     {
     }
 
-    public void MoveDown(Runner.Business.Entities.FlowAction node)
+    public void MoveDown(FlowAction node)
     {
     }
 

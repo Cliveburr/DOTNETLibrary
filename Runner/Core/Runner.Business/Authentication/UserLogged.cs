@@ -1,4 +1,4 @@
-﻿using Runner.Business.Entities.Identity;
+﻿using Runner.Business.Entities.User;
 
 namespace Runner.Business.Authentication
 {

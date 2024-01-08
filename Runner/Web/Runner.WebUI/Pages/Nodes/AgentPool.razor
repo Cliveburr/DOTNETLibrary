@@ -1,4 +1,5 @@
 ﻿@using Runner.Business.Entities;
+@using Runner.Business.Entities.Node;
 @inject NodeService nodeService
 @inject BaseService baseService
 
@@ -62,7 +63,7 @@
     [Parameter]
     public required NodeBase Node { get; set; }
 
-    public List<Business.Entities.Agent.Agent>? Items { get; set; }
+    public List<Business.Entities.Node.Agent.Agent>? Items { get; set; }
 
 
     protected override async Task OnInitializedAsync()
@@ -72,7 +73,7 @@
 
     public async Task OnRefresh_Click()
     {
-        Items = await nodeService.ReadChilds<Business.Entities.Agent.Agent>(Node);
+        Items = await nodeService.ReadChilds<Business.Entities.Node.Agent.Agent>(Node);
         StateHasChanged();
     }
 

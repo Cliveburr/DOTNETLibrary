@@ -1,4 +1,4 @@
-﻿using Runner.Agent.Model;
+﻿using Runner.Agent.Interface.Model;
 using System;
 using System.Collections.Generic;
 using System.IO.Compression;

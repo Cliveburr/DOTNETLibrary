@@ -1,27 +1,29 @@
-﻿@switch (Type)
+﻿@using Runner.Business.Entities.Node
+
+@switch (Type)
 {
-    case Runner.Business.Entities.NodeType.App:
+    case NodeType.App:
         <i class="fa-solid fa-rocket" style="color: #0091c4"></i>
         break;
-    case Runner.Business.Entities.NodeType.Folder:
+    case NodeType.Folder:
         <i class="fa-solid fa-folder" style="color: #c4c400"></i>
         break;
-    case Runner.Business.Entities.NodeType.AgentPool:
+    case NodeType.AgentPool:
         <i class="fa-solid fa-hard-drive" style="color: #495b76"></i>
         break;
-    case Runner.Business.Entities.NodeType.Agent:
+    case NodeType.Agent:
         <i class="fa-solid fa-desktop" style="color: #c4c400"></i>
         break;
-    case Runner.Business.Entities.NodeType.Flow:
+    case NodeType.Flow:
         <i class="fa-solid fa-wind" style="color: #00a7c4"></i>
         break;
-    case Runner.Business.Entities.NodeType.Run:
+    case NodeType.Run:
         <i class="fa-solid fa-person-running" style="color: #c4c400"></i>
         break;
-    case Runner.Business.Entities.NodeType.DataType:
+    case NodeType.DataType:
         <i class="fa-solid fa-superscript" style="color: #0009b7"></i>
         break;
-    case Runner.Business.Entities.NodeType.Data:
+    case NodeType.Data:
         <i class="fa-solid fa-person-running" style="color: #c4c400"></i>
         break;
     default:
@@ -32,6 +34,6 @@
 @code {
 
     [Parameter]
-    public required Runner.Business.Entities.NodeType Type { get; set; }
+    public required NodeType Type { get; set; }
 
 }
