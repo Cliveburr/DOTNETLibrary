@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Runner.Business.Entities.Node.Agent
 {
     [BsonDiscriminator("Agent")]
-    public class Agent : NodeBase
+    public class Agent : Node
     {
         public required string MachineName { get; set; }
         public required List<string> RegistredTags { get; set; }

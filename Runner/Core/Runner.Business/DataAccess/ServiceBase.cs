@@ -1,8 +1,9 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
-using Runner.Business.Entities.AccessToken;
+using Runner.Business.Entities.Authentication;
 using Runner.Business.Entities.Job;
-using Runner.Business.Entities.Node;
+using Runner.Business.Entities.Nodes;
+using Runner.Business.Entities.Nodes.Types;
 using Runner.Business.Entities.User;
 using System;
 using System.Collections.Generic;
@@ -23,7 +24,7 @@ namespace Runner.Business.DataAccess
             _collections = new Dictionary<string, object>();
         }
 
-        private CollectionAdapter<T> GetCollectionAdapter<T>(string name) where T : DocumentBase
+        private CollectionAdapter<T> GetCollectionAdapter<T>(string name)
         {
             if (!_collections.ContainsKey(name))
             {
@@ -36,7 +37,9 @@ namespace Runner.Business.DataAccess
 
         protected CollectionAdapter<User> User { get => GetCollectionAdapter<User>("User"); }
         protected CollectionAdapter<AccessToken> AccessToken { get => GetCollectionAdapter<AccessToken>("AccessToken"); }
-        protected CollectionAdapter<NodeBase> Node { get => GetCollectionAdapter<NodeBase>("Node"); }
         protected CollectionAdapter<Job> Job { get => GetCollectionAdapter<Job>("Job"); }
+     
+        protected CollectionAdapter<Node> Node { get => GetCollectionAdapter<Node>("Node"); }
+        protected CollectionAdapter<App> App { get => GetCollectionAdapter<App>("App"); }
     }
 }

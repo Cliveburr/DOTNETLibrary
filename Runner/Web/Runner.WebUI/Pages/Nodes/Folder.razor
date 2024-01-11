@@ -60,9 +60,9 @@
 @code {
 
     [Parameter]
-    public required NodeBase Node { get; set; }
+    public required Node Node { get; set; }
 
-    public List<NodeBase>? Items { get; set; }
+    public List<Node>? Items { get; set; }
 
 
     protected override async Task OnInitializedAsync()
@@ -129,7 +129,7 @@
         await OnRefresh_Click();
     }
 
-    public void OnNavigateApp_Click(NodeBase node)
+    public void OnNavigateApp_Click(Node node)
     {
         baseService.FowardNode(node.Name);
     }

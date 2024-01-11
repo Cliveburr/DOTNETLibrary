@@ -1,0 +1,34 @@
+﻿using System.Diagnostics;
+
+namespace Runner.Business.AssertExtension
+{
+    public class AssertEnumerable
+    {
+        [StackTraceHidden]
+        public void MustHaveAny<T>(IEnumerable<T>? list, string message, params string[] format)
+        {
+            if (list == null || !list.Any())
+            {
+                throw new RunnerException(message, format);
+            }
+        }
+
+        [StackTraceHidden]
+        public void MustContains<T>(IEnumerable<T> list, T value, string message, params string[] format)
+        {
+            if (!list.Contains(value))
+            {
+                throw new RunnerException(message, format);
+            }
+        }
+
+        [StackTraceHidden]
+        public void CountEquals<T>(IEnumerable<T> list, int value, string message, params string[] format)
+        {
+            if (list.Count() != value)
+            {
+                throw new RunnerException(message, format);
+            }
+        }
+    }
+}

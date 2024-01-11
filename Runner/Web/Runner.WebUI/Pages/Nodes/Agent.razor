@@ -52,7 +52,7 @@
 @code {
 
     [Parameter]
-    public required NodeBase Node { get; set; }
+    public required Node Node { get; set; }
 
     public List<Job>? Items { get; set; }
 
@@ -70,7 +70,7 @@
         StateHasChanged();
     }
 
-    public void OnNavigateApp_Click(NodeBase node)
+    public void OnNavigateApp_Click(Node node)
     {
         baseService.FowardNode(node.Name);
     }

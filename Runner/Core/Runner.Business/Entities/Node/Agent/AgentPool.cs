@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Runner.Business.Entities.Node.Agent
 {
     [BsonDiscriminator("AgentPool")]
-    public class AgentPool : NodeBase
+    public class AgentPool : Node
     {
         public bool Enabled { get; set; }
     }

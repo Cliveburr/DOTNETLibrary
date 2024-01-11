@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using Runner.Business.Authentication;
 using Runner.Business.Entities;
-using Runner.Business.Entities.AccessToken;
+using Runner.Business.Entities.Authentication;
 using Runner.Business.Entities.User;
 using Runner.Business.Services;
 using Runner.WebUI.Helpers;
@@ -79,7 +79,7 @@ namespace Runner.WebUI.Authentication
 
             Assert.MustTrue(passwordHash.Equals(user.PasswordHash), genericErrorMessage);
 
-            var accessToken = await _accessTokenService.ReadByUserAndType(user.Id, AccessTokenType.WebUI);
+            var accessToken = await _accessTokenService.ReadByUserAndType(user.UserId, AccessTokenType.WebUI);
             if (accessToken != null)
             {
                 accessToken.State = AccessTokenState.Active;
@@ -91,7 +91,7 @@ namespace Runner.WebUI.Authentication
             {
                 accessToken = new AccessToken
                 {
-                    UserId = user.Id,
+                    UserId = user.UserId,
                     Token = GenerateToken(),
                     ExpireDateimeUTC = DateTime.UtcNow.AddMonths(TOKEN_EXPIRE_MONTHS),
                     Type = AccessTokenType.WebUI,
@@ -108,7 +108,7 @@ namespace Runner.WebUI.Authentication
         {
             if (UserLogged.User != null)
             {
-                var accessToken = await _accessTokenService.ReadByUserAndType(UserLogged.User.Id, AccessTokenType.WebUI);
+                var accessToken = await _accessTokenService.ReadByUserAndType(UserLogged.User.UserId, AccessTokenType.WebUI);
                 if (accessToken != null)
                 {
                     accessToken.State = AccessTokenState.Inactive;

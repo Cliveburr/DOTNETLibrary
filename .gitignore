@@ -59,4 +59,9 @@ bin/
 obj/
 packages/
 TestResults/
-/Runner/Agent/Runner.Agent/appsettings.Development.json
+
+# =========================
+# Runner
+# =========================
+appsettings.Development.json
+/RunnerUp/Web/Runner.WebUI/wwwroot/css/site.css

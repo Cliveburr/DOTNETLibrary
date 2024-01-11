@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Runner.Business.Entities
 {
     [BsonDiscriminator("Folder")]
-    public class Folder : NodeBase
+    public class Folder : Node.Node
     {
     }
 }

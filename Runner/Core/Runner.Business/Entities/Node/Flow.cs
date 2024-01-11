@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Runner.Business.Entities.Node
 {
     [BsonDiscriminator("Flow")]
-    public class Flow : NodeBase
+    public class Flow : Node
     {
         public required FlowAction Root { get; set; }
     }

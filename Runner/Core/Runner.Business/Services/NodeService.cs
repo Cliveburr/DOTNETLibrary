@@ -4,15 +4,15 @@ using Runner.Business.Authentication;
 using Runner.Business.Data.Value;
 using Runner.Business.DataAccess;
 using Runner.Business.Entities;
-using Runner.Business.Entities.AccessToken;
+using Runner.Business.Entities.Authentication;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Runner.Business.Entities.Node;
-using Runner.Business.Entities.Node.Agent;
+using Runner.Business.Entities.Nodes;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Runner.Business.Services
 {
@@ -26,45 +26,14 @@ namespace Runner.Business.Services
             _userLogged = userLogged;
         }
 
-        public Task<List<App>> ReadApps()
+        public Task<Node?> ReadLocation(string path)
         {
-            Assert.MustNotNull(_userLogged.User, "Not logged!");
-            return Node
-                .ToListAsync<App>(a => a.Parent == null && a.Type == NodeType.App && a.OwnerId == _userLogged.User.Id);
-        }
-
-        public Task<List<NodeBase>> ReadChilds(NodeBase node)
-        {
-            return Node
-                .ToListAsync(a => a.Parent == node.Id);
-        }
-
-        public Task<List<T>> ReadChilds<T>(NodeBase node) where T : NodeBase
-        {
-            return Node
-                .ToListAsync<T>(a => a.Parent == node.Id);
-        }
-
-        public Task<NodeBase?> ReadChild(NodeBase node, string name)
-        {
-            return Node
-                .FirstOrDefaultAsync(a => a.Parent == node.Id && a.Name == name);
-        }
-
-        public Task<T?> ReadChild<T>(NodeBase node, string name) where T: NodeBase
-        {
-            return Node
-                .FirstOrDefaultAsync<T>(a => a.Parent == node.Id && a.Name == name);
-        }
-
-        public Task<NodeBase?> ReadLocation(string path)
-        {
-            var parts = new System.Collections.Queue(path.ToLower()
+            var parts = new System.Collections.Queue(path
                 .Split("/", StringSplitOptions.RemoveEmptyEntries));
             return ReadLocation(parts);
         }
 
-        public async Task<NodeBase?> ReadLocation(System.Collections.Queue parts)
+        public async Task<Node?> ReadLocation(System.Collections.Queue parts)
         {
             if (parts.Count == 0)
             {
@@ -73,32 +42,38 @@ namespace Runner.Business.Services
             return await ReadLocation_Recursive(parts, null);
         }
 
-        private async Task<NodeBase?> ReadLocation_Recursive(System.Collections.Queue parts, NodeBase? parent)
+        private async Task<Node?> ReadLocation_Recursive(System.Collections.Queue parts, ObjectId? parentId)
         {
-            var name = (string)parts.Dequeue()!;
-            NodeBase? found = null;
-            if (parent == null)
+            var name = parts.Dequeue() as string;
+            if (string.IsNullOrEmpty(name))
             {
-                found = await Node
-                    .FirstOrDefaultAsync(n => n.Name == name && n.Parent == null);
+                return null;
             }
-            else
-            {
-                switch (parent.Type)
-                {
-                    case NodeType.Flow:
-                        if (ObjectId.TryParse(name, out ObjectId runId))
-                        {
-                            found = await Node
-                                .FirstOrDefaultAsync(n => n.Id == runId && n.Parent == parent.Id);
-                        }
-                        break;
-                    default:
-                        found = await Node
-                            .FirstOrDefaultAsync(n => n.Name == name && n.Parent == parent.Id);
-                        break;
-                }
-            }
+            var found = await Node
+                   .FirstOrDefaultAsync(n => n.Name == name.ToLower() && n.ParentId == parentId);
+            //Node? found = null;
+            //if (parent == null)
+            //{
+            //    found = await Node
+            //        .FirstOrDefaultAsync(n => n.Name == name && n.Parent == null);
+            //}
+            //else
+            //{
+            //    switch (parent.Type)
+            //    {
+            //        case NodeType.Flow:
+            //            if (ObjectId.TryParse(name, out ObjectId runId))
+            //            {
+            //                found = await Node
+            //                    .FirstOrDefaultAsync(n => n.NodeId == runId && n.Parent == parent.Id);
+            //            }
+            //            break;
+            //        default:
+            //            found = await Node
+            //                .FirstOrDefaultAsync(n => n.Name == name && n.Parent == parent.Id);
+            //            break;
+            //    }
+            //}
             if (found == null)
             {
                 return null;
@@ -111,31 +86,55 @@ namespace Runner.Business.Services
                 }
                 else
                 {
-                    return await ReadLocation_Recursive(parts, found);
+                    return await ReadLocation_Recursive(parts, found.NodeId);
                 }
             }
         }
 
-        public Task<NodeBase?> ReadById(ObjectId nodeId)
+        public Task<List<Node>> ReadChilds(Node node)
+        {
+            return Node
+                .ToListAsync(a => a.ParentId == node.NodeId);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+        public Task<List<T>> ReadChilds<T>(Node node) where T : Node
+        {
+            return Node
+                .ToListAsync<T>(a => a.Parent == node.Id);
+        }
+
+        public Task<Node?> ReadChild(Node node, string name)
+        {
+            return Node
+                .FirstOrDefaultAsync(a => a.Parent == node.Id && a.Name == name);
+        }
+
+        public Task<T?> ReadChild<T>(Node node, string name) where T: Node
+        {
+            return Node
+                .FirstOrDefaultAsync<T>(a => a.Parent == node.Id && a.Name == name);
+        }
+
+        public Task<Node?> ReadById(ObjectId nodeId)
         {
             return Node
                 .FirstOrDefaultAsync(a => a.Id == nodeId);
         }
 
-        public Task CreateApp(string name)
-        {
-            Assert.MustNotNull(_userLogged.User, "Need to be logged to create app!");
 
-            return Create(new App
-            {
-                Name = name,
-                Type = NodeType.App,
-                OwnerId = _userLogged.User.Id,
-                Parent = null
-            });
-        }
 
-        public Task CreateFolder(string name, NodeBase parent)
+        public Task CreateFolder(string name, Node parent)
         {
             Assert.MustNotNull(_userLogged.User, "Need to be logged to create app!");
 
@@ -149,7 +148,7 @@ namespace Runner.Business.Services
             });
         }
 
-        public Task CreateAgentPool(string name, NodeBase parent)
+        public Task CreateAgentPool(string name, Node parent)
         {
             Assert.MustNotNull(_userLogged.User, "Need to be logged to create app!");
 
@@ -164,7 +163,7 @@ namespace Runner.Business.Services
             });
         }
 
-        public Task CreateFlow(string name, NodeBase parent)
+        public Task CreateFlow(string name, Node parent)
         {
             Assert.MustNotNull(_userLogged.User, "Need to be logged to create app!");
 
@@ -199,7 +198,7 @@ namespace Runner.Business.Services
             return Node.SaveAsync(flow);
         }
 
-        public Task CreateDataType(string name, NodeBase parent)
+        public Task CreateDataType(string name, Node parent)
         {
             Assert.MustNotNull(_userLogged.User, "Need to be logged to create data type!");
 
@@ -228,7 +227,7 @@ namespace Runner.Business.Services
             return Node.SaveAsync(datatype);
         }
 
-        public Task CreateData(string name, NodeBase parent)
+        public Task CreateData(string name, Node parent)
         {
             Assert.MustNotNull(_userLogged.User, "Need to be logged to create data!");
 
@@ -309,7 +308,7 @@ namespace Runner.Business.Services
             return agent;
         }
 
-        private async Task Create(NodeBase node)
+        private async Task Create(Node node)
         {
             Assert.Strings.NotNullAndRange(node.Name, 3, 20, "Name size invalid 3 < name < 20");
 
@@ -349,7 +348,7 @@ namespace Runner.Business.Services
             }
         }
 
-        public async Task Delete(NodeBase node)
+        public async Task Delete(Node node)
         {
             //using (var session = await Node.StartSessionAsync())
             //{
@@ -367,7 +366,7 @@ namespace Runner.Business.Services
             //}
         }
 
-        private async Task DeleteRecursive(NodeBase node)
+        private async Task DeleteRecursive(Node node)
         {
             Assert.MustNotNull(_userLogged.User, "Need to be logged to delete node!");
 

@@ -13,9 +13,9 @@ using System.Threading.Tasks;
 
 namespace Runner.Business.DataAccess
 {
-    public class CollectionAdapter<T> where T : DocumentBase
+    public class CollectionAdapter<T>
     {
-        private IMongoCollection<T> _collection;
+        public IMongoCollection<T> _collection;
 
         private IMongoCollection<E> GetCollection<E>() where E: T
         {

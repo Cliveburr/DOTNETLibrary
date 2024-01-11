@@ -1,0 +1,33 @@
+﻿@inject AuthenticationService authenticationService
+@inject IdentityProvider identityProvider;
+@inject NavigationManager navigationManager
+@inherits LayoutComponentBase
+
+@Body
+
+
+@code {
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await authenticationService.ValidateAccessToken();
+        }
+
+        if (identityProvider.IsLogged)
+        {
+            if (navigationManager.MatchFullPath("register", "login"))
+            {
+                navigationManager.NavigateTo("/");
+            }
+        }
+        else
+        {
+            if (!navigationManager.MatchFullPath("register", "login"))
+            {
+                navigationManager.NavigateTo("/login");
+            }
+        }
+    }
+}

@@ -1,4 +1,4 @@
-﻿@using Runner.Business.Entities.Node
+﻿@using Runner.Business.Entities.Nodes
 @using Runner.Business.Entities;
 @inject NodeService nodeService
 @inject BaseService baseService
@@ -61,9 +61,9 @@
 @code {
 
     [Parameter]
-    public required NodeBase Node { get; set; }
+    public required Node Node { get; set; }
 
-    public List<NodeBase>? Items { get; set; }
+    public List<Node>? Items { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -127,7 +127,7 @@
         }
     }
 
-    public void OnNavigateApp_Click(NodeBase node)
+    public void OnNavigateApp_Click(Node node)
     {
         baseService.FowardNode(node.Name);
     }

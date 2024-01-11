@@ -1,0 +1,38 @@
+
+
+$size-1: 2.9rem;
+$size-2: 2.4rem;
+$size-3: 1.9rem;
+$size-4: 1.4rem;
+$size-5: 1.15rem;
+$size-6: 0.9rem;
+$size-7: 0.65rem;
+$block-spacing: 1.3rem;
+$gap: 28px;
+$radius-small: 2px;
+$radius: 4px;
+$radius-large: 6px;
+$notification-padding: 1.05rem 2.3rem 0.6rem 1.3rem;
+$notification-padding-ltr: 1.05rem 2.3rem 0.6rem 1.3rem;
+$notification-padding-rtl: 1.05rem 1.3rem 0.6rem 2.3rem;
+
+// Set your brand colors
+$primary: #234181;
+$link: #a5dead;
+$info: #2900c7;
+
+// Update Bulma's global variables
+$family-sans-serif: "Nunito", sans-serif;
+//$grey-dark: $brown;
+//$grey-light: $beige-light;
+
+$widescreen-enabled: false;
+$fullhd-enabled: false;
+
+// Update some of Bulma's component variables
+$body-background-color: #5c625b69;
+$control-border-width: 1px;
+//$input-border-color: transparent;
+//$input-shadow: none;
+
+

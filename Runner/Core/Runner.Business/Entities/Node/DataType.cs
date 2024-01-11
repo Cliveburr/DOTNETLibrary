@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Runner.Business.Entities.Node
 {
     [BsonDiscriminator("DataType")]
-    public class DataType : NodeBase
+    public class DataType : Node
     {
         public required DataTypeStruct Struct { get; set; }
     }

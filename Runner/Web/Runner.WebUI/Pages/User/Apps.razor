@@ -1,12 +1,15 @@
 ﻿@page "/apps"
-@using Runner.Business.Entities.Node;
+@using Runner.Business.Entities.Nodes
+@using Runner.Business.Entities.Nodes.Types
+@using Runner.Business.Model.Nodes.Types
+@using Runner.Business.Services.Nodes
 @inject BaseService baseService
-@inject NodeService nodeService
+@inject AppService appService
 
 <div class="container">
 
     <div class="box mt-4">
-        <h3 class="title is-3">Applications</h3>
+        <h3 class="title is-3">Applications <NodeTypeIcon Type="NodeType.App" /></h3>
     </div>
 
     <div class="buttons mt-3">
@@ -55,7 +58,7 @@
 
 @code {
 
-    public List<App>? Items { get; set; }
+    public List<AppList>? Items { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -64,7 +67,7 @@
 
     public async Task OnRefresh_Click()
     {
-        Items = await nodeService.ReadApps();
+        Items = await appService.ReadLoggedApps();
         StateHasChanged();
     }
 
@@ -73,12 +76,12 @@
         var question = await baseService.Modal.Question("Enter the name of the app", "", "app");
         if (question.Ok)
         {
-            await nodeService.CreateApp(question.Value);
+            await appService.Create(question.Value);
             await OnRefresh_Click();
         }
     }
 
-    public void OnNavigateApp_Click(App app)
+    public void OnNavigateApp_Click(AppList app)
     {
         baseService.Navigation.NavigateTo("/app/" + app.Name);
     }

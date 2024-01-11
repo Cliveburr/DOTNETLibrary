@@ -8,11 +8,11 @@ using Runner.WebUI.Components.Notification;
 using Runner.WebUI.Components;
 using Runner.Agent.Hosting.Helpers;
 using Runner.WebUI.Pages.Main;
+using Runner.Agent.Hosting.Services;
+using Runner.Business.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//builder.Services.AddRazorPages();
-//builder.Services.AddServerSideBlazor();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -37,10 +37,6 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
    .AddInteractiveServerRenderMode();
-
-//app.UseRouting();
-//app.MapBlazorHub();
-//app.MapFallbackToPage("/_Host");
 
 app.MapAgentHub();
 

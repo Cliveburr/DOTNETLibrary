@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Runner.Business.Entities.Node
 {
     [BsonDiscriminator("Script")]
-    public class Script : NodeBase
+    public class Script : Node
     {
         public required Dictionary<int, ScriptVersion> Versions { get; set; }
     }

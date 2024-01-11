@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Runner.Business.Entities.Node
 {
     [BsonDiscriminator("Data")]
-    public class Data : NodeBase
+    public class Data : Node
     {
         public string? DataTypePath { get; set; }
         public ObjectId? DataType { get; set; }

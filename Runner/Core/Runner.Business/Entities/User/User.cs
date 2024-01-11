@@ -1,4 +1,5 @@
 ﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using Runner.Business.Entities.Node;
 using System;
 using System.Collections.Generic;
@@ -8,8 +9,10 @@ using System.Threading.Tasks;
 
 namespace Runner.Business.Entities.User
 {
-    public class User : DocumentBase
+    public class User
     {
+        [BsonId]
+        public ObjectId UserId { get; set; }
         public required string Name { get; set; }
         public required string FullName { get; set; }
         public required string Email { get; set; }

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Runner.Business.Entities.Node
 {
     [BsonDiscriminator("Run")]
-    public class Run : NodeBase
+    public class Run : Node
     {
         public required List<Actions.Action> Actions { get; set; }
         public int RootActionId { get; set; }

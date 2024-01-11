@@ -8,10 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Bson.Serialization;
-using Runner.Business.Entities;
 using Runner.Business.Entities.Job;
-using Runner.Business.Entities.Node;
-using Runner.Business.Entities.Node.Agent;
 
 namespace Runner.Business.DataAccess
 {
@@ -22,24 +19,9 @@ namespace Runner.Business.DataAccess
 
         public Database(string connectionString, string mainDatabaseName)
         {
-            RegisterClass();
             Client = new MongoClient(connectionString);
             Main = Client.GetDatabase(mainDatabaseName);
             //CheckUpdates();
-        }
-
-        private void RegisterClass()
-        {
-            BsonClassMap.RegisterClassMap<App>();
-            BsonClassMap.RegisterClassMap<Folder>();
-            BsonClassMap.RegisterClassMap<AgentPool>();
-            BsonClassMap.RegisterClassMap<Agent>();
-            BsonClassMap.RegisterClassMap<Flow>();
-            BsonClassMap.RegisterClassMap<Run>();
-            BsonClassMap.RegisterClassMap<Entities.Node.Data>();
-            BsonClassMap.RegisterClassMap<DataType>();
-            BsonClassMap.RegisterClassMap<Script>();
-            BsonClassMap.RegisterClassMap<ScriptPackage>();
         }
 
         private void CheckUpdates()

@@ -1,0 +1,39 @@
+
+html, body {
+    overflow: hidden !important;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+}
+
+
+.notificationPanel {
+    z-index: 999;
+    right: 14px;
+    top: 68px;
+    display: flex;
+    position: absolute;
+    flex-direction: column;
+    max-width: 40%;
+
+    > .notification {
+        width: 400px;
+    }
+}
+
+.w10 {
+    width: 10%;
+}
+.w20 {
+    width: 20%;
+}
+.w50 {
+    width: 50%;
+}
+.w50px {
+    width: 50px;
+}
+
+.pointer {
+    cursor: pointer;
+}
