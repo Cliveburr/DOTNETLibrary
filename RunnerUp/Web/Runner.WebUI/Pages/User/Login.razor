@@ -38,6 +38,12 @@
                                 Login
                             </button>
                         </div>
+                        @if (!string.IsNullOrEmpty(ErrorMessage))
+                        {
+                            <div class="notification is-danger">
+                                @ErrorMessage
+                            </div>
+                        }
                     </form>
                 </div>
             </div>
@@ -49,18 +55,20 @@
 
     public string? Name { get; set; }
     public string? Password { get; set; }
+    public string? ErrorMessage { get; set; }
 
     public async Task OnLogin_Click()
     {
-        // try
-        // {
+        ErrorMessage = null;
+        try
+        {
             await authenticationService.Login(Name, Password);
             navigationManager.NavigateTo("/");
-        // }
-        // catch (Exception err)
-        // {
-            
-        // }
+        }
+        catch (Exception err)
+        {
+            ErrorMessage = err.Message;
+        }
     }
 
     public void OnRegister_Click()

@@ -3,5 +3,5 @@ using Runner.Kernel.Events.Write;
 
 namespace Runner.Domain.Write.Authentication
 {
-    public record AccessTokenInsert(AccessToken accessToken) : IWrite;
+    public record AccessTokenInsert(AccessToken AccessToken) : IWrite;
 }

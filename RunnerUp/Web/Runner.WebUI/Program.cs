@@ -3,10 +3,12 @@ using Runner.WebUI.Pages.Main;
 using Runner.WebUI.Services.Authentication;
 using Runner.Kernel.DependecyInjection;
 using Runner.Application.DependecyInjection;
+using Runner.Infrastructure.DependecyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddRazorComponents()
+builder.Services
+    .AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services
@@ -15,7 +17,8 @@ builder.Services
 
 builder.Services
     .AddKernelServices()
-    .AddApplicationServices();
+    .AddApplicationServices()
+    .AddInfrastructureServices(builder.Configuration);
 
 
 

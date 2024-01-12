@@ -11,4 +11,8 @@
     <ProjectReference Include="..\..\Core\Runner.Application\Runner.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\css\fontawesome-6.4.2\" />
+  </ItemGroup>
+
 </Project>

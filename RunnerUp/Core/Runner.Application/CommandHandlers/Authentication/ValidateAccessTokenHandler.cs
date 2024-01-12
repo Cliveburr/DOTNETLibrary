@@ -8,6 +8,7 @@ using Runner.Domain.Write.Authentication;
 using Runner.Application.Services;
 using Runner.Application.Commands.Identity.DTO;
 using Runner.Domain.Entities.Identity;
+using Runner.Application.Security;
 
 namespace Runner.Application.CommandHandlers.Authentication
 {
@@ -38,9 +39,9 @@ namespace Runner.Application.CommandHandlers.Authentication
                         }
                         else
                         {
-                            if (SecurityConfigurations.TOKEN_EXPIRE_RENEW_MONTHS > -1 && DateTime.UtcNow.AddMonths(SecurityConfigurations.TOKEN_EXPIRE_RENEW_MONTHS) > accessToken.ExpireDateimeUTC)
+                            if (SecurityUtil.TOKEN_EXPIRE_RENEW_MONTHS > -1 && DateTime.UtcNow.AddMonths(SecurityUtil.TOKEN_EXPIRE_RENEW_MONTHS) > accessToken.ExpireDateimeUTC)
                             {
-                                accessToken.ExpireDateimeUTC = DateTime.UtcNow.AddMonths(SecurityConfigurations.TOKEN_EXPIRE_MONTHS);
+                                accessToken.ExpireDateimeUTC = DateTime.UtcNow.AddMonths(SecurityUtil.TOKEN_EXPIRE_MONTHS);
                                 await process.Exec(new AccessTokenUpdate(accessToken));
                             }
 

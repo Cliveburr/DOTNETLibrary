@@ -1,4 +1,9 @@
 
+
+- criar o visualizador na lateral esquerda
+- criar o controlador de atalhos da home
+
+
 Kernel
 	Commands
 		

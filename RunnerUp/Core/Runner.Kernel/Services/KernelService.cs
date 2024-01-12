@@ -22,7 +22,6 @@ namespace Runner.Kernel.Services
         }
 
         public Task<TResult> Exec<TResult>(ICommandResult<TResult> commandResult)
-        //public Task<TResult> Exec<TRequest, TResult>(TRequest commandResult) where TRequest : ICommandResult<TResult>
         {
             var eventProcess = new EventProcess(_serviceProvider, _mapper);
 
@@ -33,19 +32,18 @@ namespace Runner.Kernel.Services
             return result;
         }
 
-        public Task Exec(ICommand command)
+        public async Task Exec(ICommand command)
         {
-            // localizar handler
-            var handler = HandlerRegister.GetCommandResultHandler(command.GetType());
+            var eventProcess = new EventProcess(_serviceProvider, _mapper);
 
-            // criar process
+            await eventProcess.Exec(command);
 
-            // executar
-
-            // salvar resultado?
-
-            // retornar
-            return null;
+            //TODO: salvar resultado?
         }
+
+        //public Task<TResult> WatchOn<TResult>(ICommandResult<TResult> commandResult)
+        //{
+
+        //}
     }
 }

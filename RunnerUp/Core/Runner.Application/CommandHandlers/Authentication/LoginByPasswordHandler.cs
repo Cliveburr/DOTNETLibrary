@@ -14,6 +14,7 @@ using Runner.Domain.Write.Authentication;
 using System.Security.Cryptography;
 using Runner.Application.Commands.Identity.DTO;
 using Runner.Application.Services;
+using Runner.Application.Security;
 
 namespace Runner.Application.CommandHandlers.Authentication
 {
@@ -32,15 +33,16 @@ namespace Runner.Application.CommandHandlers.Authentication
             var user = await process.Exec(new ReadByName(request.Name));
             Assert.MustNotNull(user, "");
 
-            var passwordHash = HashPassword(request.Password, user.PasswordSalt);
+            var securityUtil = new SecurityUtil();
+            var passwordHash = securityUtil.HashPassword(request.Password, user.PasswordSalt);
             Assert.MustTrue(passwordHash.Equals(user.PasswordHash), "");
 
             var accessToken = await process.Exec(new ReadByUserId(user.UserId, AccessTokenType.WebUI));
             if (accessToken != null)
             {
                 accessToken.State = AccessTokenState.Active;
-                accessToken.ExpireDateimeUTC = DateTime.UtcNow.AddMonths(SecurityConfigurations.TOKEN_EXPIRE_MONTHS);
-                accessToken.Token = GenerateToken();
+                accessToken.ExpireDateimeUTC = DateTime.UtcNow.AddMonths(SecurityUtil.TOKEN_EXPIRE_MONTHS);
+                accessToken.Token = securityUtil.GenerateToken();
                 await process.Exec(new AccessTokenUpdate(accessToken));
             }
             else
@@ -48,8 +50,8 @@ namespace Runner.Application.CommandHandlers.Authentication
                 accessToken = new AccessToken
                 {
                     UserId = user.UserId,
-                    Token = GenerateToken(),
-                    ExpireDateimeUTC = DateTime.UtcNow.AddMonths(SecurityConfigurations.TOKEN_EXPIRE_MONTHS),
+                    Token = securityUtil.GenerateToken(),
+                    ExpireDateimeUTC = DateTime.UtcNow.AddMonths(SecurityUtil.TOKEN_EXPIRE_MONTHS),
                     Type = AccessTokenType.WebUI,
                     State = AccessTokenState.Active
                 };
@@ -61,20 +63,6 @@ namespace Runner.Application.CommandHandlers.Authentication
             return accessToken.Token;
         }
 
-        private string HashPassword(string password, string salt)
-        {
-            var saltBytes = Convert.FromBase64String(salt);
-
-            using (var rfc2898DeriveBytes = new Rfc2898DeriveBytes(password, saltBytes, SecurityConfigurations.PASSWORD_ITERATIONS, HashAlgorithmName.SHA512))
-            {
-                return Convert.ToBase64String(rfc2898DeriveBytes.GetBytes(SecurityConfigurations.PASSWORD_NHASH));
-            }
-        }
-
-        private string GenerateToken()
-        {
-            var tokenBytes = RandomNumberGenerator.GetBytes(SecurityConfigurations.NTOKEN);
-            return Convert.ToBase64String(tokenBytes);
-        }
+        
     }
 }

@@ -47,12 +47,19 @@ namespace Runner.Kernel.Events
             var handler = _serviceProvider.GetRequiredService(handlerType);
 
             var handlerMethod = handlerType.GetMethod("Handler")!;
-            var result = (ValueTask<TResult>)handlerMethod.Invoke(handler, [this, request, _cancellationToken])!;
-
-            return result.AsTask();
+            var result = (Task<TResult>)handlerMethod.Invoke(handler, [this, request, _cancellationToken])!;
+            
+            return result;
+            //try
+            //{
+            //    var result = (Task<TResult>)resultObj;
+            //    return result;
+            //}
+            //catch { }
+            //return default;
         }
 
-        public  Task<TResult> Exec<TResult>(ICommandResult<TResult> request)
+        public Task<TResult> Exec<TResult>(ICommandResult<TResult> request)
         {
         //    return ExecCast<ICommandResult<TResult>, TResult>(request);
         //}
@@ -66,11 +73,24 @@ namespace Runner.Kernel.Events
             //todo: try/catch, get time
 
             var handlerMethod = handlerType.GetMethod("Handler")!;
-            var result = (ValueTask<TResult>)handlerMethod.Invoke(handler, [this, request, _cancellationToken])!;
+            var result = (Task<TResult>)handlerMethod.Invoke(handler, [this, request, _cancellationToken])!;
 
             //var result = await handler.Handler(this, request, _cancellationToken);
             
-            return result.AsTask();
+            return result;
+        }
+
+        public Task Exec(ICommand request)
+        {
+            var handlerType = HandlerRegister.GetCommandHandler(request.GetType());
+            var handler = _serviceProvider.GetRequiredService(handlerType);
+
+            //todo: try/catch, get time
+
+            var handlerMethod = handlerType.GetMethod("Handler")!;
+            var result = (Task)handlerMethod.Invoke(handler, [this, request, _cancellationToken])!;
+
+            return result;
         }
     }
 }
