@@ -1,0 +1,39 @@
+﻿@using Runner.Business.Entities.Nodes
+
+@switch (Type)
+{
+    case NodeType.App:
+        <i class="fa-solid fa-rocket" style="color: #0091c4"></i>
+        break;
+    case NodeType.Folder:
+        <i class="fa-solid fa-folder" style="color: #c4c400"></i>
+        break;
+    @* case NodeType.AgentPool:
+        <i class="fa-solid fa-hard-drive" style="color: #495b76"></i>
+        break;
+    case NodeType.Agent:
+        <i class="fa-solid fa-desktop" style="color: #c4c400"></i>
+        break;
+    case NodeType.Flow:
+        <i class="fa-solid fa-wind" style="color: #00a7c4"></i>
+        break;
+    case NodeType.Run:
+        <i class="fa-solid fa-person-running" style="color: #c4c400"></i>
+        break;
+    case NodeType.DataType:
+        <i class="fa-solid fa-superscript" style="color: #0009b7"></i>
+        break;
+    case NodeType.Data:
+        <i class="fa-solid fa-person-running" style="color: #c4c400"></i>
+        break; *@
+    default:
+        <span>Invalid NodeType: @Type</span>
+        break;
+}
+
+@code {
+
+    [Parameter]
+    public required NodeType Type { get; set; }
+
+}

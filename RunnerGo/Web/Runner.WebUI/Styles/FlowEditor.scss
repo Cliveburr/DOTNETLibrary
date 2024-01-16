@@ -1,0 +1,150 @@
+
+$gaps: 6px;
+
+.flowactionedit {
+    display: flex;
+    gap: $gaps;
+}
+
+.flowaction {
+    background: linear-gradient(to top, #6e8be3a1 0%, #aed0ea8c 50%);
+    min-width: 218px;
+    padding: 4px;
+    border: 1px solid #aed0ea;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+
+    &:hover {
+        border: 1px solid #279ef9;
+    }
+
+    > p {
+        margin-left: 4px;
+        margin-right: 4px;
+        font-weight: bold;
+        color: #2779aa;
+    }
+}
+
+.flowactioncontainer {
+    display: flex;
+    flex-direction: column;
+    background: #eee;
+    gap: $gaps;
+    border-radius: 6px;
+    box-shadow: -1px 0em 1em 1em rgb(10 10 10 / 13%), 0 0px 0 1px rgb(11 11 11 / 2%);
+    border: 1px solid #fafdff;
+    min-width: 218px;
+    cursor: pointer;
+
+    &:hover {
+        border: 1px solid #b4a8a8;
+    }
+
+    > .flowlabel {
+        display: flex;
+        justify-content: center;
+
+        > p {
+            font-size: 1.1em;
+            color: #000022;
+            font-weight: bold;
+        }
+    }
+
+    > .flowchilds {
+        display: flex;
+        flex-direction: column;
+        gap: $gaps;
+        padding: $gaps;
+        align-items: stretch;
+    }
+}
+
+.flowactionparallel {
+    display: flex;
+    flex-direction: column;
+    background: #eee;
+    gap: $gaps;
+    border-radius: 6px;
+    box-shadow: -1px 0em 1em 1em rgb(10 10 10 / 13%), 0 0px 0 1px rgb(11 11 11 / 2%);
+    border: 1px solid #fafdff;
+    min-width: 218px;
+    cursor: pointer;
+
+    &:hover {
+        border: 1px solid #b4a8a8;
+    }
+
+    > .flowlabel {
+        display: flex;
+        justify-content: center;
+
+        > p {
+            font-size: 1.1em;
+            color: #000022;
+            font-weight: bold;
+        }
+    }
+
+    > .flowchilds {
+        display: flex;
+        flex-direction: row;
+        gap: $gaps;
+        padding: $gaps;
+        align-items: start;
+    }
+}
+
+
+
+.rightpanelopen {
+    top: 94px;
+    position: absolute;
+    right: 0;
+    width: 34px;
+    background-color: #289999;
+    display: flex;
+    justify-content: center;
+    height: 53px;
+    cursor: pointer;
+    border-radius: 10px 0 0 6px;
+    z-index: 800;
+
+    > i {
+        align-self: center;
+    }
+}
+
+
+.rightpanel {
+    display: flex;
+    top: 53px;
+    position: absolute;
+    right: 0;
+    height: calc(100% - 53px);
+
+    > .rightpanelclose {
+        top: 41px;
+        position: relative;
+        width: 34px;
+        background-color: #289999;
+        display: flex;
+        justify-content: center;
+        height: 53px;
+        cursor: pointer;
+        border-radius: 10px 0 0 10px;
+
+        > i {
+            align-self: center;
+        }
+    }
+
+    > .rightpanelcontent {
+        background-color: #a2c4f3;
+        min-width: 400px;
+        box-shadow: -5px 1em 1em -0.125em rgb(113 76 76 / 10%), -10px -2px 0 1px rgba(10, 10, 10, 0.02);
+    }
+}

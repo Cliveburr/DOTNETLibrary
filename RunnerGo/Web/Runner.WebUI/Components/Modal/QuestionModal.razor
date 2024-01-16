@@ -1,0 +1,65 @@
+﻿
+@if (data != null)
+{
+    <div class="modal is-active">
+        <div class="modal-background" @onclick=ResumeCancel></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title">@data.Title</p>
+                <button class="delete" aria-label="close" @onclick=ResumeCancel></button>
+            </header>
+            <section class="modal-card-body">
+                <input class="input" type="text" @bind-value=data.Value placeholder="@data.PlaceHolder" autofocus>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button is-success" @onclick=ResumeOk>Ok</button>
+                <button class="button" @onclick=ResumeCancel>Cancel</button>
+            </footer>
+        </div>
+        <button class="modal-close is-large" aria-label="close" @onclick=ResumeCancel></button>
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public required object Data { get; set; }
+
+    private QuestionData? data;
+
+    public class QuestionData
+    {
+        public required string Title { get; set; }
+        public required string Value { get; set; }
+        public string? PlaceHolder { get; set; }
+        public bool OkValue { get; set; }
+        public required ManualResetEvent Resume { get; set; }
+    }
+
+    protected override void OnInitialized()
+    {
+        data = Data as QuestionData;
+        if (data == null)
+        {
+            throw new Exception("QuestionData invalid!");
+        }
+    }
+
+    private void ResumeOk()
+    {
+        if (data != null)
+        {
+            data.OkValue = true;
+            data.Resume.Set();
+        }
+    }
+
+    private void ResumeCancel()
+    {
+        if (data != null)
+        {
+            data.OkValue = false;
+            data.Resume.Set();
+        }
+    }
+}

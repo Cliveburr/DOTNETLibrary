@@ -1,0 +1,56 @@
+﻿@typeparam TItem
+
+<table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+    <thead>
+        @Header
+    </thead>
+    <tbody>
+        @foreach (var item in Items)
+        {
+            @Body(item)
+        }
+    </tbody>
+    <!--<tfoot>
+        <tr>
+            <td colspan="999">
+                <nav class="pagination" role="navigation" aria-label="pagination">
+                    <ul class="pagination-list">
+                        <li>
+                            <a class="pagination-link is-current" aria-label="Page 1" aria-current="page">1</a>
+                        </li>
+                        <li>
+                            <a class="pagination-link" aria-label="Goto page 2">2</a>
+                        </li>
+                        <li>
+                            <a class="pagination-link" aria-label="Goto page 3">3</a>
+                        </li>
+                    </ul>
+                    <ul class="pagination-list">
+                        <li>
+                            <a class="pagination-link is-current" aria-label="Page 1" aria-current="page">1</a>
+                        </li>
+                        <li>
+                            <a class="pagination-link" aria-label="Goto page 2">2</a>
+                        </li>
+                        <li>
+                            <a class="pagination-link" aria-label="Goto page 3">3</a>
+                        </li>
+                    </ul>
+                </nav>
+            </td>
+        </tr>
+    </tfoot>-->
+</table>
+
+@code {
+
+
+    [Parameter]
+    public required RenderFragment Header { get; set; }
+
+    [Parameter]
+    public required RenderFragment<TItem> Body { get; set; }
+
+    [Parameter]
+    public required IEnumerable<TItem> Items { get; set; }
+}

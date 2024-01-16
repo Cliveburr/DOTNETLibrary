@@ -1,0 +1,87 @@
+﻿@page "/register"
+@inject NavigationManager navigationManager
+@inject UserService userService
+
+<section class="hero is-fullheight">
+    <div class="hero-body">
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column is-5-tablet is-4-desktop is-3-widescreen">
+                    <form action="" class="box">
+                        <div class="field">
+                            <label for="" class="label">Nick Name</label>
+                            <div class="control has-icons-left">
+                                <input type="text" @bind=NickName placeholder="bob" class="input" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="" class="label">Full Name</label>
+                            <div class="control has-icons-left">
+                                <input type="text" @bind=FullName placeholder="bob fred" class="input" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="" class="label">Email</label>
+                            <div class="control has-icons-left">
+                                <input type="email" @bind=Email placeholder="e.g. bobsmith@gmail.com" class="input" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="" class="label">Password</label>
+                            <div class="control has-icons-left">
+                                <input type="password" @bind=Password placeholder="*******" class="input" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fa-solid fa-lock"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="" class="label">Confirm Password</label>
+                            <div class="control has-icons-left">
+                                <input type="password" @bind=ConfirmPassword placeholder="*******" class="input" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fa-solid fa-lock"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <button type="button" class="button is-success" @onclick="OnRegister_Click">
+                                Register
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+
+    public string? NickName { get; set; }
+    public string? FullName { get; set; }
+    public string? Email { get; set; }
+    public string? Password { get; set; }
+    public string? ConfirmPassword { get; set; }
+
+    public async Task OnRegister_Click()
+    {
+        Assert.Strings.MustNotNullOrEmpty(NickName, "NickName é requerido");
+        Assert.Strings.MustNotNullOrEmpty(FullName, "FullName é requerido");
+        Assert.Strings.MustNotNullOrEmpty(Email, "FullName é requerido");
+        Assert.Strings.MustNotNullOrEmpty(Password, "Password é requerido");
+
+        await userService.Register(NickName, FullName, Email, Password, ConfirmPassword);
+
+        navigationManager.NavigateTo("/");
+    }
+}

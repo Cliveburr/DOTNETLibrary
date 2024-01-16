@@ -1,0 +1,41 @@
+﻿@inject ModalService modalService
+
+@if (isShow && modalType != null)
+{
+    <DynamicComponent Type="modalType" Parameters="_params" />
+}
+
+@code {
+
+    private bool isShow;
+    private Type? modalType;
+    private Dictionary<string, object?> _params = new Dictionary<string, object?>();
+
+    protected override void OnInitialized()
+    {
+        modalService.ShowModal += ModalService_ShowModal;
+        modalService.CloseModal += ModalService_CloseModal;
+    }
+
+    private void ModalService_ShowModal(Type modal, object data)
+    {
+        InvokeAsync(() =>
+        {
+            modalType = modal;
+            _params.Clear();
+            _params.Add("Data", data);
+            isShow = true;
+            StateHasChanged();
+        }).Wait();
+    }
+
+    private void ModalService_CloseModal()
+    {
+        InvokeAsync(() =>
+        {
+            modalType = null;
+            isShow = false;
+            StateHasChanged();
+        }).Wait();
+    }
+}

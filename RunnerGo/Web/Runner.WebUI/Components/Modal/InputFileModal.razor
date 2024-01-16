@@ -1,0 +1,97 @@
+﻿@using Microsoft.AspNetCore.Components.Forms;
+
+@if (data != null)
+{
+    <div class="modal is-active">
+        <div class="modal-background" @onclick=ResumeCancel></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title">@data.Title</p>
+                <button class="delete" aria-label="close" @onclick=ResumeCancel></button>
+            </header>
+            <section class="modal-card-body is-flex is-justify-content-center">
+                <div class="file is-boxed">
+                    <label class="file-label">
+                        <InputFile class="file-input" OnChange="@LoadFiles" multiple />
+                        <span class="file-cta">
+                            <span class="file-icon">
+                                <i class="fas fa-upload"></i>
+                            </span>
+                            <span class="file-label">
+                                @data.FileLabel
+                            </span>
+                        </span>
+                    </label>
+                </div>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button" @onclick=ResumeCancel>Cancel</button>
+            </footer>
+        </div>
+        <button class="modal-close is-large" aria-label="close" @onclick=ResumeCancel></button>
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public required object Data { get; set; }
+
+    private InputFileData? data;
+
+    public class InputFileData
+    {
+        public required string Title { get; set; }
+        public required string FileLabel { get; set; }
+        public List<InputFile>? Files { get; set; }
+        public bool OkValue { get; set; }
+        public required ManualResetEvent Resume { get; set; }
+    }
+
+    public class InputFile
+    {
+        public required string Name { get; set; }
+        public required byte[] Content { get; set; }
+    }
+
+    protected override void OnInitialized()
+    {
+        data = Data as InputFileData;
+        if (data == null)
+        {
+            throw new Exception("QuestionData invalid!");
+        }
+    }
+
+    private async Task LoadFiles(InputFileChangeEventArgs e)
+    {
+        var files = new List<InputFile>();
+        foreach (var file in e.GetMultipleFiles())
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                await file.OpenReadStream(long.MaxValue).CopyToAsync(memoryStream);
+                files.Add(new InputFile
+                {
+                    Name = file.Name,
+                    Content = memoryStream.ToArray()
+                });
+            }
+        }
+        if (data != null)
+        {
+            data.Files = files;
+            data.OkValue = true;
+            data.Resume.Set();
+        }
+    }
+    
+    private void ResumeCancel()
+    {
+        if (data != null)
+        {
+            data.OkValue = false;
+            data.Resume.Set();
+        }
+    }
+}

@@ -1,0 +1,44 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34408.163
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00 - Readme", "00 - Readme", "{36AF0027-9F0A-41C6-8CDF-E22C270478F9}"
+	ProjectSection(SolutionItems) = preProject
+		readme.txt = readme.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01 - WebUI", "01 - WebUI", "{852E3A77-6E2A-4DC6-A1A6-C91EFF52739F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "02 - Business", "02 - Business", "{93EF3353-458B-4286-80AD-5D6D18398A56}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runner.WebUI", "Web\Runner.WebUI\Runner.WebUI.csproj", "{718F42B2-70AF-4C5D-8309-771A3C5FBC1F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runner.Business", "Core\Runner.Business\Runner.Business.csproj", "{49979201-4DF4-4F1F-84D1-2D8A0E77D444}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{718F42B2-70AF-4C5D-8309-771A3C5FBC1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{718F42B2-70AF-4C5D-8309-771A3C5FBC1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{718F42B2-70AF-4C5D-8309-771A3C5FBC1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{718F42B2-70AF-4C5D-8309-771A3C5FBC1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49979201-4DF4-4F1F-84D1-2D8A0E77D444}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49979201-4DF4-4F1F-84D1-2D8A0E77D444}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49979201-4DF4-4F1F-84D1-2D8A0E77D444}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49979201-4DF4-4F1F-84D1-2D8A0E77D444}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{718F42B2-70AF-4C5D-8309-771A3C5FBC1F} = {852E3A77-6E2A-4DC6-A1A6-C91EFF52739F}
+		{49979201-4DF4-4F1F-84D1-2D8A0E77D444} = {93EF3353-458B-4286-80AD-5D6D18398A56}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C69C53A6-6FFE-4800-A192-AAC430A9C06E}
+	EndGlobalSection
+EndGlobal
