@@ -11,9 +11,5 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
     <PackageReference Include="MongoDB.Driver" Version="2.23.1" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Model\Nodes\Types\" />
-  </ItemGroup>
 	
 </Project>

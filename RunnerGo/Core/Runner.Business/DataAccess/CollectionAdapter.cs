@@ -47,7 +47,23 @@ namespace Runner.Business.DataAccess
                 .AsQueryable();
         }
 
+        public Task<List<T>> ToListAsync(Expression<Func<T, bool>> filter, FindOptions? options = null)
+        {
+            return Collection.Find(filter, options)
+                .ToListAsync();
+        }
 
+        public Task<bool> AnyAsync(Expression<Func<T, bool>> filter, FindOptions? options = null)
+        {
+            return Collection.Find(filter, options)
+                .AnyAsync();
+        }
+
+        public Task DeleteAsync(Expression<Func<T, bool>> filter, DeleteOptions? options = null)
+        {
+            return Collection
+                .DeleteOneAsync(filter, options);
+        }
 
         //public Task<IClientSessionHandle> StartSessionAsync()
         //{
@@ -57,25 +73,6 @@ namespace Runner.Business.DataAccess
         //public IFindFluent<T, T?> Find(Expression<Func<T, bool>> filter, FindOptions? options = null)
         //{
         //    return _collection.Find(filter, options);
-        //}
-
-
-        //public Task<E?> FirstOrDefaultAsync<E>(Expression<Func<E, bool>> filter, FindOptions? options = null) where E : T
-        //{
-        //    return GetCollection<E>().Find(filter, options)
-        //        .FirstOrDefaultAsync();
-        //}
-
-        //public Task<List<T>> ToListAsync(Expression<Func<T, bool>> filter, FindOptions? options = null)
-        //{
-        //    return _collection.Find(filter, options)
-        //        .ToListAsync();
-        //}
-
-        //public Task<List<E>> ToListAsync<E>(Expression<Func<E, bool>> filter, FindOptions? options = null) where E: T
-        //{
-        //    return GetCollection<E>().Find(filter, options)
-        //        .ToListAsync();
         //}
 
         //public Task<bool> AnyAsync(Expression<Func<T, bool>> filter, FindOptions? options = null)
@@ -94,10 +91,6 @@ namespace Runner.Business.DataAccess
         //    return _collection.FindOneAndReplaceAsync(e => e.Id == obj.Id, obj);
         //}
 
-        //public Task DeleteAsync(T obj)
-        //{
-        //    return _collection.DeleteOneAsync(e => e.Id == obj.Id);
-        //}
 
         //public Task UpdateAsync(T obj, UpdateDefinition<T> update, UpdateOptions? options = null)
         //{

@@ -1,5 +1,12 @@
 
 
+root/
+	users
+		/eu
+		/outro
+	apps
+		/nexlog/
+
 
 
 agent

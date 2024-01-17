@@ -1,0 +1,109 @@
+﻿@inherits ModalBase
+
+<div class="modal is-active">
+    <div class="modal-background" @onclick=Close></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Create Node</p>
+            <button class="delete" aria-label="close" @onclick=Close></button>
+        </header>
+        @switch (step)
+        {
+            case 0:
+                {
+                    <section class="modal-card-body">
+                        <progress class="progress is-link" value="30" max="100">30%</progress>
+                        <div class="panel is-primary">
+                            @foreach (var nodeType in Enum.GetValues<CreableNodeType>())
+                            {
+                                <a class="panel-block is-active" @onclick=@(() => SelectType((NodeType)nodeType))>
+                                    <span class="panel-icon">
+                                        <NodeTypeIcon Type="(NodeType)nodeType" />
+                                    </span>
+                                    @nodeType.ToString()
+                                </a>
+                            }
+                        </div>
+                    </section>
+                    <footer class="modal-card-foot">
+                        <button class="button" @onclick=Close>Cancel</button>
+                    </footer>
+                    break;
+                }
+            case 1:
+                {
+                    <section class="modal-card-body">
+                        <progress class="progress is-link" value="60" max="100">60%</progress>
+                        <div class="field">
+                            <label for="" class="label">Name</label>
+                            <div class="control has-icons-left">
+                                <input type="text" @bind=name placeholder="Name" class="input" required autofocus>
+                                <span class="icon is-small is-left">
+                                    <NodeTypeIcon Type=selNodeType />
+                                </span>
+                            </div>
+                        </div>
+                    </section>
+                    <footer class="modal-card-foot">
+                        <button class="button" @onclick=Close>Cancel</button>
+                        <button class="button is-warning" @onclick=Back>Back</button>
+                        <button class="button is-success" @onclick=Confirm>Confirm</button>
+                    </footer>
+                    break;
+                }
+        }
+    </div>
+    <button class="modal-close is-large" aria-label="close" @onclick=Close></button>
+</div>
+
+@code {
+
+    public enum CreableNodeType : byte
+    {
+        Folder = 1,
+        // AgentPool = 2,
+        // Flow = 4,
+        // Data = 6,
+        // DataType = 7,
+        // ScriptPackage = 8
+    }
+
+    public int step;
+
+    private string? name;
+    private NodeType selNodeType;
+
+    // protected override void OnInitialized()
+    // {
+    //     data = Data as QuestionData;
+    //     if (data == null)
+    //     {
+    //         throw new Exception("QuestionData invalid!");
+    //     }
+    // }
+
+    public void Next()
+    {
+        step++;
+    }
+
+    public void Back()
+    {
+        step--;
+    }
+
+    public void SelectType(NodeType type)
+    {
+        selNodeType = type;
+        Next();
+    }
+
+    public void Confirm()
+    {
+        Resume(new CreateNodeResponse
+        {
+            Name = name,
+            NodeType = selNodeType
+        });
+    }
+}

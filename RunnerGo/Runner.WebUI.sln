@@ -12,9 +12,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01 - WebUI", "01 - WebUI", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "02 - Business", "02 - Business", "{93EF3353-458B-4286-80AD-5D6D18398A56}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runner.WebUI", "Web\Runner.WebUI\Runner.WebUI.csproj", "{718F42B2-70AF-4C5D-8309-771A3C5FBC1F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runner.WebUI", "Web\Runner.WebUI\Runner.WebUI.csproj", "{718F42B2-70AF-4C5D-8309-771A3C5FBC1F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runner.Business", "Core\Runner.Business\Runner.Business.csproj", "{49979201-4DF4-4F1F-84D1-2D8A0E77D444}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runner.Business", "Core\Runner.Business\Runner.Business.csproj", "{49979201-4DF4-4F1F-84D1-2D8A0E77D444}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

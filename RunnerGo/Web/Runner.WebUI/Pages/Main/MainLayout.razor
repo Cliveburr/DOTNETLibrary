@@ -8,8 +8,11 @@
 <Navbar />
 @Body
 <Runner.WebUI.Components.Modal.ModalComponent />
+<Runner.WebUI.Components.Notification.NotificationComponent />
 
 @code {
+
+    private ErrorBoundary? errorBoundary;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

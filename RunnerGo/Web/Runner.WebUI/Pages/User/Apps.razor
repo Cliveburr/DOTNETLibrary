@@ -2,7 +2,6 @@
 @inherits BasePage
 @using Runner.Business.Entities.Nodes.Types
 @inject AppService appService
-@inject NavigationManager navigation
 
 <div class="container">
 
@@ -31,21 +30,25 @@
     </div>
 
     <div class="box mt-3">
-        @if (Items != null)
+        @if (items != null)
         {
-            <DataTable Items="Items">
+            <DataTable Items="items">
                 <Header>
                     <tr>
                         <th class="w50px">Type</th>
                         <th>Name</th>
+                        <th>Created</th>
+                        <th>Updated</th>
                     </tr>
                 </Header>
                 <Body Context="Item">
-                    <tr class="pointer" @onclick="@(_ => OnNavigateApp_Click(Item))">
+                    <tr class="pointer" @onclick="@(_ => OnItem_Click(Item))">
                         <td class="has-text-centered">
                             <NodeTypeIcon Type="NodeType.App" />
                         </td>
                         <td>@Item.Name</td>
+                        <td>@Item.CreatedUtc</td>
+                        <td>@Item.UpdatedUtc</td>
                     </tr>
                 </Body>
             </DataTable>
@@ -56,7 +59,7 @@
 
 @code {
 
-    public List<App>? Items { get; set; }
+    private List<Node>? items;
 
     protected override async Task OnInitializedAsync()
     {
@@ -65,21 +68,42 @@
 
     public async Task OnRefresh_Click()
     {
-        Items = await appService.ReadLoggedApps();
+        try
+        {
+            items = await appService.ReadLoggedAppsAsNode();
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+            return;
+        }
     }
 
     public async Task OnCreate_Click()
     {
-        // var question = await baseService.Modal.Question("Enter the name of the app", "", "app");
-        // if (question.Ok)
-        // {
-        //     await appService.Create(question.Value);
-        //     await OnRefresh_Click();
-        // }
+        var response = await Modal.InputText(new Components.Modal.Inputs.InputTextRequest
+        {
+            Title = "Enter the name of the app",
+            Value = "",
+            PlaceHolder = "app"
+        });
+        if (!string.IsNullOrEmpty(response))
+        {
+            try
+            {
+                await appService.Create(response);
+            }
+            catch (Exception err)
+            {
+                await Notification.AddError(err);
+                return;
+            }
+            await OnRefresh_Click();
+        }
     }
 
-    public void OnNavigateApp_Click(App app)
+    public void OnItem_Click(Node node)
     {
-        navigation.NavigateTo("/app/" + app.Name);
+        NavigateTo("/app/" + node.Name);
     }
 }

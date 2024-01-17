@@ -1,0 +1,170 @@
+﻿@using MongoDB.Bson
+@using Runner.Business.Model.Nodes.Types
+@inherits NodeBasePase
+@inject AppService appService
+@inject NodeService nodeService
+@inject IServiceProvider serviceProvider
+
+<div class="container">
+
+    <div class="box mt-4">
+        <h3 class="title is-3">App: @Node.Name <NodeTypeIcon Type="NodeType.App" /></h3>
+    </div>
+
+    <div class="buttons mt-3">
+        <button type="button" class="button is-primary" @onclick="HistoryBack">
+            <span class="icon is-small">
+                <i class="fa-solid fa-square-caret-left"></i>
+            </span>
+        </button>
+        <button type="button" class="button is-info" @onclick="OnRefresh_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-rotate-right"></i>
+            </span>
+            <span>Refresh</span>
+        </button>
+        <button type="button" class="button is-success" @onclick="OnCreate_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-circle-plus"></i>
+            </span>
+            <span>Create</span>
+        </button>
+        <button type="button" class="button is-danger" @onclick="OnDelete_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-trash"></i>
+            </span>
+            <span>Delete</span>
+        </button>
+    </div>
+
+    <div class="box mt-3">
+        @if (items != null)
+        {
+            <DataTable Items="items">
+                <Header>
+                    <tr>
+                        <th class="w50px">Type</th>
+                        <th>Name</th>
+                        <th>Created</th>
+                        <th>Updated</th>
+                    </tr>
+                </Header>
+                <Body Context="Item">
+                    <tr class="pointer" @onclick="@(_ => OnItem_Click(Item))">
+                        <td class="has-text-centered">
+                            <NodeTypeIcon Type="Item.Type" />
+                        </td>
+                        <td>@Item.Name</td>
+                        <td>@Item.CreatedUtc</td>
+                        <td>@Item.UpdatedUtc</td>
+                    </tr>
+                </Body>
+            </DataTable>
+        }
+    </div>
+</div>
+
+@code {
+
+    private List<Node>? items;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await OnRefresh_Click();
+    }
+
+    public async Task OnRefresh_Click()
+    {
+        try
+        {
+            items = await nodeService.ReadChilds(Node.NodeId);
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+            return;
+        }
+    }
+
+    public async Task OnCreate_Click()
+    {
+        var reponse = await Modal.CreateNode();
+        if (reponse == null)
+        {
+            return;
+        }
+
+        try
+        {
+            switch (reponse.NodeType)
+            {
+                case NodeType.Folder:
+                    {
+                        var folderService = serviceProvider.GetRequiredService<Business.Services.NodeTypes.FolderService>();
+                        await folderService.Create(reponse.Name, Node.NodeId);
+                        break;
+                    }
+                //     case NodeType.AgentPool:
+                //         {
+                //             await nodeService.CreateAgentPool(questionName.Value, Node);
+                //             await OnRefresh_Click();
+                //             break;
+                //         }
+                //     case NodeType.Flow:
+                //         {
+                //             await nodeService.CreateFlow(questionName.Value, Node);
+                //             await OnRefresh_Click();
+                //             break;
+                //         }
+                //     case NodeType.DataType:
+                //         {
+                //             await nodeService.CreateDataType(questionName.Value, Node);
+                //             await OnRefresh_Click();
+                //             break;
+                //         }
+                //     case NodeType.Data:
+                //         {
+                //             await nodeService.CreateData(questionName.Value, Node);
+                //             await OnRefresh_Click();
+                //             break;
+                //         }
+                default:
+                    throw new RunnerException("Invalid type!");
+            }
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+            return;
+        }
+
+        await OnRefresh_Click();
+    }
+
+    public void OnItem_Click(Node node)
+    {
+        FowardNode(node);
+    }
+
+    private async Task OnDelete_Click()
+    {
+        if (await Modal.Question(new Components.Modal.Question.QuestionRequest
+        {
+            Title = "Delete",
+            Question = "Confirm delete this node?"
+        }) ?? false)
+        {
+            try
+            {
+                await appService.DeleteByNodeId(Node.NodeId);
+            }
+            catch (Exception err)
+            {
+                await Notification.AddError(err);
+                return;
+            }
+
+            NavigateTo("/");
+        }
+    }
+}

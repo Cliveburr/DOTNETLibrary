@@ -1,4 +1,8 @@
-﻿using Runner.Business.DataAccess;
+﻿using MongoDB.Bson;
+using Runner.Business.DataAccess;
+using Runner.Business.Entities.Nodes;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 
 namespace Runner.Business.Services
 {
@@ -7,6 +11,110 @@ namespace Runner.Business.Services
         public NodeService(Database database)
             : base(database)
         {
+        }
+
+        public Task<Node?> ReadLocation(string path)
+        {
+            var parts = new System.Collections.Queue(path
+                .Split("/", StringSplitOptions.RemoveEmptyEntries));
+            return ReadLocation(parts);
+        }
+
+        public async Task<Node?> ReadLocation(System.Collections.Queue parts)
+        {
+            if (parts.Count == 0)
+            {
+                return null;
+            }
+            return await ReadLocation_Recursive(parts, null);
+        }
+
+        private async Task<Node?> ReadLocation_Recursive(System.Collections.Queue parts, ObjectId? parentId)
+        {
+            var name = parts.Dequeue() as string;
+            if (string.IsNullOrEmpty(name))
+            {
+                return null;
+            }
+            var found = await Node
+                   .FirstOrDefaultAsync(n => n.Name == name.ToLower() && n.ParentId == parentId);
+            //Node? found = null;
+            //if (parent == null)
+            //{
+            //    found = await Node
+            //        .FirstOrDefaultAsync(n => n.Name == name && n.Parent == null);
+            //}
+            //else
+            //{
+            //    switch (parent.Type)
+            //    {
+            //        case NodeType.Flow:
+            //            if (ObjectId.TryParse(name, out ObjectId runId))
+            //            {
+            //                found = await Node
+            //                    .FirstOrDefaultAsync(n => n.NodeId == runId && n.Parent == parent.Id);
+            //            }
+            //            break;
+            //        default:
+            //            found = await Node
+            //                .FirstOrDefaultAsync(n => n.Name == name && n.Parent == parent.Id);
+            //            break;
+            //    }
+            //}
+            if (found == null)
+            {
+                return null;
+            }
+            else
+            {
+                if (parts.Count == 0)
+                {
+                    return found;
+                }
+                else
+                {
+                    return await ReadLocation_Recursive(parts, found.NodeId);
+                }
+            }
+        }
+
+        public Task<Node?> ReadByNameAndParent(string? name, ObjectId? parentId)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                return Task.FromResult<Node?>(null);
+            }
+            else
+            {
+                return Node
+                    .FirstOrDefaultAsync(n => n.Name.ToLower().Equals(name.ToLower())
+                        && n.ParentId == parentId);
+            }
+        }
+
+        public Task<List<Node>> ReadChilds(ObjectId? parentId)
+        {
+            return Node
+                .ToListAsync(n => n.ParentId == parentId);
+        }
+
+        public Task<bool> HasChilds(ObjectId? parentId)
+        {
+            return Node
+                .AnyAsync(n => n.ParentId == parentId);
+        }
+
+        public void ValidateName([NotNull] string? name)
+        {
+            Assert.Strings.MustNotNullOrEmpty(name, "Invalid name of node!");
+
+            Assert.Number.InRange(name.Length, 6, 30, "Invalid name of node!");
+
+            var validateRegex = new Regex($"^[\\w\\-]*$", RegexOptions.IgnoreCase);
+            if (!validateRegex.IsMatch(name))
+            {
+                throw new RunnerException("Invalid name of node!");
+            }
         }
     }
 }

@@ -1,0 +1,24 @@
+﻿@inject NotificationService motificationService
+
+<div class="notificationPanel">
+    @foreach (var not in motificationService.Notifications)
+    {
+        <div class="notification @not.Class">
+            <button class="delete" @onclick=@(_ => motificationService.Remove(not))></button>
+            @not.Text
+        </div>
+    }
+</div>
+
+@code {
+
+    protected override void OnInitialized()
+    {
+        motificationService.Component = this;
+    }
+
+    public Task InvokeStateHasChangedAsync()
+    {
+        return InvokeAsync(() => StateHasChanged());
+    }
+}

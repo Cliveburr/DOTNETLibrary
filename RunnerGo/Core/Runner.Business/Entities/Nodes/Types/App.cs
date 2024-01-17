@@ -8,7 +8,6 @@ namespace Runner.Business.Entities.Nodes.Types
         [BsonId]
         public ObjectId AppId { get; set; }
         public required ObjectId NodeId { get; set; }
-        public required string Name { get; set; }
         public required ObjectId OwnerId { get; set; }
     }
 }

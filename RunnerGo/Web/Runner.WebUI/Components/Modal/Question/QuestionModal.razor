@@ -1,0 +1,38 @@
+﻿@inherits ModalBase
+
+@if (request != null)
+{
+    <div class="modal is-active">
+        <div class="modal-background" @onclick=Close></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title">@request.Title</p>
+                <button class="delete" aria-label="close" @onclick=Close></button>
+            </header>
+
+            <section class="modal-card-body">
+                <div class="block">@request.Question</div>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button is-success" @onclick="() => Resume(true)">@request.OkText</button>
+                <button class="button" @onclick=Close>@request.CloseText</button>
+            </footer>
+        </div>
+        <button class="modal-close is-large" aria-label="close" @onclick=Close></button>
+    </div>
+}
+
+@code {
+
+    private QuestionRequest? request;
+    public required string inputValue;
+
+    protected override void OnInitialized()
+    {
+        request = Control.Request as QuestionRequest;
+        if (request == null)
+        {
+            throw new Exception("QuestionRequest invalid!");
+        }
+    }
+}

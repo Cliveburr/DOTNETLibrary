@@ -17,13 +17,13 @@
         modalService.CloseModal += ModalService_CloseModal;
     }
 
-    private void ModalService_ShowModal(Type modal, object data)
+    private void ModalService_ShowModal(Type modal, ModalControl control)
     {
         InvokeAsync(() =>
         {
             modalType = modal;
             _params.Clear();
-            _params.Add("Data", data);
+            _params.Add("Control", control);
             isShow = true;
             StateHasChanged();
         }).Wait();

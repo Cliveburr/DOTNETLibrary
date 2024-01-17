@@ -28,5 +28,6 @@ namespace Runner.Business.DataAccess
         protected CollectionAdapter<Entities.Security.AccessToken> AccessToken { get => GetCollectionAdapter<Entities.Security.AccessToken>("AccessToken"); }
 
         protected CollectionAdapter<Entities.Nodes.Types.App> App { get => GetCollectionAdapter<Entities.Nodes.Types.App>("App"); }
+        protected CollectionAdapter<Entities.Nodes.Types.Folder> Folder { get => GetCollectionAdapter<Entities.Nodes.Types.Folder>("Folder"); }
     }
 }
