@@ -5,6 +5,7 @@ using MongoDB.Driver.Linq;
 using Runner.Business.Model.Nodes.Types;
 using Runner.Business.Entities.Nodes;
 using Runner.Business.Entities.Nodes.Types;
+using System.Xml.Linq;
 
 namespace Runner.Business.Services.NodeTypes
 {
@@ -79,6 +80,8 @@ namespace Runner.Business.Services.NodeTypes
             await Node
                 .InsertAsync(node);
 
+            await _nodeService.UpdateUtc(parentId);
+
             var folder = new Folder
             {
                 NodeId = node.NodeId
@@ -87,18 +90,23 @@ namespace Runner.Business.Services.NodeTypes
                 .InsertAsync(folder);
         }
 
-        public async Task DeleteByNodeId(ObjectId nodeId)
+        public async Task DeleteByNode(Node node)
         {
             Assert.MustNotNull(_identityProvider.User, "Not logged!");
 
-            var childs = await _nodeService.HasChilds(nodeId);
+            var childs = await _nodeService.HasChilds(node.NodeId);
             Assert.MustFalse(childs, "Node is note empty!");
 
             await Folder
-                .DeleteAsync(a => a.NodeId == nodeId);
+                .DeleteAsync(a => a.NodeId == node.NodeId);
+
+            if (node.ParentId.HasValue)
+            {
+                await _nodeService.UpdateUtc(node.ParentId.Value);
+            }
 
             await Node
-                .DeleteAsync(n => n.NodeId == nodeId);
+                .DeleteAsync(n => n.NodeId == node.NodeId);
         }
     }
 }

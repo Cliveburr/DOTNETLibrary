@@ -92,5 +92,16 @@ namespace Runner.WebUI.Components.Notification
                 Text = exception.Message
             });
         }
+
+        public Task AddError(string text)
+        {
+            Assert.MustNotNull(Component, "Notification is not ready!");
+
+            return Add(new NotificationData
+            {
+                Class = "is-danger",
+                Text = text
+            });
+        }
     }
 }

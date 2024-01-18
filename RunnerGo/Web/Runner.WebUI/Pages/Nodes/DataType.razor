@@ -1,0 +1,227 @@
+﻿@using MongoDB.Bson
+@using Runner.Business.Entities.Nodes.Types
+@inherits NodeBasePase
+@inject DataTypeService dataTypeService
+@inject NodeService nodeService
+@inject IServiceProvider serviceProvider
+
+<div class="container">
+
+    <div class="box mt-4">
+        <h3 class="title is-3">DataType: @Node.Name <NodeTypeIcon Type="NodeType.DataType" /></h3>
+    </div>
+
+    <div class="buttons mt-3">
+        <button type="button" class="button is-primary" @onclick="NodeBack">
+            <span class="icon is-small">
+                <i class="fa-solid fa-square-caret-left"></i>
+            </span>
+        </button>
+        <button type="button" class="button is-primary" @onclick="OnRename_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-signature"></i>
+            </span>
+            <span>Rename</span>
+        </button>
+        <button type="button" class="button is-success" @onclick="OnSave_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-floppy-disk"></i>
+            </span>
+            <span>Save</span>
+        </button>
+        <button type="button" class="button is-danger" @onclick="OnDelete_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-trash"></i>
+            </span>
+            <span>Delete</span>
+        </button>
+    </div>
+
+    @if (dataTypeNode != null)
+    {
+        <div class="box mt-3">
+            @* <nav class="panel mt-3">
+    <p class="panel-heading">
+        Properties
+    </p>
+    <div class="panel-block"> *@
+            @foreach (var prop in dataTypeNode.Properties)
+            {
+                <div class="columns">
+                    <div class="column is-3">
+                        <p class="control has-icons-left">
+                            <input class="input" @bind=prop.Name type="text" placeholder="Name">
+                            <span class="icon is-left">
+                                <i class="fa-solid fa-key"></i>
+                            </span>
+                        </p>
+                    </div>
+                    <div class="column is-3">
+                        <div class="control has-icons-left is-expanded">
+                            <div class="select is-fullwidth">
+                                <EnumSelect @bind-Value=prop.Type />
+                            </div>
+                            <div class="icon is-small is-left">
+                                <i class="fa-solid fa-superscript"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="column is-2">
+                        <div class="field">
+                            <p class="control">
+                                <label class="checkbox">
+                                    <input type="checkbox" @bind=prop.IsRequired>
+                                    Required
+                                </label>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="column is-3">
+                        <p class="control has-icons-left">
+                            @switch (prop.Type)
+                            {
+                                case DataTypeEnum.String:
+                                    {
+                                        <StringDataType @bind-Value=prop.Default />
+                                        break;
+                                    }
+                            }
+                            <span class="icon is-left">
+                                <i class="fa-solid fa-suitcase"></i>
+                            </span>
+                        </p>
+                    </div>
+                    <div class="column is-1">
+                        <button class="button is-danger" @onclick=@(() => OnRemove_Click(prop))>
+                            <span class="icon is-small">
+                                <i class="fas fa-times"></i>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            }
+            <button type="button" class="button is-success" @onclick="OnCreate_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-circle-plus"></i>
+                </span>
+                <span>Add</span>
+            </button>
+            @* </div>
+    </nav> *@
+        </div>
+    }
+</div>
+
+@code {
+
+    private Runner.Business.Entities.Nodes.Types.DataType? dataTypeNode;
+
+    protected override async Task OnInitializedAsync()
+    {
+        dataTypeNode = await dataTypeService.ReadByNodeId(Node.NodeId);
+        if (dataTypeNode == null)
+        {
+            await Notification.AddError("DataType not found!");
+            PageNotFound();
+        }
+    }
+
+    private async Task OnCreate_Click()
+    {
+        try
+        {
+            Assert.MustNotNull(dataTypeNode, "DataType load fail!");
+
+            dataTypeNode.Properties.Add(new DataTypeProperty
+                {
+                    Name = "New Property",
+                    Type = DataTypeEnum.String,
+                    IsRequired = false,
+                    Default = string.Empty
+                });
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+            return;
+        }
+    }
+
+    private async Task OnRemove_Click(DataTypeProperty prop)
+    {
+        try
+        {
+            Assert.MustNotNull(dataTypeNode, "DataType load fail!");
+
+            if (dataTypeNode.Properties.Contains(prop))
+            {
+                dataTypeNode.Properties.Remove(prop);
+            }
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+    }
+
+    private async Task OnSave_Click()
+    {
+        try
+        {
+            Assert.MustNotNull(dataTypeNode, "DataType load fail!");
+
+            await dataTypeService.Update(dataTypeNode);
+            NodeBack();
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+    }
+
+    private async Task OnDelete_Click()
+    {
+        if (await Modal.Question(new Components.Modal.Question.QuestionRequest
+            {
+                Title = "Delete",
+                Question = "Confirm delete this node?"
+            }) ?? false)
+        {
+            try
+            {
+                await dataTypeService.DeleteByNode(Node);
+            }
+            catch (Exception err)
+            {
+                await Notification.AddError(err);
+                return;
+            }
+
+            NodeBack();
+        }
+    }
+
+    private async Task OnRename_Click()
+    {
+        var newName = await Modal.InputText(new Components.Modal.Inputs.InputTextRequest
+            {
+                Title = "Rename Node",
+                Value = Node.Name,
+                PlaceHolder = "Node name"
+            });
+
+        if (!string.IsNullOrEmpty(newName))
+        {
+            try
+            {
+                await nodeService.UpdateName(Node.NodeId, newName);
+
+                Node.Name = newName;
+            }
+            catch (Exception err)
+            {
+                await Notification.AddError(err);
+            }
+        }
+    }
+}

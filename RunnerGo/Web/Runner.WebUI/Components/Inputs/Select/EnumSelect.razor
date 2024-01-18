@@ -1,0 +1,87 @@
+﻿@typeparam TEnum where TEnum : struct, Enum;
+
+<select @bind=selected>
+    @if (_items != null)
+    @foreach (var item in _items)
+    {
+        if (item == selected)
+        {
+            <option selected value="@item">@item</option>
+        }
+        else
+        {
+            <option value="@item">@item</option>
+        }
+    }
+</select>
+
+@code {
+
+    //private TEnum? _innerValue;
+
+    [Parameter]
+    public TEnum Value { get; set; }
+    // {
+    //     get
+    //     {
+    //         return _innerValue ?? default(TEnum);
+    //     }
+    //     set
+    //     {
+    //         if (_innerValue.HasValue)
+    //         {
+    //             if (!_innerValue.Value.Equals(value))
+    //             {
+    //                 _innerValue = value;
+    //                 ValueChanged.InvokeAsync(value);
+    //             }
+    //         }
+    //         else
+    //         {
+    //             _innerValue = value;
+    //         }
+    //     }
+    // }
+
+    [Parameter]
+    public EventCallback<TEnum> ValueChanged { get; set; }
+
+    private string selected
+    {
+        get
+        {
+            return Value.ToString();
+        }
+        set
+        {
+            if (Enum.TryParse<TEnum>(value, false, out TEnum result))
+            {
+                if (!Value.Equals(result))
+                {
+                    Value = result;
+                    ValueChanged.InvokeAsync(Value);
+                }
+            }
+        }
+    }
+
+    // private class Item
+    // {
+    //     public required string Id { get; set; }
+    //     public TEnum Value { get; set; }
+    // }
+
+    private List<string>? _items;
+
+    protected override void OnInitialized()
+    {
+        _items = Enum.GetValues<TEnum>()
+            .Select(t => t.ToString())
+            .ToList();
+        // .Select(t => new Item
+            // {
+            //     Id = t.ToString(),
+            //     Value = 
+            // })
+    }
+}

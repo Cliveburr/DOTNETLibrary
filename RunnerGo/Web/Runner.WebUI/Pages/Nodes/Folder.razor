@@ -23,6 +23,12 @@
             </span>
             <span>Refresh</span>
         </button>
+        <button type="button" class="button is-primary" @onclick="OnRename_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-signature"></i>
+            </span>
+            <span>Rename</span>
+        </button>
         <button type="button" class="button is-success" @onclick="OnCreate_Click">
             <span class="icon is-small">
                 <i class="fa-solid fa-circle-plus"></i>
@@ -88,40 +94,48 @@
             return;
         }
 
-        switch (reponse.NodeType)
+        try
         {
-            case NodeType.Folder:
-                {
-                    var folderService = serviceProvider.GetRequiredService<Business.Services.NodeTypes.FolderService>();
-                    await folderService.Create(reponse.Name, Node.NodeId);
-                    break;
-                }
-            //     case NodeType.AgentPool:
-            //         {
-            //             await nodeService.CreateAgentPool(questionName.Value, Node);
-            //             await OnRefresh_Click();
-            //             break;
-            //         }
-            //     case NodeType.Flow:
-            //         {
-            //             await nodeService.CreateFlow(questionName.Value, Node);
-            //             await OnRefresh_Click();
-            //             break;
-            //         }
-            //     case NodeType.DataType:
-            //         {
-            //             await nodeService.CreateDataType(questionName.Value, Node);
-            //             await OnRefresh_Click();
-            //             break;
-            //         }
-            //     case NodeType.Data:
-            //         {
-            //             await nodeService.CreateData(questionName.Value, Node);
-            //             await OnRefresh_Click();
-            //             break;
-            //         }
-            default:
-                throw new Exception("Invalid type!");
+            switch (reponse.NodeType)
+            {
+                case NodeType.Folder:
+                    {
+                        var folderService = serviceProvider.GetRequiredService<Business.Services.NodeTypes.FolderService>();
+                        await folderService.Create(reponse.Name, Node.NodeId);
+                        break;
+                    }
+                //     case NodeType.AgentPool:
+                //         {
+                //             await nodeService.CreateAgentPool(questionName.Value, Node);
+                //             await OnRefresh_Click();
+                //             break;
+                //         }
+                //     case NodeType.Flow:
+                //         {
+                //             await nodeService.CreateFlow(questionName.Value, Node);
+                //             await OnRefresh_Click();
+                //             break;
+                //         }
+                case NodeType.DataType:
+                    {
+                        var dataTypeService = serviceProvider.GetRequiredService<Business.Services.NodeTypes.DataTypeService>();
+                        await dataTypeService.Create(reponse.Name, Node.NodeId);
+                        break;
+                    }
+                case NodeType.Data:
+                    {
+                        var dataService = serviceProvider.GetRequiredService<Business.Services.NodeTypes.DataService>();
+                        await dataService.Create(reponse.Name, Node.NodeId);
+                        break;
+                    }
+                default:
+                    throw new Exception("Invalid type!");
+            }
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+            return;
         }
 
         await OnRefresh_Click();
@@ -142,7 +156,7 @@
         {
             try
             {
-                await folderService.DeleteByNodeId(Node.NodeId);
+                await folderService.DeleteByNode(Node);
             }
             catch (Exception err)
             {
@@ -151,6 +165,31 @@
             }
 
             NodeBack();
+        }
+    }
+
+    private async Task OnRename_Click()
+    {
+        var newName = await Modal.InputText(new Components.Modal.Inputs.InputTextRequest
+            {
+                Title = "Rename Node",
+                Value = Node.Name,
+                PlaceHolder = "Node name"
+            });
+
+        if (!string.IsNullOrEmpty(newName))
+        {
+            try
+            {
+                await nodeService.UpdateName(Node.NodeId, newName);
+
+                Node.Name = newName;
+            }
+            catch (Exception err)
+            {
+                await Notification.AddError(err);
+                return;
+            }
         }
     }
 }

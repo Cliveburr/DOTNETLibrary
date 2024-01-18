@@ -1,0 +1,236 @@
+﻿@using Runner.Business.DataNode.Merges
+@using Runner.Business.Entities.Nodes.Types
+@using Runner.Business.Entities.Nodes.Types.DataStruct.Validator
+@inherits NodeBasePase
+@inject DataService dataService
+@inject DataTypeService dataTypeService
+@inject NodeService nodeService
+@inject IServiceProvider serviceProvider
+
+<div class="container">
+
+    <div class="box mt-4">
+        <h3 class="title is-3">Data: @Node.Name <NodeTypeIcon Type="NodeType.Data" /></h3>
+    </div>
+
+    <div class="buttons mt-3">
+        <button type="button" class="button is-primary" @onclick="NodeBack">
+            <span class="icon is-small">
+                <i class="fa-solid fa-square-caret-left"></i>
+            </span>
+        </button>
+        <button type="button" class="button is-primary" @onclick="OnRename_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-signature"></i>
+            </span>
+            <span>Rename</span>
+        </button>
+        <button type="button" class="button is-success" @onclick="OnSave_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-floppy-disk"></i>
+            </span>
+            <span>Save</span>
+        </button>
+        <button type="button" class="button is-danger" @onclick="OnDelete_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-trash"></i>
+            </span>
+            <span>Delete</span>
+        </button>
+    </div>
+
+    @if (dataNode is not null)
+    {
+        <div class="box mt-3">
+            <div class="field has-addons">
+                <div class="control">
+                    <input class="input" type="text" @bind=dataNode.DataTypePath placeholder="Apply DataType">
+                </div>
+                <div class="control">
+                    <button class="button is-info" @onclick=OnApply_Click>
+                        Apply
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="box mt-3">
+            @foreach (var data in dataNode.Properties)
+            {
+                <div class="columns">
+                    <div class="column is-3">
+                        <p class="control has-icons-left">
+                            <input class="input" @bind=data.Name type="text" placeholder="Name" readonly>
+                            <span class="icon is-left">
+                                <i class="fa-solid fa-key"></i>
+                            </span>
+                        </p>
+                    </div>
+                    <div class="column is-3">
+                        <p class="control has-icons-left">
+                            @switch (data.Type)
+                            {
+                                case DataTypeEnum.String:
+                                    {
+                                        <StringDataType @bind-Value=data.Value />
+                                        break;
+                                    }
+                            }
+                            <span class="icon is-left">
+                                <i class="fa-solid fa-suitcase"></i>
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+
+    private Runner.Business.Entities.Nodes.Types.Data? dataNode { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        dataNode = await dataService.ReadByNodeId(Node.NodeId);
+        if (dataNode == null)
+        {
+            await Notification.AddError("DataType not found!");
+            PageNotFound();
+        }
+        else
+        {
+            var merge = MergeData.From(dataNode.Properties);
+
+            if (dataNode.DataTypeId.HasValue)
+            {
+                var dataType = await dataTypeService.ReadById(dataNode.DataTypeId.Value);
+                if (dataType is null)
+                {
+                    await Notification.AddError("DataType not found!");
+                    PageNotFound();
+                    return;
+                }
+
+                merge.ApplyType(dataType.Properties);
+            }
+
+            dataNode.Properties = merge.Properties.ToList();
+        }
+    }
+
+    private async Task OnSave_Click()
+    {
+        try
+        {
+            Assert.MustNotNull(dataNode, "DataType load fail!");
+
+            if (dataNode.DataTypeId.HasValue)
+            {
+                var dataType = await dataTypeService.ReadById(dataNode.DataTypeId.Value);
+                if (dataType is null)
+                {
+                    await Notification.AddError("DataType not found!");
+                    PageNotFound();
+                    return;
+                }
+
+                var errors = DataValidator.Validate(dataNode.Properties, dataType.Properties);
+                if (errors.Any())
+                {
+                    foreach (var error in errors)
+                    {
+                        await Notification.AddInfo(error.Text, 0);
+                    }
+                    return;
+                }
+            }
+
+            await dataService.Update(dataNode);
+            NodeBack();
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+    }
+
+    private async Task OnApply_Click()
+    {
+        try
+        {
+            Assert.MustNotNull(dataNode, "DataType load fail!");
+
+            var node = await nodeService.ReadLocation(dataNode.DataTypePath ?? string.Empty);
+            if (node is null)
+            {
+                await Notification.AddInfo("DataType not found!");
+                return;
+            }
+
+            var dataType = await dataTypeService.ReadByNodeId(node.NodeId);
+            if (dataType is null)
+            {
+                await Notification.AddInfo("DataType not found!");
+                return;
+            }
+
+            dataNode.DataTypeId = dataType.DataTypeId;
+
+            var merge = MergeData.From(dataNode.Properties);
+            merge.ApplyType(dataType.Properties);
+            dataNode.Properties = merge.Properties.ToList();
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+    }
+
+    private async Task OnDelete_Click()
+    {
+        if (await Modal.Question(new Components.Modal.Question.QuestionRequest
+            {
+                Title = "Delete",
+                Question = "Confirm delete this node?"
+            }) ?? false)
+        {
+            try
+            {
+                await dataService.DeleteByNode(Node);
+            }
+            catch (Exception err)
+            {
+                await Notification.AddError(err);
+                return;
+            }
+
+            NodeBack();
+        }
+    }
+
+    private async Task OnRename_Click()
+    {
+        var newName = await Modal.InputText(new Components.Modal.Inputs.InputTextRequest
+            {
+                Title = "Rename Node",
+                Value = Node.Name,
+                PlaceHolder = "Node name"
+            });
+
+        if (!string.IsNullOrEmpty(newName))
+        {
+            try
+            {
+                await nodeService.UpdateName(Node.NodeId, newName);
+
+                Node.Name = newName;
+            }
+            catch (Exception err)
+            {
+                await Notification.AddError(err);
+            }
+        }
+    }
+}

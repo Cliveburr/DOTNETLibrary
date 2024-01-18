@@ -32,7 +32,14 @@ namespace Runner.Business.DataAccess
 
         public Task InsertAsync(T doc)
         {
-            return Collection.InsertOneAsync(doc);
+            return Collection
+                .InsertOneAsync(doc);
+        }
+
+        public Task UpdateAsync(Expression<Func<T, bool>> filter, UpdateDefinition<T> update, UpdateOptions? options = null)
+        {
+            return Collection
+                .UpdateOneAsync(filter, update, options);
         }
 
         public IAggregateFluent<T> Aggregate()
@@ -92,10 +99,7 @@ namespace Runner.Business.DataAccess
         //}
 
 
-        //public Task UpdateAsync(T obj, UpdateDefinition<T> update, UpdateOptions? options = null)
-        //{
-        //    return _collection.UpdateOneAsync(e => e.Id == obj.Id, update, options);
-        //}
+
 
         //public Task UpdateAsync<E>(E obj, UpdateDefinition<E> update, UpdateOptions? options = null) where E : T
         //{

@@ -1,4 +1,5 @@
 ﻿using MongoDB.Bson;
+using MongoDB.Driver;
 using Runner.Business.DataAccess;
 using Runner.Business.Entities.Nodes;
 using System.Diagnostics.CodeAnalysis;
@@ -108,13 +109,35 @@ namespace Runner.Business.Services
         {
             Assert.Strings.MustNotNullOrEmpty(name, "Invalid name of node!");
 
-            Assert.Number.InRange(name.Length, 6, 30, "Invalid name of node!");
+            Assert.Number.InRange(name.Length, 3, 30, "Invalid name of node!");
 
             var validateRegex = new Regex($"^[\\w\\-]*$", RegexOptions.IgnoreCase);
             if (!validateRegex.IsMatch(name))
             {
                 throw new RunnerException("Invalid name of node!");
             }
+        }
+
+        public async Task UpdateUtc(ObjectId nodeId)
+        {
+            var nodeUpdate = Builders<Node>.Update
+                .Set(n => n.UpdatedUtc, DateTime.UtcNow);
+            await Node
+                .UpdateAsync(n => n.NodeId == nodeId, nodeUpdate);
+        }
+
+        public async Task UpdateName(ObjectId nodeId, string name)
+        {
+            var has = await ReadByNameAndParent(name, nodeId);
+            Assert.MustNull(has, "Name already exist!");
+
+            ValidateName(name);
+
+            var nodeUpdate = Builders<Node>.Update
+                .Set(n => n.Name, name)
+                .Set(n => n.UpdatedUtc, DateTime.UtcNow);
+            await Node
+                .UpdateAsync(n => n.NodeId == nodeId, nodeUpdate);
         }
     }
 }
