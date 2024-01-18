@@ -104,12 +104,12 @@
                         await folderService.Create(reponse.Name, Node.NodeId);
                         break;
                     }
-                //     case NodeType.AgentPool:
-                //         {
-                //             await nodeService.CreateAgentPool(questionName.Value, Node);
-                //             await OnRefresh_Click();
-                //             break;
-                //         }
+                case NodeType.AgentPool:
+                    {
+                        var agentPoolService = serviceProvider.GetRequiredService<Business.Services.NodeTypes.AgentPoolService>();
+                        await agentPoolService.Create(reponse.Name, Node.NodeId);
+                        break;
+                    }
                 //     case NodeType.Flow:
                 //         {
                 //             await nodeService.CreateFlow(questionName.Value, Node);

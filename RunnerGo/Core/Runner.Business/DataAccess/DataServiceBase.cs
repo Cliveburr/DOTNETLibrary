@@ -31,5 +31,7 @@ namespace Runner.Business.DataAccess
         protected CollectionAdapter<Entities.Nodes.Types.Folder> Folder { get => GetCollectionAdapter<Entities.Nodes.Types.Folder>("Folder"); }
         protected CollectionAdapter<Entities.Nodes.Types.Data> Data { get => GetCollectionAdapter<Entities.Nodes.Types.Data>("Data"); }
         protected CollectionAdapter<Entities.Nodes.Types.DataType> DataType { get => GetCollectionAdapter<Entities.Nodes.Types.DataType>("DataType"); }
+        protected CollectionAdapter<Entities.Nodes.Types.AgentPool> AgentPool { get => GetCollectionAdapter<Entities.Nodes.Types.AgentPool>("AgentPool"); }
+        protected CollectionAdapter<Entities.Nodes.Types.Agent> Agent { get => GetCollectionAdapter<Entities.Nodes.Types.Agent>("Agent"); }
     }
 }

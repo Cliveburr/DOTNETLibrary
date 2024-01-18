@@ -12,9 +12,14 @@ namespace Runner.WebUI.Pages.Nodes
 
         public void FowardNode(Node node)
         {
+            FowardNode(node.Name);
+        }
+
+        public void FowardNode(string name)
+        {
             var parts = new List<string>(NavigationManager.Uri.Substring(NavigationManager.BaseUri.Length)
                 .Split("/", StringSplitOptions.RemoveEmptyEntries));
-            parts.Add(node.Name);
+            parts.Add(name);
             NavigationManager.NavigateTo($"/{string.Join('/', parts)}", false, true);
         }
     }
