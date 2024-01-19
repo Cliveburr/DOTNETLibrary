@@ -20,10 +20,17 @@ namespace Runner.Business.Services.NodeTypes
             _nodeService = nodeService;
         }
 
+        public Task<AgentPool?> ReadByNodeId(ObjectId nodeId)
+        {
+            return AgentPool
+                .FirstOrDefaultAsync(ap => ap.NodeId == nodeId);
+        }
+
         public Task<List<Agent>> ReadAgentForNodeId(ObjectId nodeId)
         {
             var query = from a in Agent.AsQueryable()
-                        join n in Node.AsQueryable() on a.NodeId equals n.ParentId
+                        join n in Node.AsQueryable() on a.NodeId equals n.NodeId
+                        where n.ParentId == nodeId
                         select a;
 
             return query
@@ -77,6 +84,18 @@ namespace Runner.Business.Services.NodeTypes
 
             await Node
                 .DeleteAsync(n => n.NodeId == node.NodeId);
+        }
+
+        public async Task UpdateEnabled(AgentPool agentPool)
+        {
+            Assert.MustNotNull(_identityProvider.User, "Not logged!");
+
+            await _nodeService.UpdateUtc(agentPool.NodeId);
+
+            var agentPoolUpdate = Builders<AgentPool>.Update
+                .Set(ap => ap.Enabled, agentPool.Enabled);
+            await AgentPool
+                .UpdateAsync(ap => ap.AgentPoolId == agentPool.AgentPoolId, agentPoolUpdate);
         }
     }
 }

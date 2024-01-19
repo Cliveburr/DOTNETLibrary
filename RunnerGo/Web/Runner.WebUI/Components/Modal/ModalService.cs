@@ -66,25 +66,9 @@ namespace Runner.WebUI.Components.Modal
             return Show<Question.QuestionRequest, bool?>(typeof(Question.QuestionModal), request);
         }
 
-        //public Task<(bool Ok, List<InputFileModal.InputFile>? Files)> InputFile(string title, string fileLabel)
-        //{
-        //    return Task.Run<(bool Ok, List<InputFileModal.InputFile>? Files)>(() =>
-        //    {
-        //        var data = new InputFileModal.InputFileData
-        //        {
-        //            Title = title,
-        //            FileLabel = fileLabel,
-        //            OkValue = false,
-        //            Resume = new ManualResetEvent(false)
-        //        };
-        //        ShowModal?.Invoke(typeof(InputFileModal), data);
-
-        //        data.Resume.WaitOne();
-
-        //        CloseModal?.Invoke();
-
-        //        return (data.OkValue, data.Files);
-        //    });
-        //}
+        public Task<Inputs.InputFileResponse?> InputFiles(Inputs.InputFileRequest request)
+        {
+            return Show<Inputs.InputFileRequest, Inputs.InputFileResponse?>(typeof(Inputs.InputFileModal), request);
+        }
     }
 }

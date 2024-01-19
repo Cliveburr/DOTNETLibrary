@@ -14,6 +14,12 @@ namespace Runner.Business.Services
         {
         }
 
+        public Task<Node?> ReadByNodeId(ObjectId nodeId)
+        {
+            return Node
+                .FirstOrDefaultAsync(n => n.NodeId == nodeId);
+        }
+
         public Task<Node?> ReadLocation(string path)
         {
             var parts = new System.Collections.Queue(path
@@ -97,6 +103,12 @@ namespace Runner.Business.Services
         {
             return Node
                 .ToListAsync(n => n.ParentId == parentId);
+        }
+
+        public Task<Node?> ReadChildByName(ObjectId parentId, string name)
+        {
+            return Node
+                .FirstOrDefaultAsync(n => n.ParentId == parentId && n.Name == name);
         }
 
         public Task<bool> HasChilds(ObjectId? parentId)

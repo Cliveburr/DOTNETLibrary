@@ -1,4 +1,6 @@
 ﻿
+using Runner.Business.Entities.AgentVersion;
+
 namespace Runner.Business.DataAccess
 {
     public abstract class DataServiceBase
@@ -26,6 +28,9 @@ namespace Runner.Business.DataAccess
         protected CollectionAdapter<Entities.Nodes.Node> Node { get => GetCollectionAdapter<Entities.Nodes.Node>("Node"); }
         protected CollectionAdapter<Entities.Identity.User> User { get => GetCollectionAdapter<Entities.Identity.User>("User"); }
         protected CollectionAdapter<Entities.Security.AccessToken> AccessToken { get => GetCollectionAdapter<Entities.Security.AccessToken>("AccessToken"); }
+
+        protected CollectionAdapter<Entities.Job.Job> Job { get => GetCollectionAdapter<Entities.Job.Job>("Job"); }
+        protected CollectionAdapter<AgentVersion> AgentVersion { get => GetCollectionAdapter<AgentVersion>("AgentVersion"); }
 
         protected CollectionAdapter<Entities.Nodes.Types.App> App { get => GetCollectionAdapter<Entities.Nodes.Types.App>("App"); }
         protected CollectionAdapter<Entities.Nodes.Types.Folder> Folder { get => GetCollectionAdapter<Entities.Nodes.Types.Folder>("Folder"); }

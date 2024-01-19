@@ -1,0 +1,114 @@
+﻿@using Runner.Business.Entities.Job
+@inherits NodeBasePase
+@inject AgentService agentService
+@inject JobService jobService
+@inject NodeService nodeService
+
+@if (agentNode != null)
+{
+    <div class="container">
+
+        <div class="box mt-4">
+            <h3 class="title is-3">Agent: @agentNode.MachineName <NodeTypeIcon Type="NodeType.Agent" /></h3>
+        </div>
+
+        <div class="buttons mt-3">
+            <button type="button" class="button is-primary" @onclick="NodeBack">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-square-caret-left"></i>
+                </span>
+            </button>
+            <button type="button" class="button is-info" @onclick="OnRefresh_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </span>
+                <span>Refresh</span>
+            </button>
+            <button type="button" class="button is-danger" @onclick="OnDelete_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-trash"></i>
+                </span>
+                <span>Delete</span>
+            </button>
+        </div>
+
+        <div class="box mt-3">
+            @if (items != null)
+            {
+                <DataTable Items="items">
+                    <Header>
+                        <tr>
+                            <th>Queued</th>
+                            <th>Status</th>
+                            <th>Started</th>
+                            <th>End</th>
+                        </tr>
+                    </Header>
+                    <Body Context="Item">
+                        <tr>
+                            <td>@Item.Queued</td>
+                            <td>@Item.Status</td>
+                            <td>@Item.Started</td>
+                            <td>@Item.End</td>
+                        </tr>
+                    </Body>
+                </DataTable>
+            }
+        </div>
+    </div>
+}
+
+@code {
+
+    private Runner.Business.Entities.Nodes.Types.Agent? agentNode;
+    private List<Job>? items;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        agentNode = await agentService.ReadByNodeId(Node.NodeId);
+        if (agentNode == null)
+        {
+            await Notification.AddError("Agent not found!");
+            PageNotFound();
+        }
+        else
+        {
+            await OnRefresh_Click();
+        }
+    }
+
+    public async Task OnRefresh_Click()
+    {
+        Assert.MustNotNull(agentNode, "Internal error!");
+
+        items = await jobService.ReadForAgent(agentNode.AgentId);
+    }
+
+    // public void OnNavigateApp_Click(Node node)
+    // {
+    //     baseService.FowardNode(node.Name);
+    // }
+
+    private async Task OnDelete_Click()
+    {
+        if (await Modal.Question(new Components.Modal.Question.QuestionRequest
+            {
+                Title = "Delete",
+                Question = "Confirm delete this node?"
+            }) ?? false)
+        {
+            try
+            {
+                await agentService.DeleteByNode(Node);
+            }
+            catch (Exception err)
+            {
+                await Notification.AddError(err);
+                return;
+            }
+
+            NodeBack();
+        }
+    }
+}

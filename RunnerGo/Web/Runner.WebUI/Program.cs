@@ -1,4 +1,4 @@
-using Runner.WebUI.Helpers;
+using Runner.Agent.Hosting.DependecyInjection;
 using Runner.WebUI.Pages.Main;
 using Runner.WebUI.DependecyInjection;
 using Runner.Business.DependecyInjection;
@@ -14,7 +14,8 @@ builder.Services
 builder.Services
     .AddBusinessServices(builder.Configuration);
 
-
+builder.Services
+    .AddAgentHosting();
 
 
 
@@ -38,5 +39,7 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapAgentHub();
 
 app.Run();

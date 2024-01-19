@@ -1,0 +1,134 @@
+﻿@page "/agentversion"
+@inherits BasePage
+@inject AgentVersionService agentVersionService
+
+<div class="container">
+
+    <div class="box mt-4">
+        <h3 class="title is-3">Agent Versions <i class="fa-solid fa-boxes-packing"></i></h3>
+    </div>
+
+    <div class="buttons mt-3">
+        <button type="button" class="button is-primary" @onclick="HistoryBack">
+            <span class="icon is-small">
+                <i class="fa-solid fa-square-caret-left"></i>
+            </span>
+        </button>
+        <button type="button" class="button is-info" @onclick="OnRefresh_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-rotate-right"></i>
+            </span>
+            <span>Refresh</span>
+        </button>
+        <button type="button" class="button is-success" @onclick="OnUpload_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-circle-plus"></i>
+            </span>
+            <span>Upload</span>
+        </button>
+    </div>
+
+    <div class="box mt-3">
+        @if (items != null)
+        {
+            <DataTable Items="items">
+                <Header>
+                <tr>
+                    <th class="w50px">Type</th>
+                    <th>Version</th>
+                    <th>Created</th>
+                    <th></th>
+                </tr>
+                </Header>
+                <Body Context="Item">
+                <tr>
+                    <td class="has-text-centered">
+                        <i class="fa-solid fa-boxes-packing"></i>
+                    </td>
+                    <td>@Item.Version</td>
+                    <td>@Item.CreatedUtc</td>
+                    <td>
+                        <button type="button" class="button is-danger" @onclick="@(_ => OnDeleteItem_Click(Item))">
+                            <span class="icon is-small">
+                                <i class="fa-solid fa-trash"></i>
+                            </span>
+                        </button>
+                    </td>
+                </tr>
+                </Body>
+            </DataTable>
+        }
+    </div>
+</div>
+
+
+@code {
+
+    private List<Runner.Business.Entities.AgentVersion.AgentVersion>? items;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await OnRefresh_Click();
+    }
+
+    public async Task OnRefresh_Click()
+    {
+        try
+        {
+            items = await agentVersionService.Read();
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+            return;
+        }
+    }
+
+    public async Task OnUpload_Click()
+    {
+        var response = await Modal.InputFiles(new Components.Modal.Inputs.InputFileRequest
+            {
+                Title = "Upload Agent Version",
+                FileLabel = "Agente Version File"
+            });
+        if (response is not null)
+        {
+            try
+            {
+                Assert.MustTrue(response.Files.Count == 1, "Only one zip file is allowed!");
+
+                var file = response.Files[0];
+
+                await agentVersionService.Create(file.Name, file.Content);
+            }
+            catch (Exception err)
+            {
+                await Notification.AddError(err);
+                return;
+            }
+            await OnRefresh_Click();
+        }
+    }
+
+    public async Task OnDeleteItem_Click(Runner.Business.Entities.AgentVersion.AgentVersion item)
+    {
+        if (await Modal.Question(new Components.Modal.Question.QuestionRequest
+            {
+                Title = "Delete",
+                Question = "Confirm delete this Agent Version?"
+            }) ?? false)
+        {
+            try
+            {
+                await agentVersionService.Delete(item.AgentVersionId);
+            }
+            catch (Exception err)
+            {
+                await Notification.AddError(err);
+                return;
+            }
+
+            NodeBack();
+        }
+    }
+}

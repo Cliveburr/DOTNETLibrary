@@ -54,6 +54,12 @@ namespace Runner.Business.DataAccess
                 .AsQueryable();
         }
 
+        public Task<List<T>> ToListAsync()
+        {
+            return Collection.Find(Builders<T>.Filter.Empty)
+                .ToListAsync();
+        }
+
         public Task<List<T>> ToListAsync(Expression<Func<T, bool>> filter, FindOptions? options = null)
         {
             return Collection.Find(filter, options)

@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Runner.Business.DataAccess;
 using Runner.Business.Helpers;
 using Runner.Business.Security;
+using Runner.Business.WatcherNotification;
 
 namespace Runner.Business.DependecyInjection
 {
@@ -13,7 +14,7 @@ namespace Runner.Business.DependecyInjection
             services
                 .AddScoped<IdentityProvider>()
                 .AddScoped<AuthenticationService>()
-                //.AddSingleton<IAgentWatcherNotification, ManualAgentWatcherNotification>()
+                .AddSingleton<IAgentWatcherNotification, ManualAgentWatcherNotification>()
                 .AddSingleton(serviceProvider => new Database(configuration.GetConnectionString("Main")));
 
             var allServices = typeof(DataServiceBase)

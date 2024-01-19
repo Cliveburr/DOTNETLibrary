@@ -36,6 +36,13 @@
         </button>
     </div>
 
+    @if (agentPoolNode != null)
+    {
+        <div class="buttons mt-3">
+            <Switch @bind-Value=agentPoolNode.Enabled AfterValueChanged="UpdateEnabled" />
+        </div>
+    }
+
     <div class="box mt-3">
         @if (items != null)
         {
@@ -65,11 +72,21 @@
 
 @code {
 
-    public List<Agent>? items;
+    private Runner.Business.Entities.Nodes.Types.AgentPool? agentPoolNode;
+    private List<Runner.Business.Entities.Nodes.Types.Agent>? items;
 
     protected override async Task OnInitializedAsync()
     {
-        await OnRefresh_Click();
+        agentPoolNode = await agentPoolService.ReadByNodeId(Node.NodeId);
+        if (agentPoolNode == null)
+        {
+            await Notification.AddError("AgentPool not found!");
+            PageNotFound();
+        }
+        else
+        {
+            await OnRefresh_Click();
+        }
     }
 
     public async Task OnRefresh_Click()
@@ -77,9 +94,12 @@
         items = await agentPoolService.ReadAgentForNodeId(Node.NodeId);
     }
 
-    public void OnItem_Click(Agent agent)
+    public async Task OnItem_Click(Runner.Business.Entities.Nodes.Types.Agent agent)
     {
-        FowardNode(agent.MachineName);
+        var agentNode = await nodeService.ReadByNodeId(agent.NodeId);
+        Assert.MustNotNull(agentNode, "Internal error!");
+
+        FowardNode(agentNode.Name);
     }
 
     private async Task OnDelete_Click()
@@ -126,6 +146,21 @@
                 await Notification.AddError(err);
                 return;
             }
+        }
+    }
+
+    private async Task UpdateEnabled()
+    {
+        Assert.MustNotNull(agentPoolNode, "Internal error!");
+
+        try
+        {
+            await agentPoolService.UpdateEnabled(agentPoolNode);
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+            return;
         }
     }
 }

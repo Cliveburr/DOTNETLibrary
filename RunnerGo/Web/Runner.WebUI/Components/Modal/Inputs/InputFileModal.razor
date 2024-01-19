@@ -1,13 +1,13 @@
-﻿@using Microsoft.AspNetCore.Components.Forms;
+﻿@inherits ModalBase
 
-@if (data != null)
+@if (request != null)
 {
     <div class="modal is-active">
-        <div class="modal-background" @onclick=ResumeCancel></div>
+        <div class="modal-background" @onclick=Close></div>
         <div class="modal-card">
             <header class="modal-card-head">
-                <p class="modal-card-title">@data.Title</p>
-                <button class="delete" aria-label="close" @onclick=ResumeCancel></button>
+                <p class="modal-card-title">@request.Title</p>
+                <button class="delete" aria-label="close" @onclick=Close></button>
             </header>
             <section class="modal-card-body is-flex is-justify-content-center">
                 <div class="file is-boxed">
@@ -18,48 +18,31 @@
                                 <i class="fas fa-upload"></i>
                             </span>
                             <span class="file-label">
-                                @data.FileLabel
+                                @request.FileLabel
                             </span>
                         </span>
                     </label>
                 </div>
             </section>
             <footer class="modal-card-foot">
-                <button class="button" @onclick=ResumeCancel>Cancel</button>
+                <button class="button" @onclick=Close>Cancel</button>
             </footer>
         </div>
-        <button class="modal-close is-large" aria-label="close" @onclick=ResumeCancel></button>
+        <button class="modal-close is-large" aria-label="close" @onclick=Close></button>
     </div>
 }
 
 @code {
 
-    [Parameter]
-    public required object Data { get; set; }
-
-    private InputFileData? data;
-
-    public class InputFileData
-    {
-        public required string Title { get; set; }
-        public required string FileLabel { get; set; }
-        public List<InputFile>? Files { get; set; }
-        public bool OkValue { get; set; }
-        public required ManualResetEvent Resume { get; set; }
-    }
-
-    public class InputFile
-    {
-        public required string Name { get; set; }
-        public required byte[] Content { get; set; }
-    }
+    private InputFileRequest? request;
+    public required string inputValue;
 
     protected override void OnInitialized()
     {
-        data = Data as InputFileData;
-        if (data == null)
+        request = Control.Request as InputFileRequest;
+        if (request == null)
         {
-            throw new Exception("QuestionData invalid!");
+            throw new Exception("InputFileRequest invalid!");
         }
     }
 
@@ -78,20 +61,10 @@
                 });
             }
         }
-        if (data != null)
+        Resume(new InputFileResponse
         {
-            data.Files = files;
-            data.OkValue = true;
-            data.Resume.Set();
-        }
+            Files = files
+        });
     }
     
-    private void ResumeCancel()
-    {
-        if (data != null)
-        {
-            data.OkValue = false;
-            data.Resume.Set();
-        }
-    }
 }

@@ -9,19 +9,7 @@ root/
 
 
 
-agent
-	vs
-		v0
-	src
-	ws
-		workspace-table.json
-		0
-		1
-		2
-		3
-	_update
-		v1
-		restart
+
 
 task.tag
 	nexlog
@@ -68,3 +56,38 @@ TasksWorker
 
 		busca todas possiveis configurações para as tasks consideradas
 			
+
+
+
+
+
+
+
+agent
+	src
+	ws
+		workspace-table.json
+		0
+		1
+		2
+		3
+	_bkp
+	_update
+		updater.exe
+
+
+
+- recebe o pacote
+
+- descompata na pasta _update
+
+- chama o updater.exe
+
+	- espera o agent parar observando o process
+	- copia a root do agent para o _bkp
+	- copia os novos arquivos para a root
+	- da start no serviço
+
+
+
+
