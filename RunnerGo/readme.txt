@@ -64,6 +64,8 @@ TasksWorker
 
 
 agent
+	vers
+		verions.json
 	src
 	ws
 		workspace-table.json
@@ -71,17 +73,16 @@ agent
 		1
 		2
 		3
-	_bkp
-	_update
-		updater.exe
 
 
 
 - recebe o pacote
 
-- descompata na pasta _update
+- descompata na pasta vers\vX
 
-- chama o updater.exe
+- sinaliza o evento
+- desconecta o atual
+- chama o proximo
 
 	- espera o agent parar observando o process
 	- copia a root do agent para o _bkp

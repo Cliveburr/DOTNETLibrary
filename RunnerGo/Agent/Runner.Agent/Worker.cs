@@ -20,27 +20,40 @@ namespace Runner.Agent
             _logger = logger;
             _configuration = configuration;
 
-            var hubHost = configuration["HubHost"];
-            if (string.IsNullOrEmpty(hubHost) )
-            {
-                throw new ArgumentNullException(nameof(hubHost));
-            }
+            //var hubHost = configuration["HubHost"];
+            //if (string.IsNullOrEmpty(hubHost) )
+            //{
+            //    throw new ArgumentNullException(nameof(hubHost));
+            //}
 
-            _connection = new HubConnectionBuilder()
-                .WithAutomaticReconnect(new KeepAlwaysConnected())
-                .WithUrl(hubHost)
-                .Build();
+            //_connection = new HubConnectionBuilder()
+            //    .WithAutomaticReconnect(new KeepAlwaysConnected())
+            //    .WithUrl(hubHost)
+            //    .Build();
 
-            _connection.Reconnected += _connection_Reconnected;
-            _connection.Closed += _connection_Closed;
-            _connection.Reconnecting += _connection_Reconnecting;
+            //_connection.Reconnected += _connection_Reconnected;
+            //_connection.Closed += _connection_Closed;
+            //_connection.Reconnecting += _connection_Reconnecting;
 
-            _connection.On("RunScript", [typeof(RunScriptRequest)], RunScript);
-            _connection.On("StopScript", [], StopScript);
+            //_connection.On("RunScript", [typeof(RunScriptRequest)], RunScript);
+            //_connection.On("StopScript", [], StopScript);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+
+            var i = 0;
+
+            while (!stoppingToken.IsCancellationRequested && i++ < 3)
+            {
+                _logger.LogInformation("Tick at: {time}", DateTimeOffset.Now);
+
+                await Task.Delay(1000);
+            }
+            return;
+
+
+
             _cancellationToken = stoppingToken;
 
             await StartAsync();

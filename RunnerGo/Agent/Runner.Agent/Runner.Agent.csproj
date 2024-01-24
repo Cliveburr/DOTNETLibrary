@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Runner.Agent.Interface\Runner.Agent.Interface.csproj" />
+    <ProjectReference Include="..\Runner.Agent.Version\Runner.Agent.Version.csproj" />
     <ProjectReference Include="..\Runner.Script.Interface\Runner.Script.Interface.csproj" />
   </ItemGroup>
 </Project>
