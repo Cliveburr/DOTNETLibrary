@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Runner.Agent.Isolation
+namespace Runner.Agent.Version.Isolation
 {
     public record ExecuteResult
     {

@@ -1,15 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Runner.Agent.Helpers
+﻿
+namespace Runner.Agent.Version.Helpers
 {
     public static class IO
     {
         public static void ClearDirectory(string path)
         {
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+                return;
+            }
+
             var directoryInfo = new DirectoryInfo(path);
 
             foreach (var file in directoryInfo.GetFiles())

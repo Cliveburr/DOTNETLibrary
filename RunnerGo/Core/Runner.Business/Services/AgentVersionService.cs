@@ -2,7 +2,6 @@
 using MongoDB.Driver;
 using Runner.Business.DataAccess;
 using Runner.Business.Entities.AgentVersion;
-using Runner.Business.Entities.Nodes;
 using Runner.Business.Security;
 
 namespace Runner.Business.Services
@@ -21,6 +20,17 @@ namespace Runner.Business.Services
         {
             return AgentVersion
                 .ToListAsync();
+        }
+
+        public Task<AgentVersion> ReadLatest()
+        {
+            var versionSortByVersion = Builders<AgentVersion>.Sort
+                .Descending(av => av.Version);
+
+            return AgentVersion.Collection
+                .Find(Builders<AgentVersion>.Filter.Empty)
+                .Sort(versionSortByVersion)
+                .FirstOrDefaultAsync();
         }
 
         public async Task Create(string fileName, byte[] fileContent)

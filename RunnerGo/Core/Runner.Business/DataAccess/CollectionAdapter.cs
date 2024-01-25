@@ -18,6 +18,11 @@ namespace Runner.Business.DataAccess
             Name = name;
         }
 
+        public CollectionAdapter<P> Polymorphic<P>() where P: T
+        {
+            return new CollectionAdapter<P>(Collection.Database.GetCollection<P>(Name), Name);
+        }
+
         public Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> filter, FindOptions? options = null)
         {
             return Collection.Find(filter, options)

@@ -1,14 +1,18 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Amazon.Runtime.Internal;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
+using Runner.Agent.Hosting.Helpers;
 using Runner.Agent.Hosting.Hubs;
 using Runner.Agent.Interface.Model;
 using Runner.Business.Entities.Job;
 using Runner.Business.Entities.Security;
 using Runner.Business.Security;
+using Runner.Business.Services;
 using Runner.Business.Services.NodeTypes;
 using Runner.Business.WatcherNotification;
 using System.Security.Authentication;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace Runner.Agent.Hosting.Services
 {
@@ -18,13 +22,14 @@ namespace Runner.Agent.Hosting.Services
         private readonly IServiceProvider _serviceProvider;
         private readonly List<AgentConnect> _agents;
         private readonly IAgentWatcherNotification _agentWatcherNotification;
+        private readonly OneExecutionAtTime _checkJobsExecution;
 
         private class AgentConnect
         {
             public required string ConnectionId { get; set; }
-            public required AgentHub Hub { get;set; }
-            public required ObjectId AgentPoolNodeId { get; set; }
-            public required ObjectId AgentNodeId { get; set; }
+            public required AgentHub Hub { get; set; }
+            public required ObjectId AgentPoolId { get; set; }
+            public required ObjectId AgentId { get; set; }
             public required IServiceScope Scope { get; set; }
             public ObjectId? RunningJobId { get; set; }
         }
@@ -35,6 +40,7 @@ namespace Runner.Agent.Hosting.Services
             _serviceProvider = serviceProvider;
             _agents = new List<AgentConnect>();
             _agentWatcherNotification = agentWatcherNotification;
+            _checkJobsExecution = new OneExecutionAtTime(CheckJobsForAgents, 1000);
 
             _agentWatcherNotification.OnJobCreated += OnJobCreated;
             _agentWatcherNotification.OnStopJob += OnStopJob;
@@ -59,9 +65,9 @@ namespace Runner.Agent.Hosting.Services
                 }
 
                 var agentService = scope.ServiceProvider.GetRequiredService<AgentService>();
-                var (agentPoolNodeId, agentNodeId) = await agentService.Register(request.AgentPoolPath, request.MachineName, request.Tags);
+                var (agentPoolId, agentId) = await agentService.Register(request.AgentPoolPath, request.MachineName, request.VersionName, request.Tags);
 
-                var found = FindByAgent(agentNodeId);
+                var found = FindByAgent(agentId);
                 if (found != null)
                 {
                     try
@@ -86,8 +92,8 @@ namespace Runner.Agent.Hosting.Services
                     {
                         ConnectionId = hub.Context.ConnectionId,
                         Hub = hub,
-                        AgentPoolNodeId = agentPoolNodeId,
-                        AgentNodeId = agentNodeId,
+                        AgentPoolId = agentPoolId,
+                        AgentId = agentId,
                         Scope = scope
                     });
                 }
@@ -102,15 +108,15 @@ namespace Runner.Agent.Hosting.Services
                 throw;
             }
 
-            _ = CheckAgentForJobs();
+            _checkJobsExecution.Execute();
         }
 
-        private AgentConnect? FindByAgent(ObjectId agentNodeId)
+        private AgentConnect? FindByAgent(ObjectId agentId)
         {
             lock (_agents)
             {
                 return _agents
-                    .FirstOrDefault(a => a.AgentNodeId == agentNodeId);
+                    .FirstOrDefault(a => a.AgentId == agentId);
             }
         }
 
@@ -122,24 +128,6 @@ namespace Runner.Agent.Hosting.Services
                     .FirstOrDefault(a => a.ConnectionId == connectionId);
             }
         }
-
-        //private AgentConnect? FindConnected(Business.Entities.Node.Agent.Agent agent)
-        //{
-        //    lock (_agents)
-        //    {
-        //        return _agents
-        //            .FirstOrDefault(a => a.AgentId == agent.Id);
-        //    }
-        //}
-
-        //private AgentConnect? FindConnected(Job job)
-        //{
-        //    lock (_agents)
-        //    {
-        //        return _agents
-        //            .FirstOrDefault(a => a.RunningJobId == job.Id);
-        //    }
-        //}
 
         internal Task Heartbeat()
         {
@@ -160,7 +148,7 @@ namespace Runner.Agent.Hosting.Services
                 }
 
                 var agentService = agentConnect.Scope.ServiceProvider.GetRequiredService<AgentService>();
-                await agentService.UpdateOffline(agentConnect.AgentNodeId);
+                await agentService.UpdateOffline(agentConnect.AgentId);
                 
                 Remove(agentConnect);
             }
@@ -182,7 +170,7 @@ namespace Runner.Agent.Hosting.Services
 
         private void OnJobCreated(Job job)
         {
-            _ = CheckAgentForJobs();
+            _checkJobsExecution.Execute();
         }
 
         private string NormalizeAgentPool(string agentPool)
@@ -192,88 +180,88 @@ namespace Runner.Agent.Hosting.Services
                 .ToLower();
         }
 
-        private async Task<List<JobAgentBind>> MixJobWithAgents(List<Job> jobs)
-        {
-            var binds = new List<JobAgentBind>();
+        //private async Task<List<JobAgentBind>> MixJobWithAgents(List<Job> jobs)
+        //{
+        //    var binds = new List<JobAgentBind>();
 
-            //foreach (var job in jobs)
-            //{
-            //    var jobNormalizedAgentPool = NormalizeAgentPool(job.AgentPool);
-            //    var agentsAvaliable = new List<(Business.Entities.Node.Agent.Agent Agent, NodeService NodeService, AgentConnect AgentConnect)>();
+        //    foreach (var job in jobs)
+        //    {
+        //        var jobNormalizedAgentPool = NormalizeAgentPool(job.AgentPool);
+        //        var agentsAvaliable = new List<(Business.Entities.Node.Agent.Agent Agent, NodeService NodeService, AgentConnect AgentConnect)>();
 
-            //    foreach (var agentConnected in _agents)
-            //    {
-            //        if (agentConnected.RunningJobId.HasValue)
-            //        {
-            //            continue;
-            //        }
+        //        foreach (var agentConnected in _agents)
+        //        {
+        //            if (agentConnected.RunningJobId.HasValue)
+        //            {
+        //                continue;
+        //            }
 
-            //        var agentNormalizedAgentPool = NormalizeAgentPool(agentConnected.AgentPool);
+        //            var agentNormalizedAgentPool = NormalizeAgentPool(agentConnected.AgentPool);
 
-            //        if (jobNormalizedAgentPool == agentNormalizedAgentPool)
-            //        {
-            //            var nodeService = agentConnected.Scope.ServiceProvider.GetRequiredService<NodeService>();
+        //            if (jobNormalizedAgentPool == agentNormalizedAgentPool)
+        //            {
+        //                var nodeService = agentConnected.Scope.ServiceProvider.GetRequiredService<NodeService>();
 
-            //            var agentPool = await nodeService.ReadLocation(agentConnected.AgentPool) as AgentPool;
-            //            if (agentPool != null && agentPool.Enabled)
-            //            {
-            //                var agent = await nodeService.ReadById(agentConnected.AgentId) as Business.Entities.Node.Agent.Agent;
-            //                if (agent != null && agent.Enabled && agent.Status == AgentStatus.Idle)
-            //                {
-            //                    agentsAvaliable.Add((agent, nodeService, agentConnected));
-            //                }
-            //            }
-            //        }
-            //    }
+        //                var agentPool = await nodeService.ReadLocation(agentConnected.AgentPool) as AgentPool;
+        //                if (agentPool != null && agentPool.Enabled)
+        //                {
+        //                    var agent = await nodeService.ReadById(agentConnected.AgentId) as Business.Entities.Node.Agent.Agent;
+        //                    if (agent != null && agent.Enabled && agent.Status == AgentStatus.Idle)
+        //                    {
+        //                        agentsAvaliable.Add((agent, nodeService, agentConnected));
+        //                    }
+        //                }
+        //            }
+        //        }
 
-            //    if (agentsAvaliable.Any())
-            //    {
-            //        var agentsWithTags = new List<(Business.Entities.Node.Agent.Agent Agent, NodeService NodeService, AgentConnect AgentConnect)>();
+        //        if (agentsAvaliable.Any())
+        //        {
+        //            var agentsWithTags = new List<(Business.Entities.Node.Agent.Agent Agent, NodeService NodeService, AgentConnect AgentConnect)>();
 
-            //        foreach (var agentAvaliable in agentsAvaliable)
-            //        {
-            //            var run = await agentAvaliable.NodeService.ReadById(job.RunId) as Run;
-            //            if (run != null)
-            //            {
-            //                var action = run.Actions
-            //                    .FirstOrDefault(a => a.ActionId == job.ActionId);
-            //                if (action != null)
-            //                {
-            //                    var agentTags = agentAvaliable.Agent.RegistredTags;
-            //                    if (agentAvaliable.Agent.ExtraTags != null)
-            //                    {
-            //                        agentTags.AddRange(agentAvaliable.Agent.ExtraTags);
-            //                    }
+        //            foreach (var agentAvaliable in agentsAvaliable)
+        //            {
+        //                var run = await agentAvaliable.NodeService.ReadById(job.RunId) as Run;
+        //                if (run != null)
+        //                {
+        //                    var action = run.Actions
+        //                        .FirstOrDefault(a => a.ActionId == job.ActionId);
+        //                    if (action != null)
+        //                    {
+        //                        var agentTags = agentAvaliable.Agent.RegistredTags;
+        //                        if (agentAvaliable.Agent.ExtraTags != null)
+        //                        {
+        //                            agentTags.AddRange(agentAvaliable.Agent.ExtraTags);
+        //                        }
 
-            //                    var actionTags = action.Tags ?? new List<string>();
+        //                        var actionTags = action.Tags ?? new List<string>();
 
-            //                    if (agentTags.Intersect(actionTags).Count() == agentTags.Count)
-            //                    {
-            //                        agentsWithTags.Add(agentAvaliable);
-            //                    }
-            //                }
-            //            }
-            //        }
+        //                        if (agentTags.Intersect(actionTags).Count() == agentTags.Count)
+        //                        {
+        //                            agentsWithTags.Add(agentAvaliable);
+        //                        }
+        //                    }
+        //                }
+        //            }
 
-            //        if (agentsWithTags.Any())
-            //        {
-            //            var chooseAgent = agentsWithTags
-            //                .OrderBy(a => a.Agent.LastExecuted)
-            //                .First();
+        //            if (agentsWithTags.Any())
+        //            {
+        //                var chooseAgent = agentsWithTags
+        //                    .OrderBy(a => a.Agent.LastExecuted)
+        //                    .First();
 
-            //            binds.Add(new JobAgentBind
-            //            {
-            //                Job = job,
-            //                AgentConnect = chooseAgent.AgentConnect
-            //            });
-            //        }
-            //    }
+        //                binds.Add(new JobAgentBind
+        //                {
+        //                    Job = job,
+        //                    AgentConnect = chooseAgent.AgentConnect
+        //                });
+        //            }
+        //        }
 
-            //    //TODO: checar se job deu timeout
-            //}
+        //        //TODO: checar se job deu timeout
+        //    }
 
-            return binds;
-        }
+        //    return binds;
+        //}
 
         private class JobAgentBind
         {
@@ -281,61 +269,91 @@ namespace Runner.Agent.Hosting.Services
             public required AgentConnect AgentConnect { get; set; }
         }
 
-        private SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1);
-        private bool _justOneWait = false;
-
-        private async Task CheckAgentForJobs()
+        private async Task CheckJobsForAgents()
         {
-            if (_justOneWait)
+            using (var scope = _serviceProvider.CreateScope())
             {
-                return;
-            }
-            else
-            {
-                _justOneWait = true;
-            }
+                var jobService = scope.ServiceProvider.GetRequiredService<JobService>();
 
-            await _semaphoreSlim.WaitAsync();
+                var jobsWaiting = await jobService.ReadJobsWaitingOfTypes([JobType.AgentUpdate]);
 
-            _justOneWait = false;
+                foreach (var jobWaiting in  jobsWaiting)
+                {
+                    try
+                    {
+                        switch (jobWaiting.Type)
+                        {
+                            case JobType.AgentUpdate:
+                                await RunAgentUpdateJob(jobWaiting, scope.ServiceProvider, jobService);
+                                break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        try
+                        {
+                            await jobService.SetError(jobWaiting, ex);
+                        } catch { }
+                    }
+                }
 
-            try
-            {
-                //    using (var scope = _serviceProvider.CreateScope())
+                //var jobWithAgents = await MixJobWithAgents(jobsWaiting);
+
+                //foreach (var jobWithAgent in jobWithAgents)
+                //{
+                //    try
                 //    {
-                //        var jobService = scope.ServiceProvider.GetRequiredService<JobService>();
+                //        //var request = new RunScriptRequest
+                //        //{
+                //        //    Id = jobWithAgent.Job.Id.ToString(),
+                //        //    Assembly = "",
+                //        //    Type = "",
+                //        //    Version = 1,
+                //        //    Input = new Dictionary<string, object?>()
+                //        //};
 
-                //        var jobsWaiting = await jobService.ReadJobsWaiting();
+                //        //await _agentHub.Clients.Client(jobWithAgent.AgentConnect.ConnectionId).SendAsync("RunScript", request);
 
-                //        var jobWithAgents = await MixJobWithAgents(jobsWaiting);
-
-                //        foreach (var jobWithAgent in jobWithAgents)
-                //        {
-                //            try
-                //            {
-                //                var request = new RunScriptRequest
-                //                {
-                //                    Id = jobWithAgent.Job.Id.ToString(),
-                //                    Assembly = "",
-                //                    Type = "",
-                //                    Version = 1,
-                //                    Input = new Dictionary<string, object?>()
-                //                };
-
-                //                await _agentHub.Clients.Client(jobWithAgent.AgentConnect.ConnectionId).SendAsync("RunScript", request);
-
-                //                jobWithAgent.AgentConnect.RunningJobId = jobWithAgent.Job.Id;
-                //            }
-                //            catch (Exception ex)
-                //            {
-                //                //todo:
-                //            }
-                //        }
+                //        //jobWithAgent.AgentConnect.RunningJobId = jobWithAgent.Job.Id;
                 //    }
+                //    catch (Exception ex)
+                //    {
+                //        //todo:
+                //    }
+                //}
             }
-            finally
+        }
+
+        private async Task RunAgentUpdateJob(Job job, IServiceProvider serviceProvider, JobService jobService)
+        {
+            AgentConnect? avaiableAgent = null;
+            lock (_agents)
             {
-                _semaphoreSlim.Release();
+                avaiableAgent = _agents
+                    .Where(a => !a.RunningJobId.HasValue && a.AgentId == job.AgentId)
+                    .FirstOrDefault();
+            }
+            if (avaiableAgent is not null)
+            {
+                await jobService.SetRunning(job);
+
+                var agentVersionService = serviceProvider.GetRequiredService<AgentVersionService>();
+
+                var latestVersion = await agentVersionService.ReadLatest();
+                if (latestVersion is null || latestVersion.FileContent is null)
+                {
+                    throw new RunnerException("Invalid latest AgentVersion to update!");
+                }
+
+                var request = new UpdateVersionRequest
+                {
+                    Version = latestVersion.Version,
+                    Content = latestVersion.FileContent
+                };
+
+                await _agentHub.Clients.Client(avaiableAgent.ConnectionId).SendAsync("UpdateVersion", request);
+
+                await jobService.SetCompleted(job);
             }
         }
 
@@ -401,7 +419,7 @@ namespace Runner.Agent.Hosting.Services
                 //agentConnect.RunningJobId = null;
             }
 
-            _ = CheckAgentForJobs();
+            _checkJobsExecution.Execute();
         }
 
         internal async Task ScriptLog(string connectionId, ScriptLogRequest request)

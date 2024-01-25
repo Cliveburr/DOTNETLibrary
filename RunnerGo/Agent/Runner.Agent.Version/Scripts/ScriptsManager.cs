@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Runner.Agent.Scripts
+namespace Runner.Agent.Version.Scripts
 {
     public static class ScriptsManager
     {

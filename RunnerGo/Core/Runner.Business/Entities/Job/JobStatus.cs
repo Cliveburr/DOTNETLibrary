@@ -1,7 +1,7 @@
 ﻿
 namespace Runner.Business.Entities.Job
 {
-    public enum JobStatus
+    public enum JobStatus : byte
     {
         Waiting = 0,
         Running = 1,

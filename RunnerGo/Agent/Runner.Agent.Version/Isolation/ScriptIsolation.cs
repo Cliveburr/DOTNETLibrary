@@ -1,5 +1,5 @@
 ﻿using Runner.Agent.Interface.Model;
-using Runner.Agent.Scripts;
+using Runner.Agent.Version.Scripts;
 using Runner.Script.Interface.Data;
 using Runner.Script.Interface.Scripts;
 using System;
@@ -10,7 +10,7 @@ using System.Runtime.Loader;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Runner.Agent.Isolation
+namespace Runner.Agent.Version.Isolation
 {
     public static class ScriptIsolation
     {

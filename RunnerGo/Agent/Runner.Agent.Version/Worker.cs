@@ -1,18 +1,18 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Runner.Agent.Interface.Model;
+using Runner.Agent.Version.Helpers;
+using Runner.Agent.Version.Vers;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Runner.Agent.Version
 {
     public static class WorkerEntry
     {
+        public static bool ShouldReload { get; set; } = false;
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static bool Execute(IServiceProvider serviceProvider, CancellationToken stoppingToken)
         {
@@ -23,89 +23,230 @@ namespace Runner.Agent.Version
                 var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
                 var worker = new Worker(logger, configuration);
-                return worker.ExecuteAsync(stoppingToken).Result;
+                try
+                {
+                    worker.ExecuteAsync(stoppingToken).Wait();
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, null);
+                }
+
+                return ShouldReload;
             }
-
-
-
-            //WeakReference workerRef;
-            //var shouldReload = RunIsolated(serviceProvider, stoppingToken, out workerRef);
-            ////var shouldReload = RunIsolated(serviceProvider, stoppingToken);
-
-            //for (int i = 0; workerRef.IsAlive && (i < 10); i++)
-            //{
-            //    GC.Collect();
-            //    GC.WaitForPendingFinalizers();
-            //}
-
-            //return shouldReload;
         }
-
-        //[MethodImpl(MethodImplOptions.NoInlining)]
-        //public static bool RunIsolated(IServiceProvider serviceProvider, CancellationToken stoppingToken, out WeakReference workerRef)
-        //{
-        //    using (var scope =  serviceProvider.CreateScope())
-        //    {
-        //        var loggerFactory = scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
-        //        //var logger = scope.ServiceProvider.GetRequiredService<ILogger<Worker>>();
-        //        var logger = loggerFactory.CreateLogger<Worker>();
-        //        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-
-        //        var worker = new Worker(logger, configuration);
-        //        workerRef = new WeakReference(worker, true);
-        //        var shouldReload = worker.ExecuteAsync(stoppingToken).Result;
-
-        //        return shouldReload;
-        //    }
-        //    //ILogger<Worker>? logger = null;
-        //    //logger = null;
-        //    //ILoggerProvider a;
-        //    //a.CreateLogger
-
-
-        //    //var shouldReload = false;
-
-        //    //var i = 0;
-
-        //    //while (i++ < 3)
-        //    //{
-        //    //    //_logger.LogInformation("Tick at: {time}", DateTimeOffset.Now);
-        //    //    Console.WriteLine("tick");
-
-        //    //    await Task.Delay(1000);
-        //    //}
-
-        //    //return false;
-        //}
     }
 
     public class Worker
     {
         private readonly ILogger<Worker> _logger;
         private readonly IConfiguration _configuration;
+        private HubConnection _connection;
+        private CancellationToken _stoppingToken;
+        private CancellationTokenSource? _reloadSource;
+        private string _versionName;
+        private bool _isWorking;
 
         public Worker(ILogger<Worker> looger, IConfiguration configuration)
         {
             _logger = looger;
             _configuration = configuration;
+
+            var hubHost = configuration["HubHost"];
+            if (string.IsNullOrEmpty(hubHost))
+            {
+                throw new ArgumentNullException(nameof(hubHost));
+            }
+
+            _versionName = VersionInfo.ReadVersionActual();
+
+            _connection = new HubConnectionBuilder()
+                .WithAutomaticReconnect(new KeepAlwaysConnected())
+                .WithUrl(hubHost)
+                .Build();
+
+            _connection.Reconnected += _connection_Reconnected;
+            _connection.Closed += _connection_Closed;
+            _connection.Reconnecting += _connection_Reconnecting;
+
+            //_connection.On("RunScript", [typeof(RunScriptRequest)], RunScript);
+            //_connection.On("StopScript", [], StopScript);
+            _connection.On("UpdateVersion", [typeof(UpdateVersionRequest)], UpdateVersion);
         }
 
-        public async Task<bool> ExecuteAsync(CancellationToken stoppingToken)
+        public async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("Execute begin at: {time}", DateTimeOffset.Now);
 
-            var i = 0;
+            _reloadSource = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
+            _stoppingToken = _reloadSource.Token;
 
-            while (/*!stoppingToken.IsCancellationRequested*/ i++ < 3)
+            await StartAsync();
+
+            await Register();
+
+            var heartBeat = 3000;
+            int.TryParse(_configuration["HeartBeat"], out heartBeat);
+
+            while (!_stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Tick at: {time}", DateTimeOffset.Now);
+                await Task.Delay(heartBeat, _stoppingToken);
 
-                await Task.Delay(1000);
+                if (_connection.State == HubConnectionState.Connected && !_stoppingToken.IsCancellationRequested)
+                {
+                    await Heartbeat();
+                }
             }
 
-            _logger.LogInformation("Execute end at: {time}", DateTimeOffset.Now);
+            await _connection.DisposeAsync();
+        }
 
-            return false;
+        private Task _connection_Reconnecting(Exception? arg)
+        {
+            _logger.LogInformation("Reconnecting at: {time}", DateTimeOffset.Now);
+            return Task.CompletedTask;
+        }
+
+        private Task _connection_Closed(Exception? arg)
+        {
+            _logger.LogInformation("Closed at: {time}", DateTimeOffset.Now);
+            return Task.CompletedTask;
+        }
+
+        private Task _connection_Reconnected(string? arg)
+        {
+            _logger.LogInformation("Reconnected at: {time}", DateTimeOffset.Now);
+            if (_stoppingToken.IsCancellationRequested)
+            {
+                return Task.CompletedTask;
+            }
+            else
+            {
+                return Register();
+            }
+        }
+
+        private async Task StartAsync()
+        {
+            _logger.LogInformation("Starting at: {time}", DateTimeOffset.Now);
+
+            while (true)
+            {
+                try
+                {
+                    await _connection.StartAsync(_stoppingToken);
+                    return;
+                }
+                catch (Exception err)
+                {
+                    try
+                    {
+                        _logger.LogError(err, "Starting error!");
+                    } catch { }
+                    await Task.Delay(3000, _stoppingToken);
+                }
+            }
+        }
+
+        private async Task Register()
+        {
+            _logger.LogInformation("Registring at: {time}", DateTimeOffset.Now);
+
+            try
+            {
+                var accessToken = _configuration.GetValue<string>("AccessToken");
+                var agentPoolPath = _configuration.GetValue<string>("AgentPoolPath");
+                var tags = _configuration.GetSection("Tags").Get<List<string>>();
+                if (accessToken is null || agentPoolPath is null)
+                {
+                    throw new ArgumentNullException("Invalid Agent configuration!");
+                }
+
+
+                await _connection.InvokeAsync("Register", new RegisterRequest
+                {
+                    VersionName = _versionName,
+                    MachineName = Environment.MachineName,
+                    AccessToken = accessToken,
+                    AgentPoolPath = agentPoolPath,
+                    Tags = tags ?? new List<string>()
+                }, _stoppingToken);
+            }
+            catch (Exception err)
+            {
+                try
+                {
+                    await _connection.StopAsync(_stoppingToken);
+                } catch { }
+                _logger.LogError(err, "Register error!");
+            }
+        }
+
+        private async Task Heartbeat()
+        {
+            _logger.LogInformation("Heart beating version {vers} at: {time}", _versionName, DateTimeOffset.Now);
+
+            try
+            {
+                await _connection.InvokeAsync("Heartbeat", _stoppingToken);
+            }
+            catch (Exception err)
+            {
+                try
+                {
+                    _logger.LogError(err, "Heartbeat error!");
+                } catch { }
+            }
+        }
+
+        private Task UpdateVersion(object?[] parameters)
+        {
+            var request = parameters?.Length > 0 ?
+                parameters[0] as UpdateVersionRequest :
+                null;
+            _logger.LogInformation("update version at: {time}", DateTimeOffset.Now);
+
+            if (request == null)
+            {
+                throw new ArgumentNullException("UpdateVersionRequest");
+            }
+
+            var versionName = VersionManager.VersionName(request);
+            if (_versionName == versionName)
+            {
+                return Task.CompletedTask;
+            }
+
+            if (_isWorking)
+            {
+                throw new Exception("Agent is busy!");
+            }
+
+            _isWorking = true;
+
+            var versionPath = VersionManager.VersionDirectory(request);
+
+            IO.ClearDirectory(versionPath);
+
+            Zip.Descompat(request.Content, versionPath);
+
+            _ = Task.Run(() =>
+            {
+                VersionInfo.PerformUpgrade(versionName);
+
+                WorkerEntry.ShouldReload = true;
+
+                try
+                {
+                    _connection.StopAsync(_stoppingToken).Wait();
+                } catch { }
+                if (_reloadSource is not null && !_reloadSource.IsCancellationRequested)
+                {
+                    _reloadSource.Cancel();
+                }
+            });
+
+            return Task.CompletedTask;
         }
     }
 }

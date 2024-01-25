@@ -27,6 +27,12 @@ namespace Runner.Business.Services.NodeTypes
                 .FirstOrDefaultAsync(a => a.NodeId == nodeId);
         }
 
+        public Task<Agent?> ReadById(ObjectId agentId)
+        {
+            return Agent
+                .FirstOrDefaultAsync(a => a.AgentId == agentId);
+        }
+
         public Task<AgentPool?> ReadAgentPoolByNodeId(ObjectId nodeId)
         {
             return AgentPool
@@ -45,7 +51,7 @@ namespace Runner.Business.Services.NodeTypes
                 .Where(c => !invalidChars.Contains(c)).ToArray());
         }
 
-        public async Task<(ObjectId AgentPoolNodeId, ObjectId AgentNodeId)> Register(string agentPoolPath, string machineName, List<string> tags)
+        public async Task<(ObjectId AgentPoolId, ObjectId AgentId)> Register(string agentPoolPath, string machineName, string versionName, List<string> tags)
         {
             Assert.MustNotNull(_identityProvider.User, "Need to be logged to register agent!");
 
@@ -80,6 +86,7 @@ namespace Runner.Business.Services.NodeTypes
                 {
                     NodeId = agentNode.NodeId,
                     MachineName = machineName,
+                    VersionName = versionName,
                     RegistredTags = tags,
                     Status = AgentStatus.Idle,
                     Enabled = true
@@ -87,7 +94,7 @@ namespace Runner.Business.Services.NodeTypes
                 await Agent
                     .InsertAsync(agent);
 
-                return (agentPool.NodeId, agent.NodeId);
+                return (agentPool.AgentPoolId, agent.AgentId);
             }
             else
             {
@@ -111,22 +118,25 @@ namespace Runner.Business.Services.NodeTypes
 
                 var agentUpdate = Builders<Agent>.Update
                     .Set(a => a.MachineName, machineName)
+                    .Set(a => a.VersionName, versionName)
                     .Set(a => a.RegistredTags, tags)
                     .Set(a => a.Status, AgentStatus.Idle);
                 await Agent
                     .UpdateAsync(a => a.AgentId == agent.AgentId, agentUpdate);
 
-                return (agentPool.NodeId, agent.NodeId);
+                return (agentPool.AgentPoolId, agent.AgentId);
             }
         }
 
-        public async Task UpdateOffline(ObjectId agentNodeId)
+        public async Task UpdateOffline(ObjectId agentId)
         {
-            var agent = await ReadByNodeId(agentNodeId);
+            var agent = await ReadById(agentId);
             Assert.MustNotNull(agent, "Internal error! CODE Agent");
 
             if (agent.Status != AgentStatus.Offline)
             {
+                await _nodeService.UpdateUtc(agent.NodeId);
+
                 var agentUpdate = Builders<Agent>.Update
                     .Set(a => a.Status, AgentStatus.Offline);
                 await Agent

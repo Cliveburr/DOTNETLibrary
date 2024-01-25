@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Unicode;
 
-namespace Runner.Agent.vers
+namespace Runner.Agent.Version.Vers
 {
     public static class VersionInfo
     {
@@ -116,6 +116,43 @@ namespace Runner.Agent.vers
                 json["versionActual"] = versionActual - 1;
                 Write(json);
             }
+        }
+
+        public static void PerformUpgrade(string versionName)
+        {
+            var json = Read();
+
+            var versionActualProp = json["versionActual"];
+            if (versionActualProp is null)
+            {
+                throw new JsonException("Invalid versionsinfo.json, versionActual null!");
+            }
+
+            var versionActual = versionActualProp.GetValue<int>();
+
+            var versionsProp = json["versions"];
+            if (versionsProp is null)
+            {
+                throw new JsonException("Invalid versionsinfo.json, versionActual null!");
+            }
+
+            var versions = versionsProp.AsArray()
+                .Select(p => p?.GetValue<string>())
+                .Where(p => !string.IsNullOrEmpty(p))
+                .ToList();
+
+            var has = versions.IndexOf(versionName);
+            if (has > -1)
+            {
+                versions.RemoveAt(has);
+            }
+
+            versions.Add(versionName);
+            versionActual = versions.Count - 1;
+
+            json["versionActual"] = versionActual;
+            versionsProp.ReplaceWith(versions);
+            Write(json);
         }
     }
 }

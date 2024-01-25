@@ -3,6 +3,7 @@ namespace Runner.Agent.Interface.Model
 {
     public class RegisterRequest
     {
+        public required string VersionName { get; set; }
         public required string MachineName { get; set; }
         public required string AgentPoolPath { get; set; }
         public required string AccessToken { get; set; }
