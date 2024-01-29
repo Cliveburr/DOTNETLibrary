@@ -1,5 +1,4 @@
-﻿using Amazon.Runtime.Internal;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using Runner.Agent.Hosting.Helpers;
@@ -12,7 +11,6 @@ using Runner.Business.Services;
 using Runner.Business.Services.NodeTypes;
 using Runner.Business.WatcherNotification;
 using System.Security.Authentication;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace Runner.Agent.Hosting.Services
 {
@@ -401,7 +399,7 @@ namespace Runner.Agent.Hosting.Services
             }
         }
 
-        internal async Task ScriptFinish(string connectionId, ScriptFinishRequest request)
+        internal async Task ScriptFinish(string connectionId, RunScriptResponse request)
         {
             var agentConnect = FindByConnectionId(connectionId);
             if (agentConnect != null)

@@ -1,10 +1,5 @@
 ﻿using Runner.Agent.Interface.Model;
-using System;
-using System.Collections.Generic;
-using System.IO.Compression;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Runner.Agent.Version.Helpers;
 
 namespace Runner.Agent.Version.Scripts
 {
@@ -12,7 +7,7 @@ namespace Runner.Agent.Version.Scripts
     {
         public static string ScriptDirectory(RunScriptRequest request)
         {
-            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "src", request.Id, $"v{request.Version}");
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "src", request.ScriptId, $"v{request.Version}");
         }
 
         public static bool CheckIfExist(RunScriptRequest request)
@@ -31,18 +26,10 @@ namespace Runner.Agent.Version.Scripts
             }
             else
             {
-                Helpers.IO.ClearDirectory(scriptPath);
+                IO.ClearDirectory(scriptPath);
             }
 
-            using (var memoryStream = new MemoryStream(getScriptResponse.ZipContent))
-            using (var zip = new ZipArchive(memoryStream))
-            {
-                foreach (var file in zip.Entries)
-                {
-                    var fullFileName = Path.Combine(scriptPath, file.FullName);
-                    file.ExtractToFile(fullFileName);
-                }
-            }
+            Zip.Descompat(getScriptResponse.Content, scriptPath);
         }
     }
 }

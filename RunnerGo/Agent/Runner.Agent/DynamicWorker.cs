@@ -73,7 +73,6 @@ namespace Runner.Agent
 
             _stoppingSource = new CancellationTokenSource();
 
-            var context = new VersionAssemblyLoadContext();
             WeakReference contextRef;
             ExecuteAndUnload(out contextRef);
 
@@ -155,7 +154,6 @@ namespace Runner.Agent
         {
             return AppDomain.CurrentDomain.GetAssemblies()
                 .Any(a => (a.FullName ?? "").Contains("Runner.Agent.Version"));
-
         }
     }
 }

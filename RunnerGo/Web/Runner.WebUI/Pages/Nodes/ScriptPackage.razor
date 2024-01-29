@@ -1,0 +1,91 @@
+﻿@using MongoDB.Bson
+@using Runner.Business.Model.Nodes.Types
+@inherits NodeBasePase
+@inject FolderService folderService
+@inject NodeService nodeService
+@inject IServiceProvider serviceProvider
+
+
+<div class="container">
+
+    <div class="box mt-4">
+        <h3 class="title is-3">Folder: @Node.Name <NodeTypeIcon Type="NodeType.Folder" /></h3>
+    </div>
+
+    <div class="buttons mt-3">
+        <button type="button" class="button is-primary" @onclick="NodeBack">
+            <span class="icon is-small">
+                <i class="fa-solid fa-square-caret-left"></i>
+            </span>
+        </button>
+        <button type="button" class="button is-info" @onclick="OnRefresh_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-rotate-right"></i>
+            </span>
+            <span>Refresh</span>
+        </button>
+        <button type="button" class="button is-primary" @onclick="OnRename_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-signature"></i>
+            </span>
+            <span>Rename</span>
+        </button>
+        <button type="button" class="button is-success" @onclick="OnCreate_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-circle-plus"></i>
+            </span>
+            <span>Create</span>
+        </button>
+        <button type="button" class="button is-danger" @onclick="OnDelete_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-trash"></i>
+            </span>
+            <span>Delete</span>
+        </button>
+    </div>
+
+    <div class="box mt-3">
+        @if (items != null)
+        {
+            <DataTable Items="items">
+                <Header>
+                <tr>
+                    <th class="w50px">Type</th>
+                    <th>Name</th>
+                    <th>Created</th>
+                    <th>Updated</th>
+                </tr>
+                </Header>
+                <Body Context="Item">
+                <tr class="pointer" @onclick="@(_ => OnItem_Click(Item))">
+                    <td class="has-text-centered">
+                        <NodeTypeIcon Type="Item.Type" />
+                    </td>
+                    <td>@Item.Name</td>
+                    <td>@Item.CreatedUtc</td>
+                    <td>@Item.UpdatedUtc</td>
+                </tr>
+                </Body>
+            </DataTable>
+        }
+    </div>
+</div>
+
+@code {
+
+
+    private List<Node>? items;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await OnRefresh_Click();
+    }
+
+    public async Task OnRefresh_Click()
+    {
+        items = await nodeService.ReadChilds(Node.NodeId);
+        StateHasChanged();
+    }
+
+}

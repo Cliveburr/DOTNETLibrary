@@ -38,5 +38,8 @@ namespace Runner.Business.DataAccess
         protected CollectionAdapter<Entities.Nodes.Types.DataType> DataType { get => GetCollectionAdapter<Entities.Nodes.Types.DataType>("DataType"); }
         protected CollectionAdapter<Entities.Nodes.Types.AgentPool> AgentPool { get => GetCollectionAdapter<Entities.Nodes.Types.AgentPool>("AgentPool"); }
         protected CollectionAdapter<Entities.Nodes.Types.Agent> Agent { get => GetCollectionAdapter<Entities.Nodes.Types.Agent>("Agent"); }
+        protected CollectionAdapter<Entities.Nodes.Types.ScriptPackage> ScriptPackage { get => GetCollectionAdapter<Entities.Nodes.Types.ScriptPackage>("ScriptPackage"); }
+        protected CollectionAdapter<Entities.Nodes.Types.Script> Script { get => GetCollectionAdapter<Entities.Nodes.Types.Script>("Script"); }
+        protected CollectionAdapter<Entities.Nodes.Types.ScriptContent> ScriptContent { get => GetCollectionAdapter<Entities.Nodes.Types.ScriptContent>("ScriptContent"); }
     }
 }

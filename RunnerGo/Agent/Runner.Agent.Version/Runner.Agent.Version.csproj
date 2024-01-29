@@ -16,6 +16,10 @@
     <ProjectReference Include="..\Runner.Agent.Interface\Runner.Agent.Interface.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Isolation\" />
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputPath>..\Runner.Agent\bin\Debug\net8.0\vers\dev</OutputPath>
   </PropertyGroup>

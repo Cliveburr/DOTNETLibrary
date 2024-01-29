@@ -4,7 +4,7 @@ namespace Runner.Agent.Version.Helpers
 {
     public static class Zip
     {
-        public static void Descompat(byte[] content, string versionPath)
+        public static void Descompat(byte[] content, string path)
         {
             using (var memoryStream = new MemoryStream(content))
             using (var zip = new ZipArchive(memoryStream, ZipArchiveMode.Read))
@@ -16,7 +16,7 @@ namespace Runner.Agent.Version.Helpers
                         continue;
                     }
 
-                    var fileFullPath = Path.Combine(versionPath, entry.FullName);
+                    var fileFullPath = Path.Combine(path, entry.FullName);
                     var fileDirectory = Path.GetDirectoryName(fileFullPath)!;
 
                     if (!Directory.Exists(fileDirectory))

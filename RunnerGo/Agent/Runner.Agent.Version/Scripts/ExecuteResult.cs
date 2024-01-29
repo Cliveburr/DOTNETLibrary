@@ -1,11 +1,6 @@
 ﻿using Runner.Script.Interface.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Runner.Agent.Version.Isolation
+namespace Runner.Agent.Version.Scripts
 {
     public record ExecuteResult
     {

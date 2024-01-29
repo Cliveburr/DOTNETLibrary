@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Runner.Agent.Interface.Model;
 using Runner.Agent.Version.Helpers;
+using Runner.Agent.Version.Scripts;
 using Runner.Agent.Version.Vers;
 using System.Runtime.CompilerServices;
 
@@ -46,6 +47,7 @@ namespace Runner.Agent.Version
         private CancellationTokenSource? _reloadSource;
         private string _versionName;
         private bool _isWorking;
+        private CancellationTokenSource? _executionCancellation;
 
         public Worker(ILogger<Worker> looger, IConfiguration configuration)
         {
@@ -69,8 +71,8 @@ namespace Runner.Agent.Version
             _connection.Closed += _connection_Closed;
             _connection.Reconnecting += _connection_Reconnecting;
 
-            //_connection.On("RunScript", [typeof(RunScriptRequest)], RunScript);
-            //_connection.On("StopScript", [], StopScript);
+            _connection.On("RunScript", [typeof(RunScriptRequest)], RunScript);
+            _connection.On("StopScript", [], StopScript);
             _connection.On("UpdateVersion", [typeof(UpdateVersionRequest)], UpdateVersion);
         }
 
@@ -247,6 +249,94 @@ namespace Runner.Agent.Version
             });
 
             return Task.CompletedTask;
+        }
+
+
+        private async Task RunScript(object?[] parameters)
+        {
+            var request = parameters?.Length > 0 ?
+                parameters[0] as RunScriptRequest :
+                null;
+            _logger.LogInformation("Run script at: {time}", DateTimeOffset.Now);
+
+            try
+            {
+                if (request is null)
+                {
+                    throw new ArgumentNullException("RunScriptRequest");
+                }
+
+                await _connection.InvokeAsync("ScriptStarted", _stoppingToken);
+
+                if (!ScriptsManager.CheckIfExist(request))
+                {
+                    var getScriptResponse = await _connection.InvokeAsync<GetScriptResponse>("GetScript",
+                        new GetScriptRequest
+                        {
+                            ScriptId = request.ScriptId,
+                            Version = request.Version
+                        }, _stoppingToken);
+                    if (getScriptResponse is null)
+                    {
+                        throw new ArgumentNullException("GetScriptRequest");
+                    }
+                    ScriptsManager.Create(request, getScriptResponse);
+                }
+
+                _executionCancellation = new CancellationTokenSource();
+                var executeCancelationToken = CancellationTokenSource.CreateLinkedTokenSource(_executionCancellation.Token, _stoppingToken);
+                var scriptIsolation = new ScriptIsolation(request, ScriptLog);
+                var result = await scriptIsolation.Execute(executeCancelationToken.Token);
+                _executionCancellation = null;
+
+                await _connection.InvokeAsync("ScriptFinish",
+                    new RunScriptResponse
+                    {
+                        IsSuccess = result.IsSuccess,
+                        ContinueOnError = result.ContinueOnError,
+                        ErrorMessage = result.ErrorMessage,
+                        Output = result.Output?.Changes,
+                    }, _stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    await _connection.InvokeAsync("ScriptError",
+                        new ScriptErrorRequest
+                        {
+                            Error = ex.ToString()
+                        }, _stoppingToken);
+                }
+                catch (Exception err)
+                {
+                    _logger.LogError(err, "ScriptError error!");
+                }
+            }
+        }
+
+        private Task StopScript(object?[] parameters)
+        {
+            _logger.LogInformation("Stop script at: {time}", DateTimeOffset.Now);
+
+            if (_executionCancellation is not null && !_executionCancellation.IsCancellationRequested)
+            {
+                _executionCancellation.Cancel();
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private async Task ScriptLog(string text)
+        {
+            _logger.LogInformation("Script log at: {time}", DateTimeOffset.Now);
+
+            var request = new ScriptLogRequest
+            {
+                Text = text
+            };
+
+            await _connection.InvokeAsync("ScriptLog", request, _stoppingToken);
         }
     }
 }

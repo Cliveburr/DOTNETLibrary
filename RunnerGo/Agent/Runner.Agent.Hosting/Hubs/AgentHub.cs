@@ -1,13 +1,6 @@
-﻿using Amazon.Runtime.Internal;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using Runner.Agent.Hosting.Services;
 using Runner.Agent.Interface.Model;
-using Runner.Business.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Runner.Agent.Hosting.Hubs
 {
@@ -45,7 +38,7 @@ namespace Runner.Agent.Hosting.Hubs
             return _agentManagerService.ScriptError(Context.ConnectionId, request);
         }
 
-        public Task ScriptFinish(ScriptFinishRequest request)
+        public Task ScriptFinish(RunScriptResponse request)
         {
             return _agentManagerService.ScriptFinish(Context.ConnectionId, request);
         }
