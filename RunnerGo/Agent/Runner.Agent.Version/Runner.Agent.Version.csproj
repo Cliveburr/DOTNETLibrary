@@ -13,11 +13,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Common\Runner.Common\Runner.Common.csproj" />
+    <ProjectReference Include="..\..\Script\Runner.Script.Interface\Runner.Script.Interface.csproj" />
     <ProjectReference Include="..\Runner.Agent.Interface\Runner.Agent.Interface.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Isolation\" />
   </ItemGroup>
 
   <PropertyGroup>

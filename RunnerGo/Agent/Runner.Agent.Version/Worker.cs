@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Runner.Agent.Interface.Model;
-using Runner.Agent.Version.Helpers;
+using Runner.Common.Helpers;
 using Runner.Agent.Version.Scripts;
 using Runner.Agent.Version.Vers;
 using System.Runtime.CompilerServices;
@@ -295,7 +295,7 @@ namespace Runner.Agent.Version
                         IsSuccess = result.IsSuccess,
                         ContinueOnError = result.ContinueOnError,
                         ErrorMessage = result.ErrorMessage,
-                        Output = result.Output?.Changes,
+                        Data = result.Data,
                     }, _stoppingToken);
             }
             catch (Exception ex)

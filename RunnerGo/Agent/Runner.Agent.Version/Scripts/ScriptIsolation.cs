@@ -1,15 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Runner.Agent.Interface.Model;
-using Runner.Script.Interface.Data;
+﻿using Runner.Agent.Interface.Model;
+using Runner.Script.Interface.Model.Data;
 using Runner.Script.Interface.Scripts;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.Loader;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Runner.Agent.Version.Scripts
 {
@@ -112,12 +104,20 @@ namespace Runner.Agent.Version.Scripts
 
             try
             {
+                var dataMap = _request.Data
+                    .Select(p => new DataProperty
+                    {
+                        Name = p.Name,
+                        Type = (DataTypeEnum)p.Type,
+                        Value = p.Value
+                    })
+                    .ToList();
+
                 var scriptRunContext = new ScriptRunContext
                 {
                     IsSuccess = true,
                     ContinueOnError = false,
-                    Input = new DataReader(_request.Input),
-                    Output = new DataWriter(),
+                    Data = new Data(dataMap),
                     Log = _log,
                     CancellationToken = cancellationToken
                 };
@@ -129,7 +129,12 @@ namespace Runner.Agent.Version.Scripts
                     IsSuccess = scriptRunContext.IsSuccess,
                     ContinueOnError = scriptRunContext.ContinueOnError,
                     ErrorMessage = scriptRunContext.ErrorMessage,
-                    Output = scriptRunContext.Output
+                    Data = scriptRunContext.Data.MapTo(s =>
+                        new Interface.Model.Data.DataState
+                        {
+                            Property = new Interface.Model.Data.DataProperty { Name = s.Property.Name, Type = (Interface.Model.Data.DataTypeEnum)s.Property.Type, Value = s.Property.Value },
+                            State = (Interface.Model.Data.DataStateType)s.State
+                        })
                 };
             }
             catch (Exception ex)

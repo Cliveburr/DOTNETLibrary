@@ -1,5 +1,5 @@
 ﻿using Runner.Agent.Interface.Model;
-using Runner.Agent.Version.Helpers;
+using Runner.Common.Helpers;
 
 namespace Runner.Agent.Version.Scripts
 {

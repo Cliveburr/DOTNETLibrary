@@ -1,15 +1,14 @@
 ﻿@using MongoDB.Bson
 @using Runner.Business.Model.Nodes.Types
 @inherits NodeBasePase
-@inject FolderService folderService
+@inject ScriptPackageService scriptPackageService
 @inject NodeService nodeService
 @inject IServiceProvider serviceProvider
-
 
 <div class="container">
 
     <div class="box mt-4">
-        <h3 class="title is-3">Folder: @Node.Name <NodeTypeIcon Type="NodeType.Folder" /></h3>
+        <h3 class="title is-3">ScriptPackage: @Node.Name <NodeTypeIcon Type="NodeType.ScriptPackage" /></h3>
     </div>
 
     <div class="buttons mt-3">
@@ -30,18 +29,30 @@
             </span>
             <span>Rename</span>
         </button>
-        <button type="button" class="button is-success" @onclick="OnCreate_Click">
-            <span class="icon is-small">
-                <i class="fa-solid fa-circle-plus"></i>
-            </span>
-            <span>Create</span>
-        </button>
         <button type="button" class="button is-danger" @onclick="OnDelete_Click">
             <span class="icon is-small">
                 <i class="fa-solid fa-trash"></i>
             </span>
             <span>Delete</span>
         </button>
+    </div>
+
+    <div class="box mt-3">
+        @if (scriptPackageNode is not null && scriptPackageNode.ExtractJobId is not null)
+        {
+            <div class="notification is-primary">
+                <strong>ScriptPackage in extract scripts process...</strong>
+            </div>
+        }
+        else
+        {
+            <button type="button" class="button is-success" @onclick="OnUpload_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-circle-plus"></i>
+                </span>
+                <span>Upload</span>
+            </button>
+        }
     </div>
 
     <div class="box mt-3">
@@ -73,13 +84,21 @@
 
 @code {
 
-
+    private Runner.Business.Entities.Nodes.Types.ScriptPackage? scriptPackageNode;
     private List<Node>? items;
-
 
     protected override async Task OnInitializedAsync()
     {
-        await OnRefresh_Click();
+        scriptPackageNode = await scriptPackageService.ReadByNodeId(Node.NodeId);
+        if (scriptPackageNode == null)
+        {
+            await Notification.AddError("ScriptPackage not found!");
+            PageNotFound();
+        }
+        else
+        {
+            await OnRefresh_Click();
+        }
     }
 
     public async Task OnRefresh_Click()
@@ -88,4 +107,82 @@
         StateHasChanged();
     }
 
+
+    public void OnItem_Click(Node node)
+    {
+        FowardNode(node);
+    }
+
+    public async Task OnUpload_Click()
+    {
+        var response = await Modal.InputFiles(new Components.Modal.Inputs.InputFileRequest
+            {
+                Title = "Upload Script Package",
+                FileLabel = "Zip file content scripts"
+            });
+        if (response is not null)
+        {
+            try
+            {
+                Assert.MustTrue(response.Files.Count == 1, "Only one zip file is allowed!");
+
+                var file = response.Files[0];
+
+                await scriptPackageService.ExtractScripts(Node.NodeId, file.Name, file.Content);
+            }
+            catch (Exception err)
+            {
+                await Notification.AddError(err);
+                return;
+            }
+            await OnRefresh_Click();
+        }
+    }
+
+    private async Task OnDelete_Click()
+    {
+        if (await Modal.Question(new Components.Modal.Question.QuestionRequest
+            {
+                Title = "Delete",
+                Question = "Confirm delete this node?"
+            }) ?? false)
+        {
+            try
+            {
+                await scriptPackageService.DeleteByNode(Node);
+            }
+            catch (Exception err)
+            {
+                await Notification.AddError(err);
+                return;
+            }
+
+            NodeBack();
+        }
+    }
+
+    private async Task OnRename_Click()
+    {
+        var newName = await Modal.InputText(new Components.Modal.Inputs.InputTextRequest
+            {
+                Title = "Rename Node",
+                Value = Node.Name,
+                PlaceHolder = "Node name"
+            });
+
+        if (!string.IsNullOrEmpty(newName))
+        {
+            try
+            {
+                await nodeService.UpdateName(Node.NodeId, newName);
+
+                Node.Name = newName;
+            }
+            catch (Exception err)
+            {
+                await Notification.AddError(err);
+                return;
+            }
+        }
+    }
 }

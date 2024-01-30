@@ -7,7 +7,6 @@ namespace Runner.Business.Entities.Nodes.Types
     {
         [BsonId]
         public ObjectId ScriptContentId { get; set; }
-        public ObjectId ScriptId { get; set; }
         public DateTime CreatedUtc { get; set; }
         public required string FileName { get; set; }
         public required byte[] FileContent { get; set; }

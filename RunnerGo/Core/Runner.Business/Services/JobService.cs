@@ -1,7 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using Runner.Business.DataAccess;
-using Runner.Business.Entities.AgentVersion;
 using Runner.Business.Entities.Job;
 using Runner.Business.Security;
 using Runner.Business.WatcherNotification;
@@ -35,7 +34,6 @@ namespace Runner.Business.Services
                 Type = JobType.AgentUpdate,
                 Status = JobStatus.Waiting,
                 Queued = DateTime.UtcNow,
-
                 AgentId = agentId
             };
 
@@ -43,6 +41,25 @@ namespace Runner.Business.Services
                 .InsertAsync(job);
 
             _manualAgentWatcherNotification?.InvokeJobCreated(job);
+        }
+
+        public async Task<Job> AddExtractScriptPackage(ObjectId scriptContentId, ObjectId scriptPackageId)
+        {
+            var job = new Job
+            {
+                Type = JobType.ExtractScriptPackage,
+                Status = JobStatus.Waiting,
+                Queued = DateTime.UtcNow,
+                ScriptContentId = scriptContentId,
+                ScriptPackageId = scriptPackageId
+            };
+
+            await Job
+                .InsertAsync(job);
+
+            _manualAgentWatcherNotification?.InvokeJobCreated(job);
+
+            return job;
         }
 
         public Task<List<Job>> ReadJobsWaitingOfTypes(JobType[] types)

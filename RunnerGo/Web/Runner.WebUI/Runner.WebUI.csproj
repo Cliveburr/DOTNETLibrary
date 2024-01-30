@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Agent\Runner.Agent.Hosting\Runner.Agent.Hosting.csproj" />
     <ProjectReference Include="..\..\Core\Runner.Business\Runner.Business.csproj" />
+    <ProjectReference Include="..\..\Script\Runner.Script.Hosting\Runner.Script.Hosting.csproj" />
   </ItemGroup>
 
 </Project>

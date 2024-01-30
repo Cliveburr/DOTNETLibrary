@@ -20,6 +20,8 @@ namespace Runner.Business.Entities.Job
         public DateTime? End { get; set; }
 
         public ObjectId? AgentId { get; set; }
+        public ObjectId? ScriptContentId { get; set; }
+        public ObjectId? ScriptPackageId { get; set; }
     }
 
     //public class JobAgentUpdate : Job

@@ -22,19 +22,23 @@ namespace Runner.Business.Services
 
         public Task<Node?> ReadLocation(string path)
         {
-            var parts = new System.Collections.Queue(path
+            var parts = new System.Collections.Queue(path.ToLower()
                 .Split("/", StringSplitOptions.RemoveEmptyEntries));
-            return ReadLocation(parts);
-        }
-
-        public async Task<Node?> ReadLocation(System.Collections.Queue parts)
-        {
             if (parts.Count == 0)
             {
-                return null;
+                return Task.FromResult<Node?>(null);
             }
-            return await ReadLocation_Recursive(parts, null);
+            return ReadLocation_Recursive(parts, null);
         }
+
+        //public async Task<Node?> ReadLocation(System.Collections.Queue parts)
+        //{
+        //    if (parts.Count == 0)
+        //    {
+        //        return null;
+        //    }
+        //    return await ReadLocation_Recursive(parts, null);
+        //}
 
         private async Task<Node?> ReadLocation_Recursive(System.Collections.Queue parts, ObjectId? parentId)
         {
@@ -44,7 +48,7 @@ namespace Runner.Business.Services
                 return null;
             }
             var found = await Node
-                   .FirstOrDefaultAsync(n => n.Name == name.ToLower() && n.ParentId == parentId);
+                   .FirstOrDefaultAsync(n => n.Name.ToLower() == name && n.ParentId == parentId);
             //Node? found = null;
             //if (parent == null)
             //{

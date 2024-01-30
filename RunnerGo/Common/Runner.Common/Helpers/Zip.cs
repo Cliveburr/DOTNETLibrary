@@ -1,6 +1,6 @@
 ﻿using System.IO.Compression;
 
-namespace Runner.Agent.Version.Helpers
+namespace Runner.Common.Helpers
 {
     public static class Zip
     {

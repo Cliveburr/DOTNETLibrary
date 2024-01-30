@@ -11,10 +11,4 @@
 	<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Runner.Agent.Interface\Runner.Agent.Interface.csproj" />
-    <ProjectReference Include="..\Runner.Agent.Version\Runner.Agent.Version.csproj" />
-    <ProjectReference Include="..\Runner.Script.Interface\Runner.Script.Interface.csproj" />
-  </ItemGroup>
 </Project>

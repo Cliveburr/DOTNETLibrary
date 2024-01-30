@@ -64,24 +64,13 @@
         Data = 2,
         DataType = 3,
         AgentPool = 4,
-
-        // Flow = 4,
-        // ScriptPackage = 8
+        ScriptPackage = 6
     }
 
     public int step;
 
     private string? name;
     private NodeType selNodeType;
-
-    // protected override void OnInitialized()
-    // {
-    //     data = Data as QuestionData;
-    //     if (data == null)
-    //     {
-    //         throw new Exception("QuestionData invalid!");
-    //     }
-    // }
 
     public void Next()
     {

@@ -1,0 +1,140 @@
+﻿@using MongoDB.Bson
+@using Runner.Business.Entities.Nodes.Types
+@using Runner.Business.Model.Nodes.Types
+@inherits NodeBasePase
+@inject ScriptService scriptService
+@inject NodeService nodeService
+@inject IServiceProvider serviceProvider
+
+<div class="container">
+
+    <div class="box mt-4">
+        <h3 class="title is-3">Script: @Node.Name <NodeTypeIcon Type="NodeType.Script" /></h3>
+    </div>
+
+    <div class="buttons mt-3">
+        <button type="button" class="button is-primary" @onclick="NodeBack">
+            <span class="icon is-small">
+                <i class="fa-solid fa-square-caret-left"></i>
+            </span>
+        </button>
+        <button type="button" class="button is-info" @onclick="OnRefresh_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-rotate-right"></i>
+            </span>
+            <span>Refresh</span>
+        </button>
+        <button type="button" class="button is-danger" @onclick="OnDelete_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-trash"></i>
+            </span>
+            <span>Delete</span>
+        </button>
+    </div>
+
+    <div class="box mt-3">
+        @if (scriptNode != null)
+        {
+            <DataTable Items="scriptNode.Versions">
+                <Header>
+                <tr>
+                    <th class="w50px">Version</th>
+                    <th>Assembly</th>
+                    <th>FullTypeName</th>
+                    <th></th>
+                </tr>
+                </Header>
+                <Body Context="Item">
+                <tr class="pointer">
+                    <td class="has-text-centered">@Item.Version</td>
+                    <td>@Item.Assembly</td>
+                    <td>@Item.FullTypeName</td>
+                    <td>
+                        <button type="button" class="button is-danger" @onclick="(() => OnDeleteVersion_Click(Item))">
+                            <span class="icon is-small">
+                                <i class="fa-solid fa-trash"></i>
+                            </span>
+                        </button>
+                    </td>
+                </tr>
+                </Body>
+            </DataTable>
+        }
+    </div>
+</div>
+
+@code {
+
+    private Runner.Business.Entities.Nodes.Types.Script? scriptNode;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await OnRefresh_Click();
+    }
+
+    public async Task OnRefresh_Click()
+    {
+        scriptNode = await scriptService.ReadByNodeId(Node.NodeId);
+        if (scriptNode == null)
+        {
+            await Notification.AddError("Scrip not found!");
+            PageNotFound();
+        }
+        else
+        {
+        }
+    }
+
+
+    public void OnItem_Click(Node node)
+    {
+        //FowardNode(node);
+    }
+
+    private async Task OnDelete_Click()
+    {
+        if (await Modal.Question(new Components.Modal.Question.QuestionRequest
+            {
+                Title = "Delete",
+                Question = "Confirm delete this script and all his versions?"
+            }) ?? false)
+        {
+            try
+            {
+                await scriptService.DeleteByNode(Node);
+            }
+            catch (Exception err)
+            {
+                await Notification.AddError(err);
+                return;
+            }
+
+            NodeBack();
+        }
+    }
+
+    private async Task OnDeleteVersion_Click(ScriptVersion scriptVersion)
+    {
+        if (scriptNode is not null)
+        {
+            if (await Modal.Question(new Components.Modal.Question.QuestionRequest
+                {
+                    Title = "Delete",
+                    Question = "Confirm delete this versions"
+                }) ?? false)
+            {
+                try
+                {
+                    await scriptService.DeleteVersion(scriptNode, scriptVersion);
+                }
+                catch (Exception err)
+                {
+                    await Notification.AddError(err);
+                    return;
+                }
+
+                await OnRefresh_Click();
+            }
+        }
+    }
+}

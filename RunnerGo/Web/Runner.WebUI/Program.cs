@@ -2,6 +2,7 @@ using Runner.Agent.Hosting.DependecyInjection;
 using Runner.WebUI.Pages.Main;
 using Runner.WebUI.DependecyInjection;
 using Runner.Business.DependecyInjection;
+using Runner.Script.Hosting.DependecyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,13 +10,10 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services
-    .AddWebUIServices();
-
-builder.Services
-    .AddBusinessServices(builder.Configuration);
-
-builder.Services
-    .AddAgentHosting();
+    .AddWebUIServices()
+    .AddBusinessServices(builder.Configuration)
+    .AddAgentHosting()
+    .AddScriptHosting();
 
 
 
@@ -41,5 +39,6 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.MapAgentHub();
+app.InitializeScriptManager();
 
 app.Run();

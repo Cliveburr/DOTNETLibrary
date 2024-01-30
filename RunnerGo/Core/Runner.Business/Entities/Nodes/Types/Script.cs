@@ -8,7 +8,8 @@ namespace Runner.Business.Entities.Nodes.Types
         [BsonId]
         public ObjectId ScriptId { get; set; }
         public required ObjectId NodeId { get; set; }
-        public required Dictionary<int, ScriptVersion> Versions { get; set; }
+        public int NextVersion { get; set; }
+        public required List<ScriptVersion> Versions { get; set; }
     }
 
     public class ScriptVersion

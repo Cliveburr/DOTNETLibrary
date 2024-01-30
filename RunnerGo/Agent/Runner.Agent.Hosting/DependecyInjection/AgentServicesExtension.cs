@@ -21,6 +21,11 @@ namespace Runner.Agent.Hosting.DependecyInjection
         public static void MapAgentHub(this WebApplication app)
         {
             app.MapHub<AgentHub>("/hub/agent");
+
+            using (var scope = app.Services.CreateScope())
+            {
+                _ = scope.ServiceProvider.GetRequiredService<AgentManagerService>();
+            }
         }
     }
 }

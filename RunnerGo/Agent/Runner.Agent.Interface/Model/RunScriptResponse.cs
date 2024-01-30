@@ -1,4 +1,4 @@
-﻿using Runner.Script.Interface.Data;
+﻿using Runner.Agent.Interface.Model.Data;
 
 namespace Runner.Agent.Interface.Model
 {
@@ -7,6 +7,6 @@ namespace Runner.Agent.Interface.Model
         public bool IsSuccess { get; set; }
         public bool ContinueOnError { get; set; }
         public string? ErrorMessage { get; set; }
-        public List<DataWriterChanges>? Output { get; set; }
+        public List<DataState>? Data { get; set; }
     }
 }

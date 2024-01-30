@@ -1,10 +1,7 @@
-﻿using Runner.Business.DataAccess;
+﻿using MongoDB.Bson;
+using Runner.Business.DataAccess;
+using Runner.Business.Entities.Nodes.Types;
 using Runner.Business.Security;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Runner.Business.Services.NodeTypes
 {
@@ -18,6 +15,12 @@ namespace Runner.Business.Services.NodeTypes
         {
             _identityProvider = identityProvider;
             _nodeService = nodeService;
+        }
+
+        public Task<ScriptContent?> ReadById(ObjectId scriptContentId)
+        {
+            return ScriptContent
+                .FirstOrDefaultAsync(sc => sc.ScriptContentId == scriptContentId);
         }
     }
 }

@@ -9,10 +9,11 @@ namespace Runner.Business.Entities.Nodes
         DataType = 3,
         AgentPool = 4,
         Agent = 5,
-        
+        ScriptPackage = 6,
+        Script = 7
+
         //Flow = 4,
         //Run = 5,
-        //ScriptPackage = 8,
         //Script = 9
     }
 }

@@ -110,12 +110,6 @@
                         await agentPoolService.Create(reponse.Name, Node.NodeId);
                         break;
                     }
-                //     case NodeType.Flow:
-                //         {
-                //             await nodeService.CreateFlow(questionName.Value, Node);
-                //             await OnRefresh_Click();
-                //             break;
-                //         }
                 case NodeType.DataType:
                     {
                         var dataTypeService = serviceProvider.GetRequiredService<Business.Services.NodeTypes.DataTypeService>();
@@ -126,6 +120,12 @@
                     {
                         var dataService = serviceProvider.GetRequiredService<Business.Services.NodeTypes.DataService>();
                         await dataService.Create(reponse.Name, Node.NodeId);
+                        break;
+                    }
+                case NodeType.ScriptPackage:
+                    {
+                        var scriptPackageService = serviceProvider.GetRequiredService<Business.Services.NodeTypes.ScriptPackageService>();
+                        await scriptPackageService.Create(reponse.Name, Node.NodeId);
                         break;
                     }
                 default:

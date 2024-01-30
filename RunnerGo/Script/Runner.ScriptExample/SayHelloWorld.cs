@@ -2,13 +2,14 @@
 
 namespace Runner.ScriptExample
 {
+    [Script(0, "HelloWorld")]
     public class SayHelloWorld : IScript
     {
         public async Task Run(ScriptRunContext context)
         {
             await context.Log("say hello...");
 
-            context.Output.SetString("SomeValue", "123");
+            context.Data.SetString("SomeValue", "123");
         }
     }
 }
