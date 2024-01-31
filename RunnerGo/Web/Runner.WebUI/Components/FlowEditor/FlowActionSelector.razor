@@ -1,0 +1,26 @@
+﻿@using Runner.Business.Entities.Nodes.Types
+
+@switch (Node.Type)
+{
+    case Business.Actions.ActionType.Script:
+        <FlowActionScript Node=Node Parent=Parent UpdateParent=UpdateParent />
+        break;
+    case Business.Actions.ActionType.Container:
+        <FlowActionContainer Node=Node Parent=Parent UpdateParent=UpdateParent  />
+        break;
+    case Business.Actions.ActionType.Parallel:
+        <FlowActionParallel Node=Node Parent=Parent UpdateParent=UpdateParent  />
+        break;
+}
+
+@code {
+
+    [Parameter]
+    public required FlowAction Node { get; set; }
+
+    [Parameter]
+    public IFlowActionView? Parent { get; set; }
+
+    [Parameter]
+    public required Action UpdateParent { get; set; }
+}

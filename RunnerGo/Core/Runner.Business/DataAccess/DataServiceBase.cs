@@ -50,5 +50,7 @@ namespace Runner.Business.DataAccess
         protected CollectionAdapter<Business.Entities.Nodes.Types.ScriptPackage> ScriptPackage { get => GetCollectionAdapter<Business.Entities.Nodes.Types.ScriptPackage>(); }
         protected CollectionAdapter<Business.Entities.Nodes.Types.Script> Script { get => GetCollectionAdapter<Business.Entities.Nodes.Types.Script>(); }
         protected CollectionAdapter<Business.Entities.Nodes.Types.ScriptContent> ScriptContent { get => GetCollectionAdapter<Business.Entities.Nodes.Types.ScriptContent>(); }
+        protected CollectionAdapter<Business.Entities.Nodes.Types.Flow> Flow { get => GetCollectionAdapter<Business.Entities.Nodes.Types.Flow>(); }
+        protected CollectionAdapter<Business.Entities.Nodes.Types.Run> Run { get => GetCollectionAdapter<Business.Entities.Nodes.Types.Run>(); }
     }
 }

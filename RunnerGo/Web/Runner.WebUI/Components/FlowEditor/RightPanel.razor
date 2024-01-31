@@ -1,0 +1,51 @@
+﻿@if (openValue && FormFragment != null)
+{
+    <div class="rightpanel">
+        <div class="rightpanelclose" @onclick=Close>
+            <i class="fa-solid fa-bars"></i>
+        </div>
+        <div class="rightpanelcontent">
+            @FormFragment
+        </div>
+    </div>
+}
+else
+{
+    <div class="rightpanelopen" @onclick=Open>
+        <i class="fa-solid fa-bars"></i>
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public RenderFragment? FormFragment { get; set; }
+
+    private bool openValue { get; set; }
+
+    public void Open()
+    {
+        openValue = true;
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        openValue = false;
+        StateHasChanged();
+    }
+
+    public void SetOpen(RenderFragment formFragment)
+    {
+        openValue = true;
+        FormFragment = formFragment;
+        StateHasChanged();
+    }
+
+    public void CleanPanel()
+    {
+        openValue = false;
+        FormFragment = null;
+        StateHasChanged();
+    }
+}

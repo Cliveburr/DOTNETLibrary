@@ -1,6 +1,6 @@
 ﻿using Runner.WebUI.Components.Modal;
 using Runner.WebUI.Components.Notification;
-using Runner.WebUI.Helpers;
+using Runner.WebUI.JSInterop;
 using Runner.WebUI.Security;
 
 namespace Runner.WebUI.DependecyInjection
@@ -12,6 +12,7 @@ namespace Runner.WebUI.DependecyInjection
             services
                 .AddScoped<WebAuthenticationService>()
                 .AddScoped<GlobalJavascript>()
+                .AddScoped<ClipboardInterop>()
                 .AddScoped<ModalService>()
                 .AddScoped<NotificationService>();
                 

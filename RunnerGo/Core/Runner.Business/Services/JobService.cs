@@ -2,6 +2,7 @@
 using MongoDB.Driver;
 using Runner.Business.DataAccess;
 using Runner.Business.Entities.Job;
+using Runner.Business.Entities.Nodes.Types;
 using Runner.Business.Security;
 using Runner.Business.WatcherNotification;
 
@@ -40,7 +41,26 @@ namespace Runner.Business.Services
                 Type = JobType.AgentUpdate,
                 Status = JobStatus.Waiting,
                 Queued = DateTime.UtcNow,
+
                 AgentId = agentId
+            };
+
+            await Job
+                .InsertAsync(job);
+
+            _manualAgentWatcherNotification?.InvokeJobCreated(job);
+        }
+
+        public async Task AddRunAction(int actionId, ObjectId runId)
+        {
+            var job = new Job
+            {
+                Type = JobType.RunAction,
+                Status = JobStatus.Waiting,
+                Queued = DateTime.Now,
+
+                ActionId = actionId,
+                RunId = runId,
             };
 
             await Job
@@ -56,6 +76,7 @@ namespace Runner.Business.Services
                 Type = JobType.ExtractScriptPackage,
                 Status = JobStatus.Waiting,
                 Queued = DateTime.UtcNow,
+
                 ScriptContentId = scriptContentId,
                 ScriptPackageId = scriptPackageId
             };
@@ -109,6 +130,31 @@ namespace Runner.Business.Services
                 .Set(j => j.End, DateTime.Now);
 
             return Job.UpdateAsync(j => j.JobId == job.JobId, update);
+        }
+
+        public async Task StopJob(Run run, Actions.Action action)
+        {
+            var job = await Job.FirstOrDefaultAsync(j =>
+                j.RunId == run.RunId
+                && j.ActionId == action.ActionId
+                && (j.Status == JobStatus.Waiting || j.Status == JobStatus.Running));
+            if (job is not null)
+            {
+                if (job.Status == JobStatus.Waiting)
+                {
+                    var update = Builders<Job>.Update
+                        .Set(j => j.Status, JobStatus.Completed)
+                        .Set(j => j.Started, DateTime.Now)
+                        .Set(j => j.End, DateTime.Now);
+
+                    await Job
+                        .UpdateAsync(j => j.JobId == job.JobId, update);
+                }
+                else
+                {
+                    _manualAgentWatcherNotification?.InvokeStopJob(job);
+                }
+            }
         }
     }
 }

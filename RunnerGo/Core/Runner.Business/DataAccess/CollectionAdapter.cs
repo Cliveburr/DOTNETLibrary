@@ -83,6 +83,14 @@ namespace Runner.Business.DataAccess
                 .DeleteOneAsync(filter, options);
         }
 
+        public Task<List<P>> ProjectToListAsync<P>(Expression<Func<T, bool>> filter, ProjectionDefinition<T, P> projection)
+        {
+            return Collection
+                .Find(filter)
+                .Project(projection)
+                .ToListAsync();
+        }
+
         //public Task<IClientSessionHandle> StartSessionAsync()
         //{
         //    return _collection.Database.Client.StartSessionAsync();
@@ -91,54 +99,6 @@ namespace Runner.Business.DataAccess
         //public IFindFluent<T, T?> Find(Expression<Func<T, bool>> filter, FindOptions? options = null)
         //{
         //    return _collection.Find(filter, options);
-        //}
-
-        //public Task<bool> AnyAsync(Expression<Func<T, bool>> filter, FindOptions? options = null)
-        //{
-        //    return _collection.Find(filter, options)
-        //        .AnyAsync();
-        //}
-
-        //public Task CreateAsync(T obj)
-        //{
-        //    return _collection.InsertOneAsync(obj);
-        //}
-
-        //public Task SaveAsync(T obj)
-        //{
-        //    return _collection.FindOneAndReplaceAsync(e => e.Id == obj.Id, obj);
-        //}
-
-
-
-
-        //public Task UpdateAsync<E>(E obj, UpdateDefinition<E> update, UpdateOptions? options = null) where E : T
-        //{
-        //    return GetCollection<E>().UpdateOneAsync(e => e.Id == obj.Id, update, options);
-        //}
-
-        //public Task UpdateAsync<E>(Expression<Func<E, bool>> filter, UpdateDefinition<E> update, UpdateOptions? options = null) where E : T
-        //{
-        //    return GetCollection<E>().UpdateOneAsync(filter, update, options);
-        //}
-
-        //public Task UpdateAsync<E>(FilterDefinition<E> filter, UpdateDefinition<E> update, UpdateOptions? options = null) where E : T
-        //{
-        //    return GetCollection<E>().UpdateOneAsync(filter, update, options);
-        //}
-
-        //public Task<T?> ReadByIdAsync(ObjectId id)
-        //{
-        //    return _collection.Find(e => e.Id == id)
-        //        .FirstOrDefaultAsync();
-        //}
-
-        //public Task<List<P>> ProjectToListAsync<E, P>(Expression<Func<E, bool>> filter, ProjectionDefinition<E, P> projection) where E : T
-        //{
-        //    return GetCollection<E>()
-        //        .Find(filter)
-        //        .Project(projection)
-        //        .ToListAsync();
         //}
     }
 }

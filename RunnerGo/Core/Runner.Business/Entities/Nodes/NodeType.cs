@@ -10,10 +10,8 @@ namespace Runner.Business.Entities.Nodes
         AgentPool = 4,
         Agent = 5,
         ScriptPackage = 6,
-        Script = 7
-
-        //Flow = 4,
-        //Run = 5,
-        //Script = 9
+        Script = 7,
+        Flow = 8,
+        Run = 9
     }
 }

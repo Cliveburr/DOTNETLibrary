@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Runner.WebUI.Components.Modal;
 using Runner.WebUI.Components.Notification;
-using Runner.WebUI.Helpers;
+using Runner.WebUI.JSInterop;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -28,7 +28,7 @@ namespace Runner.WebUI.Pages
 
         public void Reload()
         {
-            NavigationManager.NavigateTo(NavigationManager.Uri, false, true);
+            NavigationManager.NavigateTo(NavigationManager.Uri, true, true);
         }
 
         public Task HistoryBack()

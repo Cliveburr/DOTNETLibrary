@@ -1,6 +1,6 @@
 ﻿using Microsoft.JSInterop;
 
-namespace Runner.WebUI.Helpers
+namespace Runner.WebUI.JSInterop
 {
     public class GlobalJavascript
     {

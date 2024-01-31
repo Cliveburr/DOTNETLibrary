@@ -1,14 +1,15 @@
 ﻿using Runner.Business.Entities.Job;
+using Runner.Business.Entities.Nodes.Types;
 
 namespace Runner.Business.WatcherNotification
 {
     public delegate void OnJobEventDelegate(Job job);
-    //public delegate void OnRunEventDelegate(Run run);
+    public delegate void OnRunEventDelegate(Run run);
 
     public interface IAgentWatcherNotification
     {
         event OnJobEventDelegate? OnJobCreated;
         event OnJobEventDelegate? OnStopJob;
-        //event OnRunEventDelegate? OnRunUpdated;
+        event OnRunEventDelegate? OnRunUpdated;
     }
 }

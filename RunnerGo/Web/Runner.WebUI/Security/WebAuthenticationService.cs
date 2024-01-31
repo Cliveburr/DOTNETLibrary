@@ -1,5 +1,5 @@
 ﻿using Runner.Business.Entities.Security;
-using Runner.WebUI.Helpers;
+using Runner.WebUI.JSInterop;
 
 namespace Runner.WebUI.Security
 {

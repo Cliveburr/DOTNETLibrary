@@ -134,6 +134,12 @@
                         await scriptPackageService.Create(reponse.Name, Node.NodeId);
                         break;
                     }
+                case NodeType.Flow:
+                    {
+                        var flowService = serviceProvider.GetRequiredService<Business.Services.NodeTypes.FlowService>();
+                        await flowService.Create(reponse.Name, Node.NodeId);
+                        break;
+                    }
                 default:
                     throw new RunnerException("Invalid type!");
             }
