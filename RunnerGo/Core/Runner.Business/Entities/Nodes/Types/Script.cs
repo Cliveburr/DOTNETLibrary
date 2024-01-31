@@ -1,12 +1,15 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
+using Runner.Business.DataAccess.Attributes;
 
 namespace Runner.Business.Entities.Nodes.Types
 {
+    [DatabaseDef]
     public class Script
     {
         [BsonId]
         public ObjectId ScriptId { get; set; }
+        [IndexDef]
         public required ObjectId NodeId { get; set; }
         public int NextVersion { get; set; }
         public required List<ScriptVersion> Versions { get; set; }

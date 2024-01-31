@@ -7,6 +7,7 @@ using MongoDB.Driver;
 using Runner.Business.Entities.Job;
 using Runner.Business.Model.Nodes.Types;
 using System.Xml.Linq;
+using System.Text;
 
 namespace Runner.Business.Services.NodeTypes
 {
@@ -108,18 +109,20 @@ namespace Runner.Business.Services.NodeTypes
                 .UpdateAsync(sp => sp.ScriptPackageId == scriptPackage.ScriptPackageId, scriptPackageUpdate);
         }
 
-        public async Task SetScripts(ObjectId scriptPackageId, ObjectId scriptContentId, List<ScriptSet> scriptSets)
+        public async Task SetScripts(ObjectId scriptPackageId, ObjectId scriptContentId, List<ScriptSet> scriptSets, StringBuilder warnings)
         {
             var scriptPackage = await ReadById(scriptPackageId);
             Assert.MustNotNull(scriptPackage, $"Invalid ScriptPackageId! {scriptPackageId}");
 
             var scriptPackageUpdate = Builders<ScriptPackage>.Update
-                .Set(sp => sp.ExtractJobId, null);
+                .Set(sp => sp.ExtractJobId, null)
+                .Set(sp => sp.LastWarnings, null);
             await ScriptPackage
                 .UpdateAsync(sp => sp.ScriptPackageId == scriptPackage.ScriptPackageId, scriptPackageUpdate);
 
             if (scriptSets.Count == 0)
             {
+                warnings.AppendLine("None script found!");
                 await ScriptContent
                     .DeleteAsync(sc => sc.ScriptContentId == scriptContentId);
                 return;
@@ -133,6 +136,7 @@ namespace Runner.Business.Services.NodeTypes
                 }
                 catch
                 {
+                    warnings.AppendLine("Invalid script name: " + scriptSet.Name);
                     continue;
                 }
 
@@ -174,7 +178,7 @@ namespace Runner.Business.Services.NodeTypes
                     }
                     else
                     {
-                        //TODO: log, first package need set version = 0
+                        warnings.AppendLine($"Invalid script version, expected 0 found {scriptSet.Version}");
                     }
                 }
                 else
@@ -203,12 +207,21 @@ namespace Runner.Business.Services.NodeTypes
                     }
                     else
                     {
-                        //TODO: log, the script version is updated only if the version == nextVersion
+                        warnings.AppendLine($"Invalid script version, expected {script.NextVersion} found {scriptSet.Version}");
                     }
                 }
             }
 
             await _nodeService.UpdateUtc(scriptPackage.NodeId);
+        }
+
+        public async Task UpdateWarningAndClearJob(ObjectId scriptPackageId, StringBuilder warnings)
+        {
+            var scriptPackageUpdate = Builders<ScriptPackage>.Update
+                .Set(sp => sp.ExtractJobId, null)
+                .Set(sp => sp.LastWarnings, warnings.ToString());
+            await ScriptPackage
+                .UpdateAsync(sp => sp.ScriptPackageId == scriptPackageId, scriptPackageUpdate);
         }
     }
 }

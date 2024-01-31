@@ -1,5 +1,5 @@
-﻿
-using Runner.Business.Entities.AgentVersion;
+﻿using Runner.Business.DataAccess.Attributes;
+using System.Reflection;
 
 namespace Runner.Business.DataAccess
 {
@@ -14,32 +14,41 @@ namespace Runner.Business.DataAccess
             _collections = new Dictionary<string, object>();
         }
 
-        private CollectionAdapter<T> GetCollectionAdapter<T>(string name)
+        private CollectionAdapter<T> GetCollectionAdapter<T>()
         {
-            if (!_collections.ContainsKey(name))
+            var type = typeof(T);
+            var databaseDefAttr = type.GetCustomAttribute<DatabaseDefAttribute>();
+            if (databaseDefAttr is null)
             {
-                var collection = Database.Main.GetCollection<T>(name);
-                var collectionAdpter = new CollectionAdapter<T>(collection, name);
-                _collections[name] = collectionAdpter;
+                throw new Exception("Internal - Missing DatabaseDef attribute on class: " + type.FullName);
             }
-            return (CollectionAdapter<T>)_collections[name];
+
+            var collectionName = databaseDefAttr.CollectionName ?? type.Name;
+
+            if (!_collections.ContainsKey(collectionName))
+            {
+                var collection = Database.Main.GetCollection<T>(collectionName);
+                var collectionAdpter = new CollectionAdapter<T>(collection, collectionName);
+                _collections[collectionName] = collectionAdpter;
+            }
+            return (CollectionAdapter<T>)_collections[collectionName];
         }
 
-        protected CollectionAdapter<Entities.Nodes.Node> Node { get => GetCollectionAdapter<Entities.Nodes.Node>("Node"); }
-        protected CollectionAdapter<Entities.Identity.User> User { get => GetCollectionAdapter<Entities.Identity.User>("User"); }
-        protected CollectionAdapter<Entities.Security.AccessToken> AccessToken { get => GetCollectionAdapter<Entities.Security.AccessToken>("AccessToken"); }
+        protected CollectionAdapter<Business.Entities.Nodes.Node> Node { get => GetCollectionAdapter<Business.Entities.Nodes.Node>(); }
+        protected CollectionAdapter<Business.Entities.Identity.User> User { get => GetCollectionAdapter<Business.Entities.Identity.User>(); }
+        protected CollectionAdapter<Business.Entities.Security.AccessToken> AccessToken { get => GetCollectionAdapter<Business.Entities.Security.AccessToken>(); }
 
-        protected CollectionAdapter<Entities.Job.Job> Job { get => GetCollectionAdapter<Entities.Job.Job>("Job"); }
-        protected CollectionAdapter<AgentVersion> AgentVersion { get => GetCollectionAdapter<AgentVersion>("AgentVersion"); }
+        protected CollectionAdapter<Business.Entities.Job.Job> Job { get => GetCollectionAdapter<Business.Entities.Job.Job>(); }
+        protected CollectionAdapter<Business.Entities.AgentVersion.AgentVersion> AgentVersion { get => GetCollectionAdapter<Business.Entities.AgentVersion.AgentVersion>(); }
 
-        protected CollectionAdapter<Entities.Nodes.Types.App> App { get => GetCollectionAdapter<Entities.Nodes.Types.App>("App"); }
-        protected CollectionAdapter<Entities.Nodes.Types.Folder> Folder { get => GetCollectionAdapter<Entities.Nodes.Types.Folder>("Folder"); }
-        protected CollectionAdapter<Entities.Nodes.Types.Data> Data { get => GetCollectionAdapter<Entities.Nodes.Types.Data>("Data"); }
-        protected CollectionAdapter<Entities.Nodes.Types.DataType> DataType { get => GetCollectionAdapter<Entities.Nodes.Types.DataType>("DataType"); }
-        protected CollectionAdapter<Entities.Nodes.Types.AgentPool> AgentPool { get => GetCollectionAdapter<Entities.Nodes.Types.AgentPool>("AgentPool"); }
-        protected CollectionAdapter<Entities.Nodes.Types.Agent> Agent { get => GetCollectionAdapter<Entities.Nodes.Types.Agent>("Agent"); }
-        protected CollectionAdapter<Entities.Nodes.Types.ScriptPackage> ScriptPackage { get => GetCollectionAdapter<Entities.Nodes.Types.ScriptPackage>("ScriptPackage"); }
-        protected CollectionAdapter<Entities.Nodes.Types.Script> Script { get => GetCollectionAdapter<Entities.Nodes.Types.Script>("Script"); }
-        protected CollectionAdapter<Entities.Nodes.Types.ScriptContent> ScriptContent { get => GetCollectionAdapter<Entities.Nodes.Types.ScriptContent>("ScriptContent"); }
+        protected CollectionAdapter<Business.Entities.Nodes.Types.App> App { get => GetCollectionAdapter<Business.Entities.Nodes.Types.App>(); }
+        protected CollectionAdapter<Business.Entities.Nodes.Types.Folder> Folder { get => GetCollectionAdapter<Business.Entities.Nodes.Types.Folder>(); }
+        protected CollectionAdapter<Business.Entities.Nodes.Types.Data> Data { get => GetCollectionAdapter<Business.Entities.Nodes.Types.Data>(); }
+        protected CollectionAdapter<Business.Entities.Nodes.Types.DataType> DataType { get => GetCollectionAdapter<Business.Entities.Nodes.Types.DataType>(); }
+        protected CollectionAdapter<Business.Entities.Nodes.Types.AgentPool> AgentPool { get => GetCollectionAdapter<Business.Entities.Nodes.Types.AgentPool>(); }
+        protected CollectionAdapter<Business.Entities.Nodes.Types.Agent> Agent { get => GetCollectionAdapter<Business.Entities.Nodes.Types.Agent>(); }
+        protected CollectionAdapter<Business.Entities.Nodes.Types.ScriptPackage> ScriptPackage { get => GetCollectionAdapter<Business.Entities.Nodes.Types.ScriptPackage>(); }
+        protected CollectionAdapter<Business.Entities.Nodes.Types.Script> Script { get => GetCollectionAdapter<Business.Entities.Nodes.Types.Script>(); }
+        protected CollectionAdapter<Business.Entities.Nodes.Types.ScriptContent> ScriptContent { get => GetCollectionAdapter<Business.Entities.Nodes.Types.ScriptContent>(); }
     }
 }

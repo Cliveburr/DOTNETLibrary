@@ -54,6 +54,12 @@
             </button>
         }
     </div>
+    @if (scriptPackageNode is not null && scriptPackageNode.LastWarnings is not null)
+    {
+        <div class="notification is-warning" style="white-space: pre-line">
+            @scriptPackageNode.LastWarnings
+        </div>
+    }
 
     <div class="box mt-3">
         @if (items != null)

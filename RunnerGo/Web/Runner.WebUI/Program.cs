@@ -38,6 +38,7 @@ app.UseAntiforgery();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+app.InitializeBusiness();
 app.MapAgentHub();
 app.InitializeScriptManager();
 

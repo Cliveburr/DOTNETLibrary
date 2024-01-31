@@ -6,6 +6,7 @@ using Runner.Business.Services;
 using Runner.Business.Services.NodeTypes;
 using Runner.Business.WatcherNotification;
 using Runner.Common.Helpers;
+using System.Text;
 
 namespace Runner.Script.Hosting.Services
 {
@@ -13,18 +14,12 @@ namespace Runner.Script.Hosting.Services
     {
         private readonly ILogger<ScriptManagerService> _logger;
         private readonly IAgentWatcherNotification _agentWatcherNotification;
-        //private readonly JobService _jobService;
-        //private readonly ScriptContentService _scriptContentService;
-        //private readonly ScriptPackageService _scriptPackageService;
         private readonly IServiceProvider _serviceProvider;
 
         public ScriptManagerService(ILogger<ScriptManagerService> logger, IAgentWatcherNotification agentWatcherNotification, IServiceProvider serviceProvider)
         {
             _logger = logger;
             _agentWatcherNotification = agentWatcherNotification;
-            //_jobService = jobService;
-            //_scriptContentService = scriptContentService;
-            //_scriptPackageService = scriptPackageService;
             _serviceProvider = serviceProvider;
 
             _agentWatcherNotification.OnJobCreated += OnJobCreated;
@@ -50,6 +45,8 @@ namespace Runner.Script.Hosting.Services
                 var jobService = scope.ServiceProvider.GetRequiredService<JobService>();
                 var scriptContentService = scope.ServiceProvider.GetRequiredService<ScriptContentService>();
                 var scriptPackageService = scope.ServiceProvider.GetRequiredService<ScriptPackageService>();
+                var warnings = new StringBuilder();
+                var cleanScriptContent = true;
 
                 try
                 {
@@ -65,22 +62,52 @@ namespace Runner.Script.Hosting.Services
                         Zip.Descompat(scriptContent.FileContent, temp.Path);
 
                         var isolation = new ScriptIsolation(temp.Path);
-                        var scriptSets = isolation.Execute();
+                        var scriptSets = isolation.Execute(warnings);
 
-                        await scriptPackageService.SetScripts(job.ScriptPackageId.Value, scriptContent.ScriptContentId, scriptSets);
+                        cleanScriptContent = false;
+                        await scriptPackageService.SetScripts(job.ScriptPackageId.Value, scriptContent.ScriptContentId, scriptSets, warnings);
                     }
 
                     await jobService.SetCompleted(job);
                 }
                 catch (Exception ex)
                 {
+                    warnings.AppendLine("Error: " + ex.Message);
+
+                    if (cleanScriptContent && job.ScriptContentId is not null)
+                    {
+                        try
+                        {
+                            await scriptContentService.Delete(job.ScriptContentId.Value);
+                        }
+                        catch (Exception ex2)
+                        {
+                            warnings.AppendLine("Error: " + ex2.Message);
+                            _logger.LogError(ex2, null);
+                        }
+                    }
+
                     try
                     {
                         await jobService.SetError(job, ex);
                     }
                     catch (Exception ex2)
                     {
+                        warnings.AppendLine("Error: " + ex2.Message);
                         _logger.LogError(ex2, null);
+                    }
+                }
+
+                if (warnings.Length > 0 && job.ScriptPackageId is not null)
+                {
+                    try
+                    {
+                        await scriptPackageService.UpdateWarningAndClearJob(job.ScriptPackageId.Value, warnings);
+                    }
+                    catch (Exception ex)
+                    {
+                        warnings.AppendLine("Error: " + ex.Message);
+                        _logger.LogError(ex, null);
                     }
                 }
             }

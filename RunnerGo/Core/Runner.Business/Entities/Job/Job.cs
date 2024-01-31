@@ -1,8 +1,10 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using Runner.Business.DataAccess.Attributes;
 
 namespace Runner.Business.Entities.Job
 {
+    [DatabaseDef]
     public class Job
     {
         [BsonId]

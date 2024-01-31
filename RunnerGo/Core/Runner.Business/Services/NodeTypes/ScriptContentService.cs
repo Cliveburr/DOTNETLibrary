@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson;
 using Runner.Business.DataAccess;
+using Runner.Business.Entities.Nodes;
 using Runner.Business.Entities.Nodes.Types;
 using Runner.Business.Security;
 
@@ -21,6 +22,12 @@ namespace Runner.Business.Services.NodeTypes
         {
             return ScriptContent
                 .FirstOrDefaultAsync(sc => sc.ScriptContentId == scriptContentId);
+        }
+
+        public async Task Delete(ObjectId scriptContentId)
+        {
+            await ScriptContent
+                .DeleteAsync(sc => sc.ScriptContentId == scriptContentId);
         }
     }
 }

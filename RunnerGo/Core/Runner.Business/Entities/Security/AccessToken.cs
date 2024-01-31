@@ -1,8 +1,10 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
+using Runner.Business.DataAccess.Attributes;
 
 namespace Runner.Business.Entities.Security
 {
+    [DatabaseDef]
     public class AccessToken
     {
         [BsonId]

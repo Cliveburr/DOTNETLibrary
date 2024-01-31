@@ -1,12 +1,19 @@
 
 
+- fazer limpeza de ScriptContent q não é mais usado
+- visualizar types input e output nos scripts
+- impelmentar modificação de type nas run
+- criar o jobschedule
+- melhorar o componente table
+- fazer filtos de tabela
+- criar o component de navegação lateral esquerdo
+
 root/
 	users
 		/eu
 		/outro
 	apps
 		/nexlog/
-
 
 
 

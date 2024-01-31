@@ -27,6 +27,12 @@ namespace Runner.Business.Services
                 .ToListAsync(j => j.AgentId == agentId);
         }
 
+        public Task<List<Job>> Read()
+        {
+            return Job
+                .ToListAsync();
+        }
+
         public async Task AddAgentUpdate(ObjectId agentId)
         {
             var job = new Job

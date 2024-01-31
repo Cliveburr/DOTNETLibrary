@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Runner.Business.DataAccess;
 using Runner.Business.Helpers;
@@ -26,6 +27,16 @@ namespace Runner.Business.DependecyInjection
             }
 
             return services;
+        }
+
+        public static void InitializeBusiness(this WebApplication app)
+        {
+            using (var scope = app.Services.CreateScope())
+            {
+                var database = scope.ServiceProvider.GetRequiredService<Database>();
+                var configurations = new CollectionConfigurations(database);
+                configurations.Configure();
+            }
         }
     }
 }

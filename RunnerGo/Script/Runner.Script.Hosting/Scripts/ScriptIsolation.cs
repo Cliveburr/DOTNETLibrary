@@ -3,6 +3,7 @@ using Runner.Script.Interface.Model.Data;
 using Runner.Script.Interface.Scripts;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Runner.Agent.Version.Scripts
 {
@@ -21,10 +22,10 @@ namespace Runner.Agent.Version.Scripts
             _result = new List<ScriptSet>();
         }
 
-        public List<ScriptSet> Execute()
+        public List<ScriptSet> Execute(StringBuilder warnings)
         {
             WeakReference contextRef;
-            ExecuteAndUnload(out contextRef);
+            ExecuteAndUnload(out contextRef, warnings);
 
             for (int i = 0; contextRef.IsAlive && (i < 10); i++)
             {
@@ -43,14 +44,14 @@ namespace Runner.Agent.Version.Scripts
 
             if (contextRef.IsAlive)
             {
-                //TODO
+                warnings.AppendLine("Internal - Context still alive!");
             }
 
             return _result;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void ExecuteAndUnload(out WeakReference contextRef)
+        private void ExecuteAndUnload(out WeakReference contextRef, StringBuilder warnings)
         {
             var context = new ScriptAssemblyLoadContext();
             contextRef = new WeakReference(context, true);
@@ -65,6 +66,7 @@ namespace Runner.Agent.Version.Scripts
                     var assembly = context.LoadFromAssemblyPath(assemblyPath);
                     if (assembly is null)
                     {
+                        warnings.AppendLine("Internal - Assembly not found! " + assemblyPath);
                         continue;
                     }
 
@@ -104,12 +106,16 @@ namespace Runner.Agent.Version.Scripts
                                     }).ToList() ?? new List<Business.Entities.Nodes.Types.DataTypeProperty>()
                             });
                         }
+                        else
+                        {
+                            warnings.AppendLine("Script missing ScriptAttribute: " + fullTypeName);
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                //TODO
+                warnings.AppendLine("Error: " + ex.Message);
             }
             finally
             {
