@@ -34,12 +34,12 @@ namespace Runner.Business.Services
                 .ToListAsync();
         }
 
-        public async Task AddAgentUpdate(ObjectId agentId)
+        public async Task QueueAgentUpdate(ObjectId agentId)
         {
             var job = new Job
             {
                 Type = JobType.AgentUpdate,
-                Status = JobStatus.Waiting,
+                Status = JobStatus.Queued,
                 Queued = DateTime.UtcNow,
 
                 AgentId = agentId
@@ -48,15 +48,15 @@ namespace Runner.Business.Services
             await Job
                 .InsertAsync(job);
 
-            _manualAgentWatcherNotification?.InvokeJobCreated(job);
+            _manualAgentWatcherNotification?.InvokeJobQueued(job);
         }
 
-        public async Task AddRunAction(int actionId, ObjectId runId)
+        public async Task QueueRunAction(int actionId, ObjectId runId)
         {
             var job = new Job
             {
                 Type = JobType.RunAction,
-                Status = JobStatus.Waiting,
+                Status = JobStatus.Queued,
                 Queued = DateTime.Now,
 
                 ActionId = actionId,
@@ -66,15 +66,15 @@ namespace Runner.Business.Services
             await Job
                 .InsertAsync(job);
 
-            _manualAgentWatcherNotification?.InvokeJobCreated(job);
+            _manualAgentWatcherNotification?.InvokeJobQueued(job);
         }
 
-        public async Task<Job> AddExtractScriptPackage(ObjectId scriptContentId, ObjectId scriptPackageId)
+        public async Task<Job> QueueExtractScriptPackage(ObjectId scriptContentId, ObjectId scriptPackageId)
         {
             var job = new Job
             {
                 Type = JobType.ExtractScriptPackage,
-                Status = JobStatus.Waiting,
+                Status = JobStatus.Queued,
                 Queued = DateTime.UtcNow,
 
                 ScriptContentId = scriptContentId,
@@ -84,32 +84,67 @@ namespace Runner.Business.Services
             await Job
                 .InsertAsync(job);
 
-            _manualAgentWatcherNotification?.InvokeJobCreated(job);
+            _manualAgentWatcherNotification?.InvokeJobQueued(job);
 
             return job;
         }
 
-        public Task<List<Job>> ReadJobsWaitingOfTypes(JobType[] types)
+        public Task<Job?> GetWaitingAndQueueOfTypes(JobType[] types)
         {
-            //var sort = Builders<Job>.Sort
-            //    .Ascending(j => j.Queued);
+            var sort = Builders<Job>.Sort
+                .Ascending(j => j.Queued);
 
-            //// trocar torun para state
-            //// find and update para preget
+            var update = Builders<Job>.Update
+                .Set(j => j.Status, JobStatus.Queued);
+
+            var options = new FindOneAndUpdateOptions<Job, Job?>
+            {
+                ReturnDocument = ReturnDocument.After,
+                Sort = sort
+            };
+
+            return Job.Collection.FindOneAndUpdateAsync<Job, Job?>(j =>
+                    j.Status == JobStatus.Waiting &&
+                    types.Contains(j.Type),
+                    update,
+                    options);
+        }
+
+        public Task<Job?> GetWaitingAndQueueExtractScript()
+        {
+            var update = Builders<Job>.Update
+                .Set(j => j.Status, JobStatus.Queued);
+
+            var options = new FindOneAndUpdateOptions<Job, Job?>
+            {
+                ReturnDocument = ReturnDocument.After
+            };
+
+            return Job.Collection.FindOneAndUpdateAsync<Job, Job?>(j =>
+                    j.Status == JobStatus.Waiting &&
+                    j.Type == JobType.ExtractScriptPackage,
+                    update,
+                    options);
+        }
+
+        public Task SetWaiting(Job job)
+        {
+            var update = Builders<Job>.Update
+                .Set(j => j.Status, JobStatus.Waiting);
 
             return Job
-                .ToListAsync(j =>
-                    j.Status == JobStatus.Waiting &&
-                    types.Contains(j.Type));
+                .UpdateAsync(j => j.JobId == job.JobId, update);
         }
 
         public Task SetRunning(Job job)
         {
-            job.Status = JobStatus.Running;
-            job.Started = DateTime.UtcNow;
+            var update = Builders<Job>.Update
+                .Set(j => j.Status, JobStatus.Running)
+                .Set(j => j.Started, DateTime.UtcNow)
+                .Set(j => j.AgentId, job.AgentId);
 
             return Job
-                .ReplaceAsync(j => j.JobId == job.JobId, job);
+                .UpdateAsync(j => j.JobId == job.JobId, update);
         }
 
         public Task SetError(Job job, Exception ex)
@@ -152,7 +187,7 @@ namespace Runner.Business.Services
                 }
                 else
                 {
-                    _manualAgentWatcherNotification?.InvokeStopJob(job);
+                    _manualAgentWatcherNotification?.InvokeJobStop(job);
                 }
             }
         }

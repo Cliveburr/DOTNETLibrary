@@ -101,7 +101,7 @@ namespace Runner.Business.Services.NodeTypes
             await ScriptContent
                 .InsertAsync(scriptContent);
 
-            var job = await _jobService.AddExtractScriptPackage(scriptContent.ScriptContentId, scriptPackage.ScriptPackageId);
+            var job = await _jobService.QueueExtractScriptPackage(scriptContent.ScriptContentId, scriptPackage.ScriptPackageId);
 
             var scriptPackageUpdate = Builders<ScriptPackage>.Update
                 .Set(sp => sp.ExtractJobId, job.JobId);

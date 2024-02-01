@@ -35,5 +35,10 @@ namespace Runner.Business.Actions
             var actionType = FindActionType(action);
             return (action, actionType);
         }
+
+        public string ComputeAgentPoolPathForAction(int actionId)
+        {
+            throw new NotFiniteNumberException();
+        }
     }
 }

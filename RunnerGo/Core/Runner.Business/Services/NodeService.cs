@@ -31,14 +31,14 @@ namespace Runner.Business.Services
             return ReadLocation_Recursive(parts, null);
         }
 
-        //public async Task<Node?> ReadLocation(System.Collections.Queue parts)
-        //{
-        //    if (parts.Count == 0)
-        //    {
-        //        return null;
-        //    }
-        //    return await ReadLocation_Recursive(parts, null);
-        //}
+        internal async Task<Node?> ReadLocation(System.Collections.Queue parts)
+        {
+            if (parts.Count == 0)
+            {
+                return null;
+            }
+            return await ReadLocation_Recursive(parts, null);
+        }
 
         private async Task<Node?> ReadLocation_Recursive(System.Collections.Queue parts, ObjectId? parentId)
         {

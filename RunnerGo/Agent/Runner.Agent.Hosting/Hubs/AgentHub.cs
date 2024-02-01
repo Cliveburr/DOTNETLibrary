@@ -28,11 +28,6 @@ namespace Runner.Agent.Hosting.Hubs
             return _agentManagerService.Heartbeat();
         }
 
-        public Task ScriptStarted()
-        {
-            return _agentManagerService.ScriptStarted(Context.ConnectionId);
-        }
-
         public Task ScriptError(ScriptErrorRequest request)
         {
             return _agentManagerService.ScriptError(Context.ConnectionId, request);

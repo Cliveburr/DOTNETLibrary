@@ -266,8 +266,6 @@ namespace Runner.Agent.Version
                     throw new ArgumentNullException("RunScriptRequest");
                 }
 
-                await _connection.InvokeAsync("ScriptStarted", _stoppingToken);
-
                 if (!ScriptsManager.CheckIfExist(request))
                 {
                     var getScriptResponse = await _connection.InvokeAsync<GetScriptResponse>("GetScript",

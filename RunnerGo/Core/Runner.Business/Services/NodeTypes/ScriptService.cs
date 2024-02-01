@@ -1,8 +1,10 @@
 ﻿using MongoDB.Bson;
 using Runner.Business.DataAccess;
+using Runner.Business.Entities.Job;
 using Runner.Business.Entities.Nodes;
 using Runner.Business.Entities.Nodes.Types;
 using Runner.Business.Security;
+using System.IO;
 
 namespace Runner.Business.Services.NodeTypes
 {
@@ -28,6 +30,53 @@ namespace Runner.Business.Services.NodeTypes
         {
             return Script
                 .FirstOrDefaultAsync(sp => sp.NodeId == nodeId);
+        }
+
+        public async Task<(Script Script, ScriptVersion ScriptVersion)?> ReadVersionByScriptPath(string scriptPath)
+        {
+            var parts = scriptPath.ToLower()
+                .Split("/", StringSplitOptions.RemoveEmptyEntries)
+                .ToList();
+
+            var version = parts[parts.Count - 1];
+            parts.RemoveAt(parts.Count - 1);
+
+            var scriptNode = await _nodeService.ReadLocation(new System.Collections.Queue(parts));
+            if (scriptNode is null)
+            {
+                return null;
+            }
+            else
+            {
+                var script = await ReadByNodeId(scriptNode.NodeId);
+                Assert.MustNotNull(script, $"Internal - Script not found for NodeId: " + scriptNode.NodeId);
+
+                if (!script.Versions.Any())
+                {
+                    return null;
+                }
+
+                if (version == "*")
+                {
+                    var scriptVersion = script.Versions
+                        .OrderByDescending(v => v.Version)
+                        .First();
+                    return scriptVersion is null ? null : (script, scriptVersion);
+                }
+                else
+                {
+                    if (int.TryParse(version, out var versionInt))
+                    {
+                        var scriptVersion = script.Versions
+                            .FirstOrDefault(v => v.Version == versionInt);
+                        return scriptVersion is null ? null : (script, scriptVersion);
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
         }
 
         public async Task DeleteByNode(Node node)

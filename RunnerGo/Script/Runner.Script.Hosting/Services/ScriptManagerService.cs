@@ -22,19 +22,34 @@ namespace Runner.Script.Hosting.Services
             _agentWatcherNotification = agentWatcherNotification;
             _serviceProvider = serviceProvider;
 
-            _agentWatcherNotification.OnJobCreated += OnJobCreated;
+            _agentWatcherNotification.OnJobQueued += OnJobQueued;
         }
 
         public void Dispose()
         {
-            _agentWatcherNotification.OnJobCreated -= OnJobCreated;
+            _agentWatcherNotification.OnJobQueued -= OnJobQueued;
         }
 
-        private void OnJobCreated(Job job)
+        private void OnJobQueued(Job job)
         {
             if (job.Type == JobType.ExtractScriptPackage)
             {
                 _ = ExecuteJob(job);
+            }
+        }
+
+        public async Task CheckJobsForExtractScript()
+        {
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var jobService = scope.ServiceProvider.GetRequiredService<JobService>();
+
+                var job = await jobService.GetWaitingAndQueueExtractScript();
+                while (job is not null)
+                {
+                    await ExecuteJob(job);
+                    job = await jobService.GetWaitingAndQueueExtractScript();
+                }
             }
         }
 

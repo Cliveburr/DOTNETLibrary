@@ -18,7 +18,8 @@ namespace Runner.Script.Hosting.DependecyInjection
         {
             using (var scope = app.Services.CreateScope())
             {
-                _ = scope.ServiceProvider.GetRequiredService<ScriptManagerService>();
+                var scriptManagerService = scope.ServiceProvider.GetRequiredService<ScriptManagerService>();
+                _ = scriptManagerService.CheckJobsForExtractScript();
             }
         }
     }

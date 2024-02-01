@@ -3,9 +3,8 @@ using Runner.Business.Entities.Nodes.Types;
 using Runner.Business.Entities.Nodes;
 using Runner.Business.Security;
 using MongoDB.Bson;
-using System.Xml.Linq;
 using MongoDB.Driver;
-using Amazon.SecurityToken.Model;
+using MongoDB.Driver.Linq;
 
 namespace Runner.Business.Services.NodeTypes
 {
@@ -25,6 +24,31 @@ namespace Runner.Business.Services.NodeTypes
         {
             return Agent
                 .FirstOrDefaultAsync(a => a.NodeId == nodeId);
+        }
+
+        public async Task<List<Agent>> ReadAgentsForPool(ObjectId agentPoolNodeId)
+        {
+            var agentPool = await AgentPool
+                .FirstOrDefaultAsync(ap => ap.NodeId == agentPoolNodeId);
+            Assert.MustNotNull(agentPool, "Internal - Missing AgentPool of NodId: " + agentPoolNodeId);
+
+            if (agentPool.Enabled)
+            {
+                var query = from n in Node.AsQueryable()
+                            join a in Agent.AsQueryable() on n.NodeId equals a.NodeId
+                            where
+                                n.ParentId == agentPoolNodeId &&
+                                a.Enabled == true &&
+                                a.Status == AgentStatus.Idle
+                            select a;
+
+                return await query
+                    .ToListAsync();
+            }
+            else
+            {
+                return new List<Agent>();
+            }
         }
 
         public Task<Agent?> ReadById(ObjectId agentId)
@@ -51,7 +75,7 @@ namespace Runner.Business.Services.NodeTypes
                 .Where(c => !invalidChars.Contains(c)).ToArray());
         }
 
-        public async Task<(ObjectId AgentPoolId, ObjectId AgentId)> Register(string agentPoolPath, string machineName, string versionName, List<string> tags)
+        public async Task<ObjectId> Register(string agentPoolPath, string machineName, string versionName, List<string> tags)
         {
             Assert.MustNotNull(_identityProvider.User, "Need to be logged to register agent!");
 
@@ -94,7 +118,7 @@ namespace Runner.Business.Services.NodeTypes
                 await Agent
                     .InsertAsync(agent);
 
-                return (agentPool.AgentPoolId, agent.AgentId);
+                return agent.AgentId;
             }
             else
             {
@@ -124,7 +148,7 @@ namespace Runner.Business.Services.NodeTypes
                 await Agent
                     .UpdateAsync(a => a.AgentId == agent.AgentId, agentUpdate);
 
-                return (agentPool.AgentPoolId, agent.AgentId);
+                return agent.AgentId;
             }
         }
 

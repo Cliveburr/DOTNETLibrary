@@ -102,7 +102,7 @@
         {
             Assert.MustNotNull(agentNode, "Internal error!");
 
-            await jobService.AddAgentUpdate(agentNode.AgentId);
+            await jobService.QueueAgentUpdate(agentNode.AgentId);
 
             await OnRefresh_Click();
         }

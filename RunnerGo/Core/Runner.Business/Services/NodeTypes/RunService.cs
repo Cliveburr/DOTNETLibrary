@@ -3,7 +3,6 @@ using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Runner.Business.Actions;
 using Runner.Business.DataAccess;
-using Runner.Business.Entities.Nodes;
 using Runner.Business.Entities.Nodes.Types;
 using Runner.Business.Model.Nodes.Types;
 using Runner.Business.Security;
@@ -25,6 +24,12 @@ namespace Runner.Business.Services.NodeTypes
             _nodeService = nodeService;
             _jobService = jobService;
             _manualAgentWatcherNotification = agentWatcherNotification as ManualAgentWatcherNotification;
+        }
+
+        public Task<Run?> ReadById(ObjectId runId)
+        {
+            return Run
+                .FirstOrDefaultAsync(r => r.RunId == runId);
         }
 
         public Task<List<RunList>> ReadRuns(Flow flow)
@@ -133,7 +138,7 @@ namespace Runner.Business.Services.NodeTypes
         {
             await ExecuteActionUpdateStatus(run, action);
 
-            await _jobService.AddRunAction(action.ActionId, run.RunId);
+            await _jobService.QueueRunAction(action.ActionId, run.RunId);
         }
 
         private async Task ExecuteActionUpdateStatus(Run run, Actions.Action action)
@@ -248,6 +253,37 @@ namespace Runner.Business.Services.NodeTypes
                 await Run
                     .UpdateAsync(r => r.RunId == run.RunId, update);
             }
+        }
+
+        private async Task WriteLogInner(ObjectId runId, string text)
+        {
+            var update = Builders<Run>.Update
+                .Push(r => r.Log, new RunLog
+                {
+                    Created = DateTime.Now,
+                    Text = text
+                });
+
+            await Run
+                .UpdateAsync(r => r.RunId == runId, update);
+        }
+
+        public async Task SetRunning(ObjectId runId, int actionId)
+        {
+            Assert.MustNotNull(_identityProvider.User, "Need to be logged to run script!");
+
+            // checar se ter permissão
+
+            var run = await Run
+                .FirstOrDefaultAsync(r => r.RunId == runId);
+            Assert.MustNotNull(run, "Run not found! " + runId);
+
+            var control = ActionControl.From(run);
+            var effects = control.SetRunning(actionId);
+            await ProcessEffects(run, effects);
+
+            var action = control.FindAction(actionId);
+            await WriteLogInner(runId, $"Action \"{action.Label}\" running...");
         }
     }
 }
