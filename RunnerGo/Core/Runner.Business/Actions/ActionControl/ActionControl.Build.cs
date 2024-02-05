@@ -39,24 +39,15 @@ namespace Runner.Business.Actions
 
         private static int MapAction(Run run, FlowAction flowAction, Action? parent)
         {
-            var thisAgentPool = !string.IsNullOrEmpty(flowAction.AgentPool) ?
-                flowAction.AgentPool :
-                parent?.AgentPool;
-
-            var thisTags = flowAction.Tags != null ?
-                flowAction.Tags :
-                parent?.Tags;
-
             var newActionFlow = new Action
             {
                 ActionId = run.IdIndexes++,
                 Label = flowAction.Label,
-                AgentPool = thisAgentPool,
-                Tags = thisTags,
                 Status = ActionStatus.Waiting,
                 Type = flowAction.Type,
                 BreakPoint = false,
-                Parent = parent?.ActionId
+                Parent = parent?.ActionId,
+                Data = flowAction.Data
             };
             run.Actions.Add(newActionFlow);
 

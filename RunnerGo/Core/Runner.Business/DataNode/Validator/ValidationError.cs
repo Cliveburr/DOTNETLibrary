@@ -1,6 +1,6 @@
 ﻿using Runner.Business.Entities.Nodes.Types;
 
-namespace Runner.Business.DataStruct.Validator
+namespace Runner.Business.DataNode.Validator
 {
     public class ValidationError
     {

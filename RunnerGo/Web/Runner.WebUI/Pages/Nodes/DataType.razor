@@ -77,14 +77,7 @@
                     </div>
                     <div class="column is-3">
                         <p class="control has-icons-left">
-                            @switch (prop.Type)
-                            {
-                                case DataTypeEnum.String:
-                                    {
-                                        <StringDataType @bind-Value=prop.Default />
-                                        break;
-                                    }
-                            }
+                            <DataTypeSelector Type=prop.Type @bind-Value=prop.Default />
                             <span class="icon is-left">
                                 <i class="fa-solid fa-suitcase"></i>
                             </span>

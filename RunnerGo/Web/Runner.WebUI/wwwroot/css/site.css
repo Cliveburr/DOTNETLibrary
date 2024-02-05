@@ -9781,3 +9781,18 @@ a.has-text-danger-dark:hover, a.has-text-danger-dark:focus {
   background-color: hsl(0deg, 0%, 98%);
   padding: 3rem 1.5rem 6rem;
 }
+
+.tagsfield {
+  height: auto !important;
+}
+.tagsfield > .control {
+  margin-bottom: 0.1em !important;
+  margin-top: 0.1em !important;
+}
+.tagsfield > input {
+  border: none;
+  margin-bottom: 0.1em !important;
+  margin-top: 0.1em !important;
+  flex-grow: 1;
+  min-width: 100px;
+}

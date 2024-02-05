@@ -5,6 +5,7 @@ using Runner.Business.Security;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
+using System.IO;
 
 namespace Runner.Business.Services.NodeTypes
 {
@@ -26,28 +27,34 @@ namespace Runner.Business.Services.NodeTypes
                 .FirstOrDefaultAsync(a => a.NodeId == nodeId);
         }
 
-        public async Task<List<Agent>> ReadAgentsForPool(ObjectId agentPoolNodeId)
+        public async Task<List<Agent>?> ReadAgentsByAgentPoolPath(string agentPoolPath)
         {
-            var agentPool = await AgentPool
-                .FirstOrDefaultAsync(ap => ap.NodeId == agentPoolNodeId);
-            Assert.MustNotNull(agentPool, "Internal - Missing AgentPool of NodId: " + agentPoolNodeId);
-
-            if (agentPool.Enabled)
+            var scriptNode = await _nodeService.ReadLocation(agentPoolPath);
+            if (scriptNode is null)
             {
-                var query = from n in Node.AsQueryable()
-                            join a in Agent.AsQueryable() on n.NodeId equals a.NodeId
-                            where
-                                n.ParentId == agentPoolNodeId &&
-                                a.Enabled == true &&
-                                a.Status == AgentStatus.Idle
-                            select a;
-
-                return await query
-                    .ToListAsync();
+                return null;
             }
             else
             {
-                return new List<Agent>();
+                var agentPool = await AgentPool
+                    .FirstOrDefaultAsync(ap => ap.NodeId == scriptNode.NodeId);
+                if (agentPool is not null && agentPool.Enabled)
+                {
+                    var query = from n in Node.AsQueryable()
+                                join a in Agent.AsQueryable() on n.NodeId equals a.NodeId
+                                where
+                                    n.ParentId == scriptNode.NodeId &&
+                                    a.Enabled == true &&
+                                    a.Status == AgentStatus.Idle
+                                select a;
+
+                    return await query
+                        .ToListAsync();
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
 

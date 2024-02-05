@@ -2,12 +2,23 @@
 
 namespace Runner.Business.DataNode.Validator.Types
 {
-    public class StringValidator : IDataValidator
+    public class StringListValidator : IDataValidator
     {
         public ValidationError? ValidateValue(DataTypeProperty type, object? value)
         {
-            var valueStr = value as string;
-            if (string.IsNullOrEmpty(valueStr))
+            var valueListStr = value as List<string>;
+            if (valueListStr is not null)
+            {
+                if (!valueListStr.Any() && type.IsRequired)
+                {
+                    return new ValidationError
+                    {
+                        Type = type,
+                        Text = $"String property \"{type.Name}\" is required;"
+                    };
+                }
+            }
+            else
             {
                 if (type.IsRequired)
                 {

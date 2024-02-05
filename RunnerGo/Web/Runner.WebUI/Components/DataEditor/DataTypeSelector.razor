@@ -1,0 +1,33 @@
+﻿@using Runner.Business.Entities.Nodes.Types
+
+@switch (Type)
+{
+    case DataTypeEnum.String:
+        {
+            <StringDataType @bind-Value:get=Value @bind-Value:set=SetValue />
+            break;
+        }
+    case DataTypeEnum.StringList:
+        {
+            <StringListDataType @bind-Value:get=Value @bind-Value:set=SetValue />
+            break;
+        }
+}
+
+@code {
+
+    [Parameter]
+    public DataTypeEnum Type { get; set; }
+
+    [Parameter]
+    public object? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<object?> ValueChanged { get; set; }
+
+    private Task SetValue(object? value)
+    {
+        Value = value;
+        return ValueChanged.InvokeAsync(Value);
+    }
+}

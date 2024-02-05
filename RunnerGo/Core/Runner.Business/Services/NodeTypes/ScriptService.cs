@@ -56,12 +56,12 @@ namespace Runner.Business.Services.NodeTypes
                     return null;
                 }
 
-                if (version == "*")
+                if (version == "*") //todo: improve this
                 {
                     var scriptVersion = script.Versions
                         .OrderByDescending(v => v.Version)
                         .First();
-                    return scriptVersion is null ? null : (script, scriptVersion);
+                    return (script, scriptVersion);
                 }
                 else
                 {

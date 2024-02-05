@@ -1,4 +1,5 @@
 ﻿using Runner.Business.Actions.Types;
+using Runner.Business.Entities.Nodes.Types;
 
 namespace Runner.Business.Actions
 {
@@ -34,11 +35,6 @@ namespace Runner.Business.Actions
             var action = FindAction(actionId);
             var actionType = FindActionType(action);
             return (action, actionType);
-        }
-
-        public string ComputeAgentPoolPathForAction(int actionId)
-        {
-            throw new NotFiniteNumberException();
         }
     }
 }

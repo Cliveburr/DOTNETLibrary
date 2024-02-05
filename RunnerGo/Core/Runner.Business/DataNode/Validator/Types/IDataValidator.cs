@@ -1,6 +1,6 @@
 ﻿using Runner.Business.Entities.Nodes.Types;
 
-namespace Runner.Business.DataStruct.Validator.Types
+namespace Runner.Business.DataNode.Validator.Types
 {
     public interface IDataValidator
     {

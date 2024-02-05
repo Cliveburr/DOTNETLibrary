@@ -287,63 +287,65 @@ namespace Runner.Agent.Hosting.Services
                 Assert.MustNotNull(run, "RunActionJob invalid RunId, JobId: " + job.JobId);
 
                 var control = ActionControl.From(run);
-                var action = control.FindAction(job.ActionId.Value);
-                Assert.MustNotNull(action, "RunActionJob invalid Action on RunId, JobId: " + job.JobId);
+
+                var scriptPath = control.ReadDataString(job.ActionId.Value, "ScriptPath");
+                Assert.MustNotNull(scriptPath, $"Run with invalid script path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value} }}");
+                var agentPoolPath = control.ReadDataStringNotNullRecursive(job.ActionId.Value, "AgentPoolPath");
+                Assert.MustNotNull(agentPoolPath, $"Run with invalid agent pool path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value} }}");
 
                 var scriptService = scope.ServiceProvider.GetRequiredService<ScriptService>();
-                var sts = await scriptService.ReadVersionByScriptPath("action.ScriptPath");
-                Assert.MustNotNull(sts, $"RunActionJob script not found! ScriptPath: \"{"action.ScriptPath"}\", JobId: {job.JobId}");
+                var sts = await scriptService.ReadVersionByScriptPath(scriptPath);
+                Assert.MustNotNull(sts, $"Run with invalid script path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value}, ScriptPath: {scriptPath} }}");
 
-                var agentPoolPath = control.ComputeAgentPoolPathForAction(job.ActionId.Value);
+                var agentService = scope.ServiceProvider.GetRequiredService<AgentService>();
+                var agents = await agentService.ReadAgentsByAgentPoolPath(agentPoolPath);
+                Assert.MustNotNull(agents, $"Run with invalid agent pool path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value}, AgentPoolPath: {agentPoolPath} }}");
 
-                var nodeService = scope.ServiceProvider.GetRequiredService<NodeService>();
-                var agentPoolNode = await nodeService.ReadLocation(agentPoolPath);
-                if (agentPoolNode is not null)
+                if (agents.Any())
                 {
-                    var agentService = scope.ServiceProvider.GetRequiredService<AgentService>();
-                    var agents = await agentService.ReadAgentsForPool(agentPoolNode.NodeId);
-                    if (agents.Any())
+                    foreach (var agent in agents)
                     {
-                        foreach (var agent in agents)
+                        var agentconnected = FindByAgent(agent.AgentId);
+                        if (agentconnected is not null)
                         {
-                            var agentconnected = FindByAgent(agent.AgentId);
-                            if (agentconnected is not null)
+                            var agentTags = agent.RegistredTags;
+                            if (agent.ExtraTags is not null)
                             {
-                                var agentTags = agent.RegistredTags;
-                                if (agent.ExtraTags is not null)
+                                agentTags.AddRange(agent.ExtraTags);
+                            }
+
+                            var actionTags = control.ReadDataTagString(job.ActionId.Value, "Tags")
+                                ?? new List<string>();
+
+                            if (agentTags.Intersect(actionTags).Count() == agentTags.Count)
+                            {
+                                agentconnected.RunningJobId = job.JobId;
+
+                                var runService2 = agentconnected.Scope.ServiceProvider.GetRequiredService<RunService>();
+                                await runService2.SetRunning(job.RunId.Value, job.ActionId.Value);
+
+                                var jobService2 = agentconnected.Scope.ServiceProvider.GetRequiredService<JobService>();
+                                job.AgentId = agent.AgentId;
+                                await jobService2.SetRunning(job);
+
+                                var request = new RunScriptRequest
                                 {
-                                    agentTags.AddRange(agent.ExtraTags);
-                                }
+                                    ScriptContentId = sts.Value.ScriptVersion.ScriptContentId.ToString(),
+                                    Assembly = sts.Value.ScriptVersion.Assembly,
+                                    FullTypeName = sts.Value.ScriptVersion.FullTypeName,
+                                    Data = control.ReadActionData(job.ActionId.Value)?
+                                        .Select(d => new Interface.Model.Data.DataProperty
+                                        {
+                                            Name = d.Name,
+                                            Value = d.Value
+                                        }).ToList()
+                                };
 
-                                var actionTags = action.Tags ?? new List<string>();
+                                _ = _agentHub.Clients.Client(agentconnected.ConnectionId).SendAsync("RunScript", request);
 
-                                if (agentTags.Intersect(actionTags).Count() == agentTags.Count)
-                                {
-                                    agentconnected.RunningJobId = job.JobId;
-
-                                    var runService2 = agentconnected.Scope.ServiceProvider.GetRequiredService<RunService>();
-                                    await runService2.SetRunning(job.RunId.Value, job.ActionId.Value);
-
-                                    var jobService2 = agentconnected.Scope.ServiceProvider.GetRequiredService<JobService>();
-                                    job.AgentId = agent.AgentId;
-                                    await jobService2.SetRunning(job);
-
-                                    var request = new RunScriptRequest
-                                    {
-                                        ScriptId = sts.Value.Script.ScriptId.ToString(),
-                                        Assembly = sts.Value.ScriptVersion.Assembly,  //TODO: pass this data to agent folder
-                                        FullTypeName = sts.Value.ScriptVersion.FullTypeName,          //TODO: pass this data to agent folder
-                                        Version = sts.Value.ScriptVersion.Version,
-                                        Data = new List<Interface.Model.Data.DataProperty>()
-                                    };
-
-                                    _ = _agentHub.Clients.Client(agentconnected.ConnectionId).SendAsync("RunScript", request);
-                                    
-                                    return;
-                                }
+                                return;
                             }
                         }
-
                     }
                 }
 

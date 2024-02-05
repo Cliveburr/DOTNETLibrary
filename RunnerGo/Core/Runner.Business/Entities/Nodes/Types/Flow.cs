@@ -18,9 +18,8 @@ namespace Runner.Business.Entities.Nodes.Types
     public class FlowAction
     {
         public required string Label { get; set; }
-        public string? AgentPool { get; set; }
-        public List<string>? Tags { get; set; }
         public ActionType Type { get; set; }
         public List<FlowAction>? Childs { get; set; }
+        public List<DataProperty>? Data { get; set; }
     }
 }

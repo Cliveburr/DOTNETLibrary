@@ -1,6 +1,5 @@
-﻿@using Runner.Business.DataNode.Merges
+﻿@using Runner.Business.DataNode.Merge
 @using Runner.Business.Entities.Nodes.Types
-@using Runner.Business.Entities.Nodes.Types.DataStruct.Validator
 @inherits NodeBasePase
 @inject DataService dataService
 @inject DataTypeService dataTypeService
@@ -54,7 +53,8 @@
         </div>
 
         <div class="box mt-3">
-            @foreach (var data in dataNode.Properties)
+            @if (mergeData is not null)
+                @foreach (var data in mergeData.Properties)
             {
                 <div class="columns">
                     <div class="column is-3">
@@ -67,14 +67,7 @@
                     </div>
                     <div class="column is-3">
                         <p class="control has-icons-left">
-                            @switch (data.Type)
-                            {
-                                case DataTypeEnum.String:
-                                    {
-                                        <StringDataType @bind-Value=data.Value />
-                                        break;
-                                    }
-                            }
+                            <DataTypeSelector Type=data.Type @bind-Value=data.Value />
                             <span class="icon is-left">
                                 <i class="fa-solid fa-suitcase"></i>
                             </span>
@@ -89,6 +82,7 @@
 @code {
 
     private Runner.Business.Entities.Nodes.Types.Data? dataNode { get; set; }
+    private MergeData? mergeData;
 
     protected override async Task OnInitializedAsync()
     {
@@ -100,7 +94,7 @@
         }
         else
         {
-            var merge = MergeData.From(dataNode.Properties);
+            mergeData = MergeData.From(dataNode.Properties);
 
             if (dataNode.DataTypeId.HasValue)
             {
@@ -108,14 +102,12 @@
                 if (dataType is null)
                 {
                     await Notification.AddError("DataType not found!");
-                    PageNotFound();
-                    return;
                 }
-
-                merge.ApplyType(dataType.Properties);
+                else
+                {
+                    mergeData.ApplyType(dataType.Properties, true);
+                }
             }
-
-            dataNode.Properties = merge.Properties.ToList();
         }
     }
 
@@ -125,17 +117,9 @@
         {
             Assert.MustNotNull(dataNode, "DataType load fail!");
 
-            if (dataNode.DataTypeId.HasValue)
+            if (mergeData is not null)
             {
-                var dataType = await dataTypeService.ReadById(dataNode.DataTypeId.Value);
-                if (dataType is null)
-                {
-                    await Notification.AddError("DataType not found!");
-                    PageNotFound();
-                    return;
-                }
-
-                var errors = DataValidator.Validate(dataNode.Properties, dataType.Properties);
+                var errors = mergeData.Validate();
                 if (errors.Any())
                 {
                     foreach (var error in errors)
@@ -144,6 +128,8 @@
                     }
                     return;
                 }
+
+                dataNode.Properties = mergeData.GetAsDataProperty();
             }
 
             await dataService.Update(dataNode);
@@ -177,9 +163,8 @@
 
             dataNode.DataTypeId = dataType.DataTypeId;
 
-            var merge = MergeData.From(dataNode.Properties);
-            merge.ApplyType(dataType.Properties);
-            dataNode.Properties = merge.Properties.ToList();
+            mergeData = MergeData.From(dataNode.Properties);
+            mergeData.ApplyType(dataType.Properties, true);
         }
         catch (Exception err)
         {

@@ -1,7 +1,7 @@
-﻿using Runner.Business.DataStruct.Validator.Types;
-using Runner.Business.DataStruct.Validator;
+﻿using Runner.Business.DataNode.Validator.Types;
+using Runner.Business.Entities.Nodes.Types;
 
-namespace Runner.Business.Entities.Nodes.Types.DataStruct.Validator
+namespace Runner.Business.DataNode.Validator
 {
     public static class DataValidator
     {
@@ -45,6 +45,7 @@ namespace Runner.Business.Entities.Nodes.Types.DataStruct.Validator
                 _validatorCache[type] = type switch
                 {
                     DataTypeEnum.String => new StringValidator(),
+                    DataTypeEnum.StringList => new StringListValidator(),
                     _ => throw new RunnerException($"Invalid DataTypeEnum: {type}")
                 };
             }
