@@ -8,7 +8,7 @@ namespace Runner.Business.Actions.DataOfTypes
         {
             return new List<DataTypeProperty>
             {
-                new DataTypeProperty { Name = "AgentPoolPath", Type = DataTypeEnum.String },
+                new DataTypeProperty { Name = "AgentPoolPath", Type = DataTypeEnum.NodePath },
                 new DataTypeProperty { Name = "Tags", Type = DataTypeEnum.StringList }
             };
         }

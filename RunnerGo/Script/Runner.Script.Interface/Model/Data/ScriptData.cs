@@ -1,26 +1,26 @@
 ﻿namespace Runner.Script.Interface.Model.Data
 {
-    public class Data
+    public class ScriptData
     {
-        private List<DataState> _states;
+        private List<ScriptDataState> _states;
 
-        public Data(List<DataProperty> properties)
+        public ScriptData(List<ScriptDataProperty> properties)
         {
             _states = properties
-                .Select(p => new DataState { Property = p, State = DataStateType.Pristine })
+                .Select(p => new ScriptDataState { Property = p, State = ScriptDataStateType.Pristine })
                 .ToList();
         }
 
-        private void Set(string name, DataTypeEnum type, object value)
+        private void Set(string name, ScriptDataTypeEnum type, object value)
         {
             var state = _states
                 .FirstOrDefault(s => s.Property.Name == name);
             if (state is null)
             {
-                _states.Add(new DataState
+                _states.Add(new ScriptDataState
                 {
-                    Property = new DataProperty { Name = name, Type = type, Value = value },
-                    State = DataStateType.Add
+                    Property = new ScriptDataProperty { Name = name, Type = type, Value = value },
+                    State = ScriptDataStateType.Add
                 });
             }
             else
@@ -28,39 +28,39 @@
                 state.Property.Type = type;
                 state.Property.Value = value;
 
-                if (state.State == DataStateType.Pristine || state.State == DataStateType.Deleted)
+                if (state.State == ScriptDataStateType.Pristine || state.State == ScriptDataStateType.Deleted)
                 {
-                    state.State = DataStateType.Modified;
+                    state.State = ScriptDataStateType.Modified;
                 }
             }
         }
 
-        public Data Delete(string name)
+        public ScriptData Delete(string name)
         {
             var state = _states
                 .FirstOrDefault(s => s.Property.Name == name);
             if (state is not null)
             {
-                if (state.State == DataStateType.Add)
+                if (state.State == ScriptDataStateType.Add)
                 {
                     _states.Remove(state);
                 }
                 else
                 {
-                    state.State = DataStateType.Deleted;
+                    state.State = ScriptDataStateType.Deleted;
                 }
             }
             return this;
         }
 
-        public List<T> MapTo<T>(Func<DataState, T> selector)
+        public List<T> MapTo<T>(Func<ScriptDataState, T> selector)
         {
             return _states.Select(selector).ToList();
         }
 
-        public Data SetString(string name, string value)
+        public ScriptData SetString(string name, string value)
         {
-            Set(name, DataTypeEnum.String, value);
+            Set(name, ScriptDataTypeEnum.String, value);
             return this;
         }
 

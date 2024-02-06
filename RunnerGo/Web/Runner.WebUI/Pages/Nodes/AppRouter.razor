@@ -34,7 +34,12 @@
             return;
         }
 
-        var node = await nodeService.ReadLocation(PageRoute);
+        var parts = new System.Collections.Queue(PageRoute.ToLower()
+            .Split("/", StringSplitOptions.RemoveEmptyEntries));
+
+        var node = parts.Count == 0 ?
+            null :
+            await nodeService.ReadLocation(parts);
         if (node is null)
         {
             RouteHome();
@@ -43,8 +48,16 @@
 
         _viewParameters.Clear();
 
-        _viewParameters["Node"] = node;
-        _view = RouteNode(node.Type);
+        if (node.Type == NodeType.Flow && parts.Count == 1)
+        {
+            _viewParameters["RunIdStr"] = parts.Dequeue() as string;
+            _view = typeof(Run.RunView);
+        }
+        else
+        {
+            _viewParameters["Node"] = node;
+            _view = RouteNode(node.Type);
+        }
         StateHasChanged();
     }
 
@@ -62,7 +75,6 @@
             case NodeType.AgentPool: return typeof(Nodes.AgentPool);
             case NodeType.Agent: return typeof(Nodes.Agent);
             case NodeType.Flow: return typeof(Nodes.Flow.FlowView);
-            // case NodeType.Run: return typeof(Nodes.Run.RunView);
             case NodeType.Data: return typeof(Nodes.Data);
             case NodeType.DataType: return typeof(Nodes.DataType);
             case NodeType.ScriptPackage: return typeof(Nodes.ScriptPackage);

@@ -127,44 +127,49 @@ namespace Runner.Business.Services
                     options);
         }
 
-        public Task SetWaiting(Job job)
+        public Task SetWaiting(ObjectId jobId)
         {
             var update = Builders<Job>.Update
                 .Set(j => j.Status, JobStatus.Waiting);
 
             return Job
-                .UpdateAsync(j => j.JobId == job.JobId, update);
+                .UpdateAsync(j => j.JobId == jobId, update);
         }
 
-        public Task SetRunning(Job job)
+        public Task SetRunning(ObjectId jobId, ObjectId? agendId = null)
         {
             var update = Builders<Job>.Update
                 .Set(j => j.Status, JobStatus.Running)
                 .Set(j => j.Started, DateTime.UtcNow)
-                .Set(j => j.AgentId, job.AgentId);
+                .Set(j => j.AgentId, agendId);
 
             return Job
-                .UpdateAsync(j => j.JobId == job.JobId, update);
+                .UpdateAsync(j => j.JobId == jobId, update);
         }
 
-        public Task SetError(Job job, Exception ex)
+        public Task SetError(ObjectId jobId, Exception ex)
+        {
+            return SetError(jobId, ex.ToString());
+        }
+
+        public Task SetError(ObjectId jobId, string errorMessage)
         {
             var update = Builders<Job>.Update
                 .Set(j => j.Status, JobStatus.Error)
-                .Set(j => j.ErrorMessage, ex.ToString())
+                .Set(j => j.ErrorMessage, errorMessage)
                 .Set(j => j.End, DateTime.Now);
 
             return Job
-                .UpdateAsync(j => j.JobId == job.JobId, update);
+                .UpdateAsync(j => j.JobId == jobId, update);
         }
 
-        public Task SetCompleted(Job job)
+        public Task SetCompleted(ObjectId jobId)
         {
             var update = Builders<Job>.Update
                 .Set(j => j.Status, JobStatus.Completed)
                 .Set(j => j.End, DateTime.Now);
 
-            return Job.UpdateAsync(j => j.JobId == job.JobId, update);
+            return Job.UpdateAsync(j => j.JobId == jobId, update);
         }
 
         public async Task StopJob(Run run, Actions.Action action)

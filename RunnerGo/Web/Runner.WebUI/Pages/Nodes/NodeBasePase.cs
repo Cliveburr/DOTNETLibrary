@@ -5,7 +5,7 @@ using Runner.Business.Entities.Nodes;
 
 namespace Runner.WebUI.Pages.Nodes
 {
-    public class NodeBasePase : BasePage
+    public class NodeBasePage : BasePage
     {
         [Parameter]
         public required Node Node { get; set; }
@@ -13,14 +13,6 @@ namespace Runner.WebUI.Pages.Nodes
         public void FowardNode(Node node)
         {
             FowardNode(node.Name);
-        }
-
-        public void FowardNode(string name)
-        {
-            var parts = new List<string>(NavigationManager.Uri.Substring(NavigationManager.BaseUri.Length)
-                .Split("/", StringSplitOptions.RemoveEmptyEntries));
-            parts.Add(name);
-            NavigationManager.NavigateTo($"/{string.Join('/', parts)}", false, true);
         }
     }
 }

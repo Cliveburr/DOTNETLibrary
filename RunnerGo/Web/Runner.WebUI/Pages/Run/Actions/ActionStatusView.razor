@@ -1,0 +1,24 @@
+﻿@using Runner.Business.Actions
+
+<div class="statusFlag" title="@Status" style="background-color: @GetColor()"></div>
+
+@code {
+
+    [Parameter]
+    public required ActionStatus Status { get; set; }
+
+    private string GetColor()
+    {
+        return Status switch
+        {
+            ActionStatus.Waiting => "#F1F111",
+            ActionStatus.ToRun => "#2DA5C9",
+            ActionStatus.Running => "#3d78bf",
+            ActionStatus.ToStop => "#660000",
+            ActionStatus.Stopped => "#660000",
+            ActionStatus.Error => "#F03838",
+            ActionStatus.Completed => "#76E767;",
+            _ => "white"
+        };
+    }
+}

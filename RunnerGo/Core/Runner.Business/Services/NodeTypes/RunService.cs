@@ -26,6 +26,15 @@ namespace Runner.Business.Services.NodeTypes
             _manualAgentWatcherNotification = agentWatcherNotification as ManualAgentWatcherNotification;
         }
 
+        public Task<Run?> ReadByIdStr(string runIdStr)
+        {
+            if (ObjectId.TryParse(runIdStr, out var runId))
+            {
+                return ReadById(runId);
+            }
+            return Task.FromResult<Run?>(null);
+        }
+
         public Task<Run?> ReadById(ObjectId runId)
         {
             return Run
@@ -59,8 +68,6 @@ namespace Runner.Business.Services.NodeTypes
 
             var run = ActionControl.Build(flow);
 
-            //run.Type = NodeType.Run;
-            //run.Parent = flow.Id;
             run.Status = RunStatus.Waiting;
             run.Created = DateTime.Now;
             if (setToRun)
@@ -284,6 +291,121 @@ namespace Runner.Business.Services.NodeTypes
 
             var action = control.FindAction(actionId);
             await WriteLogInner(runId, $"Action \"{action.Label}\" running...");
+        }
+
+        public async Task SetCompleted(ObjectId runId, int actionId)
+        {
+            Assert.MustNotNull(_identityProvider.User, "Need to be logged to error script!");
+
+            // checar se ter permissão
+
+            var run = await Run
+                .FirstOrDefaultAsync(r => r.RunId == runId);
+            Assert.MustNotNull(run, "Run not found! " + runId);
+
+            var control = ActionControl.From(run);
+            var effects = control.SetCompleted(actionId);
+            await ProcessEffects(run, effects);
+
+            var action = control.FindAction(actionId);
+            await WriteLogInner(runId, $"Action \"{action.Label}\" was completed!");
+        }
+
+        public async Task SetError(ObjectId runId, int actionId, string text)
+        {
+            Assert.MustNotNull(_identityProvider.User, "Need to be logged to error script!");
+
+            // checar se ter permissão
+
+            var run = await Run
+                .FirstOrDefaultAsync(r => r.RunId == runId);
+            Assert.MustNotNull(run, "Run not found! " + runId);
+
+            var control = ActionControl.From(run);
+            var effects = control.SetError(actionId);
+            await ProcessEffects(run, effects);
+
+            var action = control.FindAction(actionId);
+            await WriteLogInner(runId, $"Error on \"{action.Label}\": {text}");
+        }
+
+        public async Task WriteLog(ObjectId runId, string text)
+        {
+            Assert.MustNotNull(_identityProvider.User, "Need to be logged to error script!");
+
+            // checar se ter permissão
+
+            await WriteLogInner(runId, text);
+        }
+
+        public async Task SetRun(ObjectId runId, int actionId)
+        {
+            Assert.MustNotNull(_identityProvider.User, "Need to be logged to run script!");
+
+            // checar se ter permissão
+
+            var run = await Run
+                .FirstOrDefaultAsync(r => r.RunId == runId);
+            Assert.MustNotNull(run, "Run not found! " + runId);
+
+            var control = ActionControl.From(run);
+            var effects = control.Run(actionId);
+            await ProcessEffects(run, effects);
+
+            await WriteLogInner(runId, "Set to run");
+        }
+
+        public async Task Stop(ObjectId runId, int actionId)
+        {
+            Assert.MustNotNull(_identityProvider.User, "Need to be logged to run script!");
+
+            // checar se ter permissão
+
+            var run = await Run
+                .FirstOrDefaultAsync(r => r.RunId == runId);
+            Assert.MustNotNull(run, "Run not found! " + runId);
+
+            var control = ActionControl.From(run);
+            var effects = control.Stop(actionId);
+            await ProcessEffects(run, effects);
+
+            await WriteLogInner(runId, "Set to stop");
+        }
+
+        public async Task SetBreakPoint(ObjectId runId, int actionId)
+        {
+            Assert.MustNotNull(_identityProvider.User, "Need to be logged to error script!");
+
+            // checar se ter permissão
+
+            var run = await Run
+                .FirstOrDefaultAsync(r => r.RunId == runId);
+            Assert.MustNotNull(run, "Run not found! " + runId);
+
+            var control = ActionControl.From(run);
+            var effects = control.SetBreakPoint(actionId);
+            await ProcessEffects(run, effects);
+
+            var action = control.FindAction(actionId);
+            await WriteLogInner(runId, $"BreakPoint on action \"{action.Label}\" setted");
+        }
+
+        public async Task CleanBreakPoint(ObjectId runId, int actionId)
+        {
+            Assert.MustNotNull(_identityProvider.User, "Need to be logged to error script!");
+
+            // checar se ter permissão
+
+            var run = await Run
+                .FirstOrDefaultAsync(r => r.RunId == runId);
+            Assert.MustNotNull(run, "Run not found! " + runId);
+
+            var control = ActionControl.From(run);
+            var effects = control.CleanBreakPoint(actionId);
+            await ProcessEffects(run, effects);
+
+            var action = control.FindAction(actionId);
+            await WriteLogInner(runId, $"BreakPoint on action \"{action.Label}\" was cleared");
         }
     }
 }

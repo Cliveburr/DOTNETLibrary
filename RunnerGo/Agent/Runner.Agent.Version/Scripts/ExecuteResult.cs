@@ -7,6 +7,6 @@ namespace Runner.Agent.Version.Scripts
         public bool IsSuccess { get; set; }
         public bool ContinueOnError { get; set; }
         public string? ErrorMessage { get; set; }
-        public List<DataState>? Data { get; set; }
+        public List<AgentDataState>? Data { get; set; }
     }
 }

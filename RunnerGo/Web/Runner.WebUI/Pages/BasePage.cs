@@ -48,6 +48,14 @@ namespace Runner.WebUI.Pages
         {
             NavigationManager.NavigateTo("/"); //TODO: improve this
         }
+
+        public void FowardNode(string name)
+        {
+            var parts = new List<string>(NavigationManager.Uri.Substring(NavigationManager.BaseUri.Length)
+                .Split("/", StringSplitOptions.RemoveEmptyEntries));
+            parts.Add(name);
+            NavigationManager.NavigateTo($"/{string.Join('/', parts)}", false, true);
+        }
     }
 }
 

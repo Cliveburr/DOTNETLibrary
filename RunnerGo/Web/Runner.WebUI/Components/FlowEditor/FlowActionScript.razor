@@ -1,7 +1,10 @@
-﻿@using Runner.Business.Datas.Model
+﻿@using Runner.Business.Datas.Control
+@using Runner.Business.Datas.Model
 @using Runner.Business.Entities.Nodes.Types
+@inherits BasePage
 @implements IFlowActionView
 @inject ClipboardInterop clipboardInterop
+@inject ScriptService scriptService
 
 <div class="flowaction" @onclick=OnOpenEditor @onclick:stopPropagation=true @onmouseover:stopPropagation=true>
     <p>@ValidLabel()</p>
@@ -21,8 +24,13 @@
     [CascadingParameter(Name = "GetPanel")]
     public Func<RightPanel?>? GetPanel { get; set; }
 
-    private DataProperty? _agentPoolPath;
-    private DataProperty? _tags;
+    protected override void OnInitialized()
+    {
+        Node.Data = new DataMerge()
+            .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ScriptDataType.Get())
+            .ApplyDataProperty(Node.Data)
+            .ToDataProperty();
+    }
 
     private string ValidLabel()
     {
@@ -38,14 +46,6 @@
             var panel = GetPanel();
             if (panel != null)
             {
-                _agentPoolPath = Node.Data?
-                    .FirstOrDefault(d => d.Name == "AgentPoolPath") ??
-                    new DataProperty { Name = "AgentPoolPath", Value = string.Empty, Type = DataTypeEnum.String };
-
-                _tags = Node.Data?
-                    .FirstOrDefault(d => d.Name == "Tags") ??
-                    new DataProperty { Name = "Tags", Value = string.Empty, Type = DataTypeEnum.String };
-
                 panel.SetOpen(EditorForm());
             }
         }
@@ -134,6 +134,50 @@
         return clipboardInterop.WriteTextAsync(text);
     }
 
+    private async Task OnEditData_Click()
+    {
+        var datas = new DataMerge()
+            .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ScriptDataType.Get())
+            .ApplyDataProperty(Node.Data)
+            .ToDataFullProperty();
+
+        var scriptPathProperty = datas
+            .First(d => d.Name == "ScriptPath");
+        scriptPathProperty.Hidden = true;
+
+        var editedData = await Modal.DataFullEditor(datas);
+        if (editedData is not null)
+        {
+            Node.Data = editedData;
+            OnOpenEditor();
+        }
+    }
+
+    private async void OnScriptPath_Changed(object? value)
+    {
+        var scriptPath = value as string;
+        var scriptPathProperty = Node.Data!
+            .First(d => d.Name == "ScriptPath");
+        scriptPathProperty.Value = scriptPath;
+
+        if (!string.IsNullOrEmpty(scriptPath))
+        {
+            var sts = await scriptService.ReadVersionByScriptPath(scriptPath);
+            if (sts is null)
+            {
+                await Notification.AddInfo("ScriptPath invalid!");
+            }
+            else
+            {
+                Node.Data = new DataMerge()
+                    .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ScriptDataType.Get())
+                    .ApplyDataTypeProperty(sts.Value.ScriptVersion.InputTypes)
+                    .ApplyDataProperty(Node.Data)
+                    .ToDataProperty();
+            }
+        }
+    }
+
     private RenderFragment EditorForm()
     {
         return
@@ -186,24 +230,42 @@
                     </button>
                 }
             </div>
+            <div class="buttons">
+                <button type="button" class="button is-primary is-small" @onclick="OnEditData_Click">
+                    <span class="icon is-small">
+                        <NodeTypeIcon Type=NodeType.Data />
+                    </span>
+                    <span>Edita Data</span>
+                </button>
+            </div>
             <div class="field">
                 <label class="label">Label</label>
                 <div class="control">
                     <input class="input" type="text" @bind=Node.Label placeholder="Label">
                 </div>
             </div>
-            <div class="field">
-                <label class="label">Agent Pool Path</label>
-                <div class="control">
-                    <StringDataType Value=_agentPoolPath!.Value />
-                </div>
-            </div>
-            <div class="field">
-                <label class="label">Tags</label>
-                <div class="control">
-                    <StringListDataType Value=_tags!.Value />
-                </div>
-            </div>
+            @if (Node.Data is not null)
+            @foreach (var data in Node.Data)
+            {
+                @if (data.Name == "ScriptPath")
+                {
+                    <div class="field">
+                        <label class="label">@data.Name</label>
+                        <div class="control">
+                            <NodePathDataType Value=@data.Value ValueChanged=OnScriptPath_Changed />
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="field">
+                        <label class="label">@data.Name</label>
+                        <div class="control">
+                            <DataTypeSelector Type=@data.Type Value=@data.Value />
+                        </div>
+                    </div>
+                }
+            }
         </div>;
     }
 }

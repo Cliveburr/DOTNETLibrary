@@ -1,7 +1,7 @@
 ﻿
 namespace Runner.Agent.Interface.Model.Data
 {
-    public enum DataStateType : byte
+    public enum AgentDataStateType : byte
     {
         Pristine = 0,
         Add = 1,

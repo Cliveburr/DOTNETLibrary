@@ -32,6 +32,10 @@ html, body {
   width: 50%;
 }
 
+.w70 {
+  width: 70% !important;
+}
+
 .w50px {
   width: 50px;
 }
@@ -172,6 +176,7 @@ html, body {
 .rightpanel > .rightpanelcontent {
   background-color: #a2c4f3;
   min-width: 400px;
+  max-width: 600px;
   box-shadow: -5px 1em 1em -0.125em rgba(113, 76, 76, 0.1), -10px -2px 0 1px rgba(10, 10, 10, 0.02);
 }
 
@@ -9788,6 +9793,7 @@ a.has-text-danger-dark:hover, a.has-text-danger-dark:focus {
 
 .tagsfield {
   height: auto !important;
+  margin-bottom: unset !important;
 }
 .tagsfield > .control {
   margin-bottom: 0.1em !important;

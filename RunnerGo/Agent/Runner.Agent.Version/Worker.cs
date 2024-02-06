@@ -271,8 +271,7 @@ namespace Runner.Agent.Version
                     var getScriptResponse = await _connection.InvokeAsync<GetScriptResponse>("GetScript",
                         new GetScriptRequest
                         {
-                            ScriptId = request.ScriptId,
-                            Version = request.Version
+                            ScriptContentId = request.ScriptContentId
                         }, _stoppingToken);
                     if (getScriptResponse is null)
                     {

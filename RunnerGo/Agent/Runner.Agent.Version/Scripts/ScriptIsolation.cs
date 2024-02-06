@@ -80,13 +80,13 @@ namespace Runner.Agent.Version.Scripts
                 return;
             }
 
-            var type = assembly.GetType(_request.Type, false, true);
+            var type = assembly.GetType(_request.FullTypeName, false, true);
             if (type is null)
             {
                 _result = new ExecuteResult
                 {
                     IsSuccess = false,
-                    ErrorMessage = $"Cannot find: \"{_request.Type}\" class!"
+                    ErrorMessage = $"Cannot find: \"{_request.FullTypeName}\" class!"
                 };
                 return;
             }
@@ -97,7 +97,7 @@ namespace Runner.Agent.Version.Scripts
                 _result = new ExecuteResult
                 {
                     IsSuccess = false,
-                    ErrorMessage = $"Instance fail: \"{_request.Type}\"!"
+                    ErrorMessage = $"Instance fail: \"{_request.FullTypeName}\"!"
                 };
                 return;
             }
@@ -105,10 +105,10 @@ namespace Runner.Agent.Version.Scripts
             try
             {
                 var dataMap = _request.Data
-                    .Select(p => new DataProperty
+                    .Select(p => new ScriptDataProperty
                     {
                         Name = p.Name,
-                        Type = (DataTypeEnum)p.Type,
+                        Type = (ScriptDataTypeEnum)p.Type,
                         Value = p.Value
                     })
                     .ToList();
@@ -117,7 +117,7 @@ namespace Runner.Agent.Version.Scripts
                 {
                     IsSuccess = true,
                     ContinueOnError = false,
-                    Data = new Data(dataMap),
+                    Data = new ScriptData(dataMap),
                     Log = _log,
                     CancellationToken = cancellationToken
                 };
@@ -130,10 +130,15 @@ namespace Runner.Agent.Version.Scripts
                     ContinueOnError = scriptRunContext.ContinueOnError,
                     ErrorMessage = scriptRunContext.ErrorMessage,
                     Data = scriptRunContext.Data.MapTo(s =>
-                        new Interface.Model.Data.DataState
+                        new Interface.Model.Data.AgentDataState
                         {
-                            Property = new Interface.Model.Data.DataProperty { Name = s.Property.Name, Type = (Interface.Model.Data.DataTypeEnum)s.Property.Type, Value = s.Property.Value },
-                            State = (Interface.Model.Data.DataStateType)s.State
+                            Property = new Interface.Model.Data.AgentDataProperty
+                            {
+                                Name = s.Property.Name,
+                                Type = (Interface.Model.Data.AgentDataTypeEnum)s.Property.Type,
+                                Value = s.Property.Value
+                            },
+                            State = (Interface.Model.Data.AgentDataStateType)s.State
                         })
                 };
             }

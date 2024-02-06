@@ -2,7 +2,7 @@
 @using Runner.Business.Datas.Model
 @using Runner.Business.Datas.Validator
 @using Runner.Business.Entities.Nodes.Types
-@inherits NodeBasePase
+@inherits NodeBasePage
 @inject DataService dataService
 @inject DataTypeService dataTypeService
 @inject NodeService nodeService
@@ -57,77 +57,7 @@
         <div class="box mt-3">
             @if (datas is not null)
             {
-                <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Value</th>
-                            <th class="w50px"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var data in datas)
-                        {
-                            <tr>
-                                <td>
-                                    <p class="control has-icons-left">
-                                        <input class="input" @bind=data.Name type="text" placeholder="Name" readonly="@(!data.IsEditable)">
-                                        <span class="icon is-small is-left">
-                                            <i class="fa-solid fa-key"></i>
-                                        </span>
-                                    </p>
-                                </td>
-                                <td>
-                                    @if (data.IsEditable)
-                                    {
-                                        <div class="control has-icons-left is-expanded">
-                                            <div class="select is-fullwidth">
-                                                <EnumSelect @bind-Value=data.Type />
-                                            </div>
-                                            <div class="icon is-small is-left">
-                                                <i class="fa-solid fa-superscript"></i>
-                                            </div>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <p class="control has-icons-left">
-                                            <input class="input" value=@data.Type type="text" readonly>
-                                            <span class="icon is-small is-left">
-                                                <i class="fa-solid fa-superscript"></i>
-                                            </span>
-                                        </p>
-                                    }
-                                </td>
-                                <td>
-                                    <p class="control has-icons-left">
-                                        <DataTypeSelector Type=data.Type @bind-Value=data.Value />
-                                        <span class="icon is-small is-left">
-                                            <i class="fa-solid fa-suitcase"></i>
-                                        </span>
-                                    </p>
-                                </td>
-                                <td class="has-text-centered">
-                                    @if (data.IsEditable)
-                                    {
-                                        <button class="button is-danger" @onclick=@(() => OnRemove_Click(data))>
-                                            <span class="icon is-small">
-                                                <i class="fas fa-times"></i>
-                                            </span>
-                                        </button>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-                <button type="button" class="button is-success" @onclick="OnCreate_Click">
-                    <span class="icon is-small">
-                        <i class="fa-solid fa-circle-plus"></i>
-                    </span>
-                    <span>Add</span>
-                </button>
+                <DataFullEditor Properties=datas />
             }
         </div>
     }
@@ -157,12 +87,17 @@
                 }
                 else
                 {
-                    datas = DataMerge.Merge(dataNode.Properties, dataType.Properties);
+                    datas = new DataMerge()
+                        .ApplyDataTypeProperty(dataType.Properties)
+                        .ApplyDataProperty(dataNode.Properties)
+                        .ToDataFullProperty();
                 }
             }
             else
             {
-                datas = DataMerge.Merge(dataNode.Properties);
+                datas = new DataMerge()
+                    .ApplyDataProperty(dataNode.Properties)
+                    .ToDataFullProperty();
             }
         }
     }
@@ -221,7 +156,10 @@
 
             dataNode.DataTypeId = dataType.DataTypeId;
 
-            datas = DataMerge.Merge(null, dataType.Properties, datas);
+            datas = new DataMerge()
+                .ApplyDataTypeProperty(dataType.Properties)
+                .ApplyDataFullProperty(datas)
+                .ToDataFullProperty();
         }
         catch (Exception err)
         {
@@ -272,43 +210,6 @@
             {
                 await Notification.AddError(err);
             }
-        }
-    }
-
-    private async Task OnCreate_Click()
-    {
-        try
-        {
-            Assert.MustNotNull(datas, "Internal - datas null!");
-
-            datas.Add(new DataFullProperty(new DataProperty
-            {
-                Name = "NewProperty",
-                Type = DataTypeEnum.String,
-                Value = string.Empty
-            }));
-        }
-        catch (Exception err)
-        {
-            await Notification.AddError(err);
-            return;
-        }
-    }
-
-    private async Task OnRemove_Click(DataFullProperty data)
-    {
-        try
-        {
-            Assert.MustNotNull(datas, "Internal - datas null!");
-
-            if (datas.Contains(data))
-            {
-                datas.Remove(data);
-            }
-        }
-        catch (Exception err)
-        {
-            await Notification.AddError(err);
         }
     }
 }

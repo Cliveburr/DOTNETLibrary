@@ -65,7 +65,7 @@ namespace Runner.Script.Hosting.Services
 
                 try
                 {
-                    await jobService.SetRunning(job);
+                    await jobService.SetRunning(job.JobId);
 
                     Assert.MustNotNull(job.ScriptContentId, "Missing ScriptContentId in job of type ExtractScriptPackage!");
                     Assert.MustNotNull(job.ScriptPackageId, "Missing ScriptPackageId in job of type ExtractScriptPackage!");
@@ -83,7 +83,7 @@ namespace Runner.Script.Hosting.Services
                         await scriptPackageService.SetScripts(job.ScriptPackageId.Value, scriptContent.ScriptContentId, scriptSets, warnings);
                     }
 
-                    await jobService.SetCompleted(job);
+                    await jobService.SetCompleted(job.JobId);
                 }
                 catch (Exception ex)
                 {
@@ -104,7 +104,7 @@ namespace Runner.Script.Hosting.Services
 
                     try
                     {
-                        await jobService.SetError(job, ex);
+                        await jobService.SetError(job.JobId, ex);
                     }
                     catch (Exception ex2)
                     {

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using Runner.Agent.Hosting.Hubs;
 using Runner.Agent.Interface.Model;
+using Runner.Agent.Interface.Model.Data;
 using Runner.Business.Actions;
 using Runner.Business.Entities.Job;
 using Runner.Business.Entities.Nodes.Types;
@@ -31,7 +32,14 @@ namespace Runner.Agent.Hosting.Services
             public required string AgentPoolPath { get; set; }
             public ObjectId AgentId { get; set; }
             public required IServiceScope Scope { get; set; }
-            public ObjectId? RunningJobId { get; set; }
+            public JobRunning? ScriptJobRunning { get; set; }
+        }
+
+        private class JobRunning
+        {
+            public required ObjectId JobId { get; set; }
+            public required ObjectId RunId { get; set; }
+            public required int ActionId { get; set; }
         }
 
         public AgentManagerService(IHubContext<AgentHub> agentHub, ILogger<AgentManagerService> logger, IServiceProvider serviceProvider, IAgentWatcherNotification agentWatcherNotification)
@@ -137,7 +145,7 @@ namespace Runner.Agent.Hosting.Services
             lock (_agents)
             {
                 return _agents
-                    .FirstOrDefault(a => a.RunningJobId == jobId);
+                    .FirstOrDefault(a => a.ScriptJobRunning?.JobId == jobId);
             }
         }
 
@@ -151,7 +159,7 @@ namespace Runner.Agent.Hosting.Services
             var agentConnect = FindByConnectionId(connectionId);
             if (agentConnect != null)
             {
-                if (agentConnect.RunningJobId.HasValue)
+                if (agentConnect.ScriptJobRunning is not null)
                 {
                     await ScriptError(connectionId, new ScriptErrorRequest
                     {
@@ -223,7 +231,7 @@ namespace Runner.Agent.Hosting.Services
                     using (var scope = _serviceProvider.CreateScope())
                     {
                         var jobService = scope.ServiceProvider.GetRequiredService<JobService>();
-                        await jobService.SetError(job, ex);
+                        await jobService.SetError(job.JobId, ex);
                     }
                 }
                 catch
@@ -239,7 +247,7 @@ namespace Runner.Agent.Hosting.Services
             lock (_agents)
             {
                 avaiableAgent = _agents
-                    .Where(a => !a.RunningJobId.HasValue && a.AgentId == job.AgentId)
+                    .Where(a => a.ScriptJobRunning is null && a.AgentId == job.AgentId)
                     .FirstOrDefault();
             }
             if (avaiableAgent is null)
@@ -247,7 +255,7 @@ namespace Runner.Agent.Hosting.Services
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     var jobService = scope.ServiceProvider.GetRequiredService<JobService>();
-                    await jobService.SetWaiting(job);
+                    await jobService.SetWaiting(job.JobId);
                 }
             }
             else
@@ -255,7 +263,7 @@ namespace Runner.Agent.Hosting.Services
                 var jobService = avaiableAgent.Scope.ServiceProvider.GetRequiredService<JobService>();
                 var agentVersionService = avaiableAgent.Scope.ServiceProvider.GetRequiredService<AgentVersionService>();
 
-                await jobService.SetRunning(job);
+                await jobService.SetRunning(job.JobId, avaiableAgent.AgentId);
 
                 var latestVersion = await agentVersionService.ReadLatest();
                 if (latestVersion is null || latestVersion.FileContent is null)
@@ -271,7 +279,7 @@ namespace Runner.Agent.Hosting.Services
 
                 await _agentHub.Clients.Client(avaiableAgent.ConnectionId).SendAsync("UpdateVersion", request);
 
-                await jobService.SetCompleted(job);
+                await jobService.SetCompleted(job.JobId);
             }
         }
 
@@ -305,8 +313,8 @@ namespace Runner.Agent.Hosting.Services
                 {
                     foreach (var agent in agents)
                     {
-                        var agentconnected = FindByAgent(agent.AgentId);
-                        if (agentconnected is not null)
+                        var agentConnected = FindByAgent(agent.AgentId);
+                        if (agentConnected is not null)
                         {
                             var agentTags = agent.RegistredTags;
                             if (agent.ExtraTags is not null)
@@ -319,14 +327,18 @@ namespace Runner.Agent.Hosting.Services
 
                             if (agentTags.Intersect(actionTags).Count() == agentTags.Count)
                             {
-                                agentconnected.RunningJobId = job.JobId;
+                                agentConnected.ScriptJobRunning = new JobRunning
+                                {
+                                    JobId = job.JobId,
+                                    RunId = job.RunId.Value,
+                                    ActionId = job.ActionId.Value
+                                };
 
-                                var runService2 = agentconnected.Scope.ServiceProvider.GetRequiredService<RunService>();
+                                var runService2 = agentConnected.Scope.ServiceProvider.GetRequiredService<RunService>();
                                 await runService2.SetRunning(job.RunId.Value, job.ActionId.Value);
 
-                                var jobService2 = agentconnected.Scope.ServiceProvider.GetRequiredService<JobService>();
-                                job.AgentId = agent.AgentId;
-                                await jobService2.SetRunning(job);
+                                var jobService2 = agentConnected.Scope.ServiceProvider.GetRequiredService<JobService>();
+                                await jobService2.SetRunning(job.JobId, agent.AgentId);
 
                                 var request = new RunScriptRequest
                                 {
@@ -334,14 +346,15 @@ namespace Runner.Agent.Hosting.Services
                                     Assembly = sts.Value.ScriptVersion.Assembly,
                                     FullTypeName = sts.Value.ScriptVersion.FullTypeName,
                                     Data = control.ReadActionData(job.ActionId.Value)?
-                                        .Select(d => new Interface.Model.Data.DataProperty
+                                        .Select(d => new AgentDataProperty
                                         {
                                             Name = d.Name,
+                                            Type = (AgentDataTypeEnum)d.Type,
                                             Value = d.Value
                                         }).ToList()
                                 };
 
-                                _ = _agentHub.Clients.Client(agentconnected.ConnectionId).SendAsync("RunScript", request);
+                                _ = _agentHub.Clients.Client(agentConnected.ConnectionId).SendAsync("RunScript", request);
 
                                 return;
                             }
@@ -349,7 +362,7 @@ namespace Runner.Agent.Hosting.Services
                     }
                 }
 
-                await jobService.SetWaiting(job);
+                await jobService.SetWaiting(job.JobId);
             }
         }
 
@@ -366,37 +379,50 @@ namespace Runner.Agent.Hosting.Services
         internal async Task ScriptError(string connectionId, ScriptErrorRequest request)
         {
             var agentConnect = FindByConnectionId(connectionId);
-            if (agentConnect != null)
+            Assert.MustNotNull(agentConnect, "AgentConnect not found! connectionId: " + connectionId);
+            Assert.MustNotNull(agentConnect.ScriptJobRunning, "Missing ScriptJobRunning!");
+
+            var jobService = agentConnect.Scope.ServiceProvider.GetRequiredService<JobService>();
+
+            try
             {
-                //var jobService = agentConnect.Scope.ServiceProvider.GetRequiredService<JobService>();
-                //Assert.MustNotNull(agentConnect.RunningJobId, "Missing RunningJobId!");
-                //var job = await jobService.ReadById(agentConnect.RunningJobId.Value);
-                //Assert.MustNotNull(job, "Job not found! " + agentConnect.RunningJobId.Value);
+                var runService = agentConnect.Scope.ServiceProvider.GetRequiredService<RunService>();
+                await runService.SetError(agentConnect.ScriptJobRunning.RunId, agentConnect.ScriptJobRunning.ActionId, request.Error);
 
-                //var runService = agentConnect.Scope.ServiceProvider.GetRequiredService<RunService>();
-                //await runService.SetError(job.RunId, job.ActionId, request.Error);
-
-                //await jobService.SetError(job);
+                await jobService.SetError(agentConnect.ScriptJobRunning.JobId, request.Error);
+            }
+            catch (Exception ex)
+            {
+                await jobService.SetError(agentConnect.ScriptJobRunning!.JobId, ex);
+            }
+            finally
+            {
+                agentConnect.ScriptJobRunning = null;
             }
         }
 
         internal async Task ScriptFinish(string connectionId, RunScriptResponse request)
         {
             var agentConnect = FindByConnectionId(connectionId);
-            if (agentConnect != null)
+            Assert.MustNotNull(agentConnect, "AgentConnect not found! connectionId: " + connectionId);
+            Assert.MustNotNull(agentConnect.ScriptJobRunning, "Missing ScriptJobRunning!");
+
+            var jobService = agentConnect.Scope.ServiceProvider.GetRequiredService<JobService>();
+
+            try
             {
-                //var jobService = agentConnect.Scope.ServiceProvider.GetRequiredService<JobService>();
-                //Assert.MustNotNull(agentConnect.RunningJobId, "Missing RunningJobId!");
-                //var job = await jobService.ReadById(agentConnect.RunningJobId.Value);
-                //Assert.MustNotNull(job, "Job not found! " + agentConnect.RunningJobId.Value);
-
-                //var runService = agentConnect.Scope.ServiceProvider.GetRequiredService<RunService>();
-                //await runService.SetCompleted(job.RunId, job.ActionId);
-
-                //await jobService.SetCompleted(job);
-
-                //agentConnect.RunningJobId = null;
-
+                var runService = agentConnect.Scope.ServiceProvider.GetRequiredService<RunService>();
+                await runService.SetCompleted(agentConnect.ScriptJobRunning.RunId, agentConnect.ScriptJobRunning.ActionId);
+                
+                await jobService.SetCompleted(agentConnect.ScriptJobRunning.JobId);
+            }
+            catch (Exception ex)
+            {
+                await jobService.SetError(agentConnect.ScriptJobRunning!.JobId, ex);
+            }
+            finally
+            {
+                agentConnect.ScriptJobRunning = null;
                 _ = CheckJobsForAgent(agentConnect);
             }
         }
@@ -404,16 +430,11 @@ namespace Runner.Agent.Hosting.Services
         internal async Task ScriptLog(string connectionId, ScriptLogRequest request)
         {
             var agentConnect = FindByConnectionId(connectionId);
-            if (agentConnect != null)
-            {
-                //var jobService = agentConnect.Scope.ServiceProvider.GetRequiredService<JobService>();
-                //Assert.MustNotNull(agentConnect.RunningJobId, "Missing RunningJobId!");
-                //var job = await jobService.ReadById(agentConnect.RunningJobId.Value);
-                //Assert.MustNotNull(job, "Job not found! " + agentConnect.RunningJobId.Value);
+            Assert.MustNotNull(agentConnect, "AgentConnect not found! connectionId: " + connectionId);
 
-                //var runService = agentConnect.Scope.ServiceProvider.GetRequiredService<RunService>();
-                //await runService.WriteLog(job.RunId, request.Text);
-            }
+            Assert.MustNotNull(agentConnect.ScriptJobRunning?.RunId, "Missing ScriptJobRunning!");
+            var runService = agentConnect.Scope.ServiceProvider.GetRequiredService<RunService>();
+            await runService.WriteLog(agentConnect.ScriptJobRunning.RunId, request.Text);
         }
     }
 }

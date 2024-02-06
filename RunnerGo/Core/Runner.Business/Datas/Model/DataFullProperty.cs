@@ -11,6 +11,7 @@ namespace Runner.Business.Datas.Model
         public object? Value { get; set; }
 
         public bool IsEditable { get => !IsRequired.HasValue; }
+        public bool Hidden { get; set; }
 
         public Action<DataFullProperty>? OnValueChange { get; set; }
 

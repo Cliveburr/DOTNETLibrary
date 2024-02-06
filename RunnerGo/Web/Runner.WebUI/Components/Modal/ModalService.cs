@@ -1,4 +1,7 @@
 ﻿
+using Amazon.Runtime.Internal;
+using Runner.Business.Datas.Model;
+
 namespace Runner.WebUI.Components.Modal
 {
     public class ModalService
@@ -69,6 +72,11 @@ namespace Runner.WebUI.Components.Modal
         public Task<Inputs.InputFileResponse?> InputFiles(Inputs.InputFileRequest request)
         {
             return Show<Inputs.InputFileRequest, Inputs.InputFileResponse?>(typeof(Inputs.InputFileModal), request);
+        }
+
+        public Task<List<DataProperty>?> DataFullEditor(List<DataFullProperty> request)
+        {
+            return Show<List<DataFullProperty>, List<DataProperty>>(typeof(DataFullEditor.DataFullEditorModal), request);
         }
     }
 }

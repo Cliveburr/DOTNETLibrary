@@ -1,4 +1,6 @@
-﻿@using Runner.Business.Entities.Nodes.Types
+﻿@using Runner.Business.Datas.Control
+@using Runner.Business.Entities.Nodes.Types
+@inherits BasePage
 @implements IFlowActionView
 @inject ClipboardInterop clipboardInterop
 @inject NotificationService notificationService
@@ -31,6 +33,14 @@
 
     [CascadingParameter(Name = "GetPanel")]
     public Func<RightPanel?>? GetPanel { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Node.Data = new DataMerge()
+            .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ParallelDataType.Get())
+            .ApplyDataProperty(Node.Data)
+            .ToDataProperty();
+    }
 
     private string ValidLabel()
     {
@@ -188,6 +198,21 @@
         }
     }
 
+    private async Task OnEditData_Click()
+    {
+        var datas = new DataMerge()
+            .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ParallelDataType.Get())
+            .ApplyDataProperty(Node.Data)
+            .ToDataFullProperty();
+
+        var editedData = await Modal.DataFullEditor(datas);
+        if (editedData is not null)
+        {
+            Node.Data = editedData;
+            OnOpenEditor();
+        }
+    }
+
     private RenderFragment EditorForm()
     {
         return
@@ -246,12 +271,30 @@
                 <span>Container</span>
             </button>
         </div>
+        <div class="buttons">
+            <button type="button" class="button is-primary is-small" @onclick="OnEditData_Click">
+                <span class="icon is-small">
+                    <NodeTypeIcon Type=NodeType.Data />
+                </span>
+                <span>Edita Data</span>
+            </button>
+        </div>
         <div class="field">
             <label class="label">Label</label>
             <div class="control">
                 <input class="input" type="text" @bind=Node.Label placeholder="Label">
             </div>
         </div>
+        @if (Node.Data is not null)
+        @foreach (var data in Node.Data)
+        {
+            <div class="field">
+                <label class="label">@data.Name</label>
+                <div class="control">
+                    <DataTypeSelector Type=@data.Type Value=@data.Value />
+                </div>
+            </div>
+        }
     </div>;
     }
 }

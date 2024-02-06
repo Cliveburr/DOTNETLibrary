@@ -7,8 +7,8 @@ namespace Runner.Script.Interface.Scripts
     {
         public int Version { get; init; }
         public string Name { get; init; }
-        public List<DataTypeProperty>? InputTypes { get; set; }
-        public List<DataTypeProperty>? OutputTypes { get; set; }
+        public List<ScriptDataTypeProperty>? InputTypes { get; set; }
+        public List<ScriptDataTypeProperty>? OutputTypes { get; set; }
 
         public ScriptAttribute(int version, string name)
         {
@@ -16,7 +16,7 @@ namespace Runner.Script.Interface.Scripts
             Name = name;
         }
 
-        public ScriptAttribute(int version, string name, List<DataTypeProperty>? input = null, List<DataTypeProperty>? output = null)
+        public ScriptAttribute(int version, string name, List<ScriptDataTypeProperty>? input = null, List<ScriptDataTypeProperty>? output = null)
         {
             Version = version;
             Name = name;

@@ -1,6 +1,6 @@
 ﻿namespace Runner.Script.Interface.Model.Data
 {
-    public enum DataStateType : byte
+    public enum ScriptDataStateType : byte
     {
         Pristine = 0,
         Add = 1,

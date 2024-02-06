@@ -1,9 +1,10 @@
 ﻿
 namespace Runner.Agent.Interface.Model.Data
 {
-    public class DataProperty
+    public class AgentDataProperty
     {
         public required string Name { get; set; }
+        public required AgentDataTypeEnum Type { get; set; }
         public object? Value { get; set; }
     }
 }

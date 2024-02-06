@@ -7,7 +7,7 @@ namespace Runner.Agent.Version.Scripts
     {
         public static string ScriptDirectory(RunScriptRequest request)
         {
-            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "src", request.ScriptId, $"v{request.Version}");
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "src", request.ScriptContentId);
         }
 
         public static bool CheckIfExist(RunScriptRequest request)

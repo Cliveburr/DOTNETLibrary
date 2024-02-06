@@ -1,0 +1,104 @@
+﻿@using Runner.Business.Actions
+
+<div class="runactioncontainer" @onclick=OnOpenEditor @onclick:stopPropagation=true>
+    <div class="runlabel">
+        <ActionStatusView Status=Action.Status></ActionStatusView>
+        <p>@ValidLabel()</p>
+        <div>
+            @if (Action.WithCursor)
+            {
+                switch (Action.Status)
+                {
+                    case ActionStatus.ToRun:
+                    case ActionStatus.Running:
+                        {
+                            <span class="icon" @onclick=OnStop_Click @onclick:stopPropagation=true>
+                                <i class="fa-solid fa-stop fa-xl" style="color: #cc3030"></i>
+                            </span>
+                            break;
+                        }
+                    case ActionStatus.Waiting:
+                    case ActionStatus.Error:
+                    case ActionStatus.Stopped:
+                        {
+                            <span class="icon" @onclick=OnRun_Click @onclick:stopPropagation=true>
+                                <i class="fa-solid fa-play fa-lg" style="color: #398d22"></i>
+                            </span>
+                            break;
+                        }
+                }
+            }
+        </div>
+    </div>
+    @if (Action.Childs is not null)
+    {
+        <div class="runchilds">
+            @foreach (var action in GetChilds())
+            {
+                <RunViewSelector Action=action />
+            }
+        </div>
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public required Runner.Business.Actions.Action Action { get; set; }
+
+    [CascadingParameter(Name = "RunView")]
+    public required RunView View { get; set; }
+
+    private string ValidLabel()
+    {
+        return string.IsNullOrEmpty(Action.Label) ?
+            " " :
+            Action.Label;
+    }
+
+    private List<Runner.Business.Actions.Action> GetChilds()
+    {
+        return Action.Childs!
+            .Select(c => View.ThisRun!.Actions.First(a => a.ActionId == c))
+            .ToList();
+    }
+
+    private void OnOpenEditor()
+    {
+        // if (GetPanel != null)
+        // {
+        //     var panel = GetPanel();
+        //     if (panel != null)
+        //     {
+        //         panel.SetOpen(EditorForm());
+        //     }
+        // }
+    }
+
+    private Task OnStop_Click()
+    {
+        return View.StopAction(Action);
+    }
+
+    private Task OnRun_Click()
+    {
+        return View.RunAction(Action);
+    }
+
+    // public void OnRunUpdated()
+    // {
+    //     var newAction = View.AsRun.Actions
+    //         .FirstOrDefault(a => a.ActionId == Action.ActionId);
+    //     if (newAction is not null)
+    //     {
+    //         if (newAction.Label != Action.Label
+    //             || newAction.Status != Action.Status
+    //             || newAction.WithCursor != Action.WithCursor
+    //             || newAction.BreakPoint != Action.BreakPoint)
+    //         {
+    //             StateHasChanged();
+    //         }
+    //         Action = newAction;
+    //     }
+    // }
+}

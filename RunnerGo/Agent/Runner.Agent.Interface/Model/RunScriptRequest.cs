@@ -7,6 +7,6 @@ namespace Runner.Agent.Interface.Model
         public required string ScriptContentId { get; set; }
         public required string Assembly { get; set; }
         public required string FullTypeName { get; set; }
-        public List<DataProperty>? Data { get; set; }
+        public List<AgentDataProperty>? Data { get; set; }
     }
 }

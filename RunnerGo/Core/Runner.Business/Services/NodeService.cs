@@ -31,7 +31,7 @@ namespace Runner.Business.Services
             return ReadLocation_Recursive(parts, null);
         }
 
-        internal async Task<Node?> ReadLocation(System.Collections.Queue parts)
+        public async Task<Node?> ReadLocation(System.Collections.Queue parts)
         {
             if (parts.Count == 0)
             {
@@ -49,6 +49,10 @@ namespace Runner.Business.Services
             }
             var found = await Node
                    .FirstOrDefaultAsync(n => n.Name.ToLower() == name && n.ParentId == parentId);
+            if (found is not null && found.Type == NodeType.Flow)
+            {
+                return found;
+            }
             //Node? found = null;
             //if (parent == null)
             //{

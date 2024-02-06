@@ -3,31 +3,28 @@ using Runner.Business.Datas.Validator;
 
 namespace Runner.Business.Datas.Control
 {
-    public static class DataMerge
+    public class DataMerge
     {
-        public static List<DataFullProperty> Merge(List<DataProperty>? dataProperties = null, List<DataTypeProperty>? dataTypeProperties = null, List<DataFullProperty>? dataFullProperties = null)
+        private List<DataFullProperty> _datas;
+
+        public DataMerge()
         {
-            var tr = dataFullProperties?.ToList() ?? new List<DataFullProperty>();
-            if (dataTypeProperties is not null)
-            {
-                ApplyDataTypeProperty(tr, dataTypeProperties);
-            }
-            if (dataProperties is not null)
-            {
-                ApplyDataProperty(tr, dataProperties);
-            }
-            return tr;
+            _datas = new List<DataFullProperty>();
         }
 
-        private static void ApplyDataProperty(List<DataFullProperty> dataFullProperties, List<DataProperty> dataProperties)
+        public DataMerge ApplyDataProperty(List<DataProperty>? dataProperties)
         {
+            if (dataProperties is null)
+            {
+                return this;
+            }
             foreach (var dataProperty in dataProperties)
             {
-                var has = dataFullProperties
+                var has = _datas
                     .FirstOrDefault(d => d.Name == dataProperty.Name);
                 if (has is null)
                 {
-                    dataFullProperties.Add(new DataFullProperty(dataProperty));
+                    _datas.Add(new DataFullProperty(dataProperty));
                 }
                 else
                 {
@@ -35,19 +32,24 @@ namespace Runner.Business.Datas.Control
                     has.Value = dataProperty.Value;
                 }
             }
+            return this;
         }
 
-        private static void ApplyDataTypeProperty(List<DataFullProperty> dataFullProperties, List<DataTypeProperty> dataTypeProperties)
+        public DataMerge ApplyDataTypeProperty(List<DataTypeProperty>? dataTypeProperties)
         {
+            if (dataTypeProperties is null)
+            {
+                return this;
+            }
             foreach (var dataTypeProperty in dataTypeProperties)
             {
-                var has = dataFullProperties
+                var has = _datas
                     .FirstOrDefault(d => d.Name == dataTypeProperty.Name);
                 if (has is null)
                 {
                     var dataFullProperty = new DataFullProperty(dataTypeProperty);
                     dataFullProperty.Value = dataTypeProperty.Default;
-                    dataFullProperties.Add(dataFullProperty);
+                    _datas.Add(dataFullProperty);
                 }
                 else
                 {
@@ -62,6 +64,56 @@ namespace Runner.Business.Datas.Control
                     }
                 }
             }
+            return this;
+        }
+
+        public DataMerge ApplyDataFullProperty(List<DataFullProperty>? dataFullProperties)
+        {
+            if (dataFullProperties is null)
+            {
+                return this;
+            }
+            foreach (var dataFullProperty in dataFullProperties)
+            {
+                var has = _datas
+                    .FirstOrDefault(d => d.Name == dataFullProperty.Name);
+                if (has is null)
+                {
+                    _datas.Add(dataFullProperty);
+                }
+                else
+                {
+                    has.Type = dataFullProperty.Type;
+                    has.Default = dataFullProperty.Default;
+                    has.IsRequired = dataFullProperty.IsRequired;
+
+                    var validation = DataValidator.Validate(dataFullProperty.ToDataTypeProperty(), has.Value);
+                    if (validation.Any())
+                    {
+                        has.Value = dataFullProperty.Default; //TODO: try conversion
+                    }
+                }
+            }
+            return this;
+        }
+
+        public List<DataProperty> ToDataProperty()
+        {
+            return _datas
+                .Select(d => d.ToDataProperty())
+                .ToList();
+        }
+
+        public List<DataTypeProperty> ToDataTypeProperty()
+        {
+            return _datas
+                .Select(d => d.ToDataTypeProperty())
+                .ToList();
+        }
+
+        public List<DataFullProperty> ToDataFullProperty()
+        {
+            return _datas;
         }
     }
 }

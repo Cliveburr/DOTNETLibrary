@@ -1,0 +1,135 @@
+﻿@implements IDisposable
+@using Runner.Business.Actions
+
+<div class="runaction" @onclick=OnOpenEditor @onclick:stopPropagation=true>
+    <div class="runlabel">
+        <div>
+            <ActionStatusView Status=Action.Status></ActionStatusView>
+            @if (Action.BreakPoint)
+            {
+                <i class="fa-solid fa-circle-stop" style="color: #cc3030; margin-left: 3px; font-size: 16px;"></i>
+            }
+            <p>@ValidLabel()</p>
+        </div>
+        <div>
+            @if (Action.WithCursor)
+            {
+                switch (Action.Status)
+                {
+                    case ActionStatus.ToRun:
+                    case ActionStatus.Running:
+                        {
+                            <span class="icon" @onclick=OnStop_Click @onclick:stopPropagation=true>
+                                <i class="fa-solid fa-stop fa-xl" style="color: #cc3030"></i>
+                            </span>
+                            break;
+                        }
+                    case ActionStatus.Waiting:
+                    case ActionStatus.Error:
+                    case ActionStatus.Stopped:
+                        {
+                            <span class="icon" @onclick=OnRun_Click @onclick:stopPropagation=true>
+                                <i class="fa-solid fa-play fa-lg" style="color: #398d22"></i>
+                            </span>
+                            break;
+                        }
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public required Runner.Business.Actions.Action Action { get; set; }
+
+    [CascadingParameter(Name = "RunView")]
+    public required RunView View { get; set; }
+
+    protected override void OnInitialized()
+    {
+        //View.OnRunUpdated += View_OnRunUpdated;
+    }
+
+    public void Dispose()
+    {
+        //View.OnRunUpdated -= View_OnRunUpdated;
+    }
+
+    private string ValidLabel()
+    {
+        return string.IsNullOrEmpty(Action.Label) ?
+            " " :
+            Action.Label;
+    }
+
+    private void OnOpenEditor()
+    {
+        if (View.Panel is not null)
+        {
+            View.Panel.SetOpen(EditorForm());
+        }
+    }
+
+    private Task OnStop_Click()
+    {
+        return View.StopAction(Action);
+    }
+
+    private Task OnRun_Click()
+    {
+        return View.RunAction(Action);
+    }
+
+    private async Task OnBreakpoint_Click()
+    {
+        if (Action.BreakPoint)
+        {
+            await View.CleanBreakPoint(Action);
+        }
+        else
+        {
+            await View.SetBreakPoint(Action);
+        }
+        if (View.Panel is not null)
+        {
+            View.Panel.Close();
+        }
+    }
+
+    private RenderFragment EditorForm()
+    {
+        return
+        @<div class="is-flex is-flex-direction-column m-4">
+            <h3 class="title is-3">Script</h3>
+            <div class="buttons">
+                @if (Action.BreakPoint)
+                {
+                    <button type="button" class="button is-danger is-outline" @onclick="OnBreakpoint_Click">
+                        <span class="icon is-small">
+                            <i class="fa-solid fa-xmark"></i>
+                        </span>
+                        <span>Disable BreakPoint</span>
+                    </button>
+                }
+                else
+                {
+                    <button type="button" class="button is-danger" @onclick="OnBreakpoint_Click">
+                        <span class="icon is-small">
+                            <i class="fa-solid fa-xmark"></i>
+                        </span>
+                        <span>Enable BreakPoint</span>
+                    </button>
+                }
+            </div>
+            <div class="field">
+                <label class="label">Label</label>
+                <div class="control">
+                <input class="input" type="text" @bind=Action.Label placeholder="Label" readonly>
+                </div>
+            </div>
+
+        </div>;
+    }
+}

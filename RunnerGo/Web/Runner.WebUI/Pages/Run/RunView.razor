@@ -1,0 +1,130 @@
+﻿@using Runner.Business.Entities;
+@using Runner.Business.Entities.Nodes.Types;
+@using Runner.Business.WatcherNotification;
+@using Runner.WebUI.Components.FlowEditor;
+@inherits BasePage
+@implements IDisposable;
+@inject NodeService nodeService
+@inject RunService runService
+@inject IAgentWatcherNotification agentWatcherNotification
+
+<div class="container">
+
+    <div class="box mt-4">
+        <h3 class="title is-3">Run <NodeTypeIcon Type="NodeType.Run" /></h3>
+    </div>
+
+    <div class="buttons mt-3">
+        <button type="button" class="button is-primary" @onclick="NodeBack">
+            <span class="icon is-small">
+                <i class="fa-solid fa-square-caret-left"></i>
+            </span>
+        </button>
+    </div>
+
+    @if (ThisRun is not null)
+    {
+        <div class="actionview">
+            <CascadingValue Name="RunView" TValue="RunView" Value="this">
+                <Runner.WebUI.Pages.Run.Actions.RunViewSelector @ref=actionView Action="GetRootAction()" />
+            </CascadingValue>
+        </div>
+    }
+
+</div>
+
+<RightPanel @ref=Panel />
+
+<div class="runlogview">
+    <textarea class="textarea is-link" placeholder="Log" readonly>@GetLog()</textarea>
+</div>
+
+@code {
+
+    [Parameter]
+    public required string RunIdStr { get; set; }
+
+    public Runner.Business.Entities.Nodes.Types.Run? ThisRun { get; private set; }
+    public RightPanel? Panel { get; private set; }
+
+    private Runner.WebUI.Pages.Run.Actions.RunViewSelector? actionView;
+
+    //public event Action? OnRunUpdated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var gotRun = await runService.ReadByIdStr(RunIdStr);
+        if (gotRun == null)
+        {
+            await Notification.AddError("Run not found!");
+            PageNotFound();
+        }
+        else
+        {
+            ThisRun = gotRun;
+        }
+
+        agentWatcherNotification.OnRunUpdated += WatcherNotification_OnRunUpdated;
+    }
+
+    public void Dispose()
+    {
+        agentWatcherNotification.OnRunUpdated -= WatcherNotification_OnRunUpdated;
+    }
+
+    private void WatcherNotification_OnRunUpdated(Run newRun)
+    {
+        ThisRun = newRun;
+        //OnRunUpdated?.Invoke();
+    }
+
+    private string GetLog()
+    {
+        return ThisRun is null ?
+            string.Empty :
+            string.Join(Environment.NewLine, ThisRun.Log
+            .OrderByDescending(l => l.Created)
+            .Take(100)
+            .Select(l => $"{l.Created.ToString("dd/MM/yyyy HH:mm:ss")} - {l.Text}"));
+    }
+
+    private Runner.Business.Actions.Action GetRootAction()
+    {
+        Assert.MustNotNull(ThisRun, "Internal - ThisRun null!");
+        return ThisRun.Actions
+            .First(a => a.ActionId == ThisRun.RootActionId);
+    }
+
+    public Task StopAction(Runner.Business.Actions.Action action)
+    {
+        Assert.MustNotNull(ThisRun, "Internal - ThisRun null!");
+        return runService.Stop(ThisRun.RunId, action.ActionId);
+    }
+
+    public Task RunAction(Runner.Business.Actions.Action action)
+    {
+        Assert.MustNotNull(ThisRun, "Internal - ThisRun null!");
+        return runService.SetRun(ThisRun.RunId, action.ActionId);
+    }
+
+    public Task SetBreakPoint(Runner.Business.Actions.Action action)
+    {
+        Assert.MustNotNull(ThisRun, "Internal - ThisRun null!");
+        return runService.SetBreakPoint(ThisRun.RunId, action.ActionId);
+    }
+
+    public Task CleanBreakPoint(Runner.Business.Actions.Action action)
+    {
+        Assert.MustNotNull(ThisRun, "Internal - ThisRun null!");
+        return runService.CleanBreakPoint(ThisRun.RunId, action.ActionId);
+    }
+
+    private async Task OnDelete_Click()
+    {
+        // if (await baseService.Modal.Confirm("Delete", "Confirm delete this node?"))
+        // {
+        //     await nodeService.Delete(Node);
+        //     baseService.BackNode();
+        // }
+    }
+}

@@ -1,0 +1,20 @@
+﻿
+@switch (Action.Type)
+{
+    case Business.Actions.ActionType.Script:
+        <ActionScript Action=Action />
+        break;
+    case Business.Actions.ActionType.Container:
+        <ActionContainer Action=Action />
+        break;
+    case Business.Actions.ActionType.Parallel:
+        <ActionParallel Action=Action />
+        break;
+}
+
+@code {
+
+    [Parameter]
+    public required Runner.Business.Actions.Action Action { get; set; }
+
+}
