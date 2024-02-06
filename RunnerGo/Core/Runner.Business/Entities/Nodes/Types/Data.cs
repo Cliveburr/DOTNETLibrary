@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Runner.Business.DataAccess.Attributes;
+using Runner.Business.Datas.Model;
 
 namespace Runner.Business.Entities.Nodes.Types
 {
@@ -14,11 +15,5 @@ namespace Runner.Business.Entities.Nodes.Types
         public string? DataTypePath { get; set; }
         public ObjectId? DataTypeId { get; set; }
         public required List<DataProperty> Properties { get; set; }
-    }
-
-    public class DataProperty
-    {
-        public required string Name { get; set; }
-        public object? Value { get; set; }
     }
 }

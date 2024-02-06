@@ -1,4 +1,5 @@
-﻿@using Runner.Business.Entities.Nodes.Types
+﻿@using Runner.Business.Datas.Model
+@using Runner.Business.Entities.Nodes.Types
 @implements IFlowActionView
 @inject ClipboardInterop clipboardInterop
 
@@ -20,6 +21,9 @@
     [CascadingParameter(Name = "GetPanel")]
     public Func<RightPanel?>? GetPanel { get; set; }
 
+    private DataProperty? _agentPoolPath;
+    private DataProperty? _tags;
+
     private string ValidLabel()
     {
         return string.IsNullOrEmpty(Node.Label) ?
@@ -34,6 +38,14 @@
             var panel = GetPanel();
             if (panel != null)
             {
+                _agentPoolPath = Node.Data?
+                    .FirstOrDefault(d => d.Name == "AgentPoolPath") ??
+                    new DataProperty { Name = "AgentPoolPath", Value = string.Empty, Type = DataTypeEnum.String };
+
+                _tags = Node.Data?
+                    .FirstOrDefault(d => d.Name == "Tags") ??
+                    new DataProperty { Name = "Tags", Value = string.Empty, Type = DataTypeEnum.String };
+
                 panel.SetOpen(EditorForm());
             }
         }
@@ -178,6 +190,18 @@
                 <label class="label">Label</label>
                 <div class="control">
                     <input class="input" type="text" @bind=Node.Label placeholder="Label">
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Agent Pool Path</label>
+                <div class="control">
+                    <StringDataType Value=_agentPoolPath!.Value />
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Tags</label>
+                <div class="control">
+                    <StringListDataType Value=_tags!.Value />
                 </div>
             </div>
         </div>;

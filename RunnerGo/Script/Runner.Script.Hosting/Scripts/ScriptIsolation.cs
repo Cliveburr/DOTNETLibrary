@@ -89,21 +89,21 @@ namespace Runner.Agent.Version.Scripts
                                 Assembly = assemblyPath.Substring(rootPathLen),
                                 FullTypeName = fullTypeName,
                                 InputTypes = scriptAttr.InputTypes?
-                                    .Select(i => new Business.Entities.Nodes.Types.DataTypeProperty
+                                    .Select(i => new Business.Datas.Model.DataTypeProperty
                                     {
                                         Name = i.Name,
-                                        Type = (Business.Entities.Nodes.Types.DataTypeEnum)i.Type,
+                                        Type = (Business.Datas.Model.DataTypeEnum)i.Type,
                                         Default = i.Default,
                                         IsRequired = i.IsRequired
-                                    }).ToList() ?? new List<Business.Entities.Nodes.Types.DataTypeProperty>(),
+                                    }).ToList() ?? new List<Business.Datas.Model.DataTypeProperty>(),
                                 OutputTypes = scriptAttr.OutputTypes?
-                                    .Select(i => new Business.Entities.Nodes.Types.DataTypeProperty
+                                    .Select(i => new Business.Datas.Model.DataTypeProperty
                                     {
                                         Name = i.Name,
-                                        Type = (Business.Entities.Nodes.Types.DataTypeEnum)i.Type,
+                                        Type = (Business.Datas.Model.DataTypeEnum)i.Type,
                                         Default = i.Default,
                                         IsRequired = i.IsRequired
-                                    }).ToList() ?? new List<Business.Entities.Nodes.Types.DataTypeProperty>()
+                                    }).ToList() ?? new List<Business.Datas.Model.DataTypeProperty>()
                             });
                         }
                         else

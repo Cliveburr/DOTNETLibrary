@@ -1,5 +1,5 @@
 ﻿@using MongoDB.Bson
-@using Runner.Business.Entities.Nodes.Types
+@using Runner.Business.Datas.Model
 @inherits NodeBasePase
 @inject DataTypeService dataTypeService
 @inject NodeService nodeService
@@ -39,67 +39,66 @@
     @if (dataTypeNode != null)
     {
         <div class="box mt-3">
-            @* <nav class="panel mt-3">
-    <p class="panel-heading">
-        Properties
-    </p>
-    <div class="panel-block"> *@
-            @foreach (var prop in dataTypeNode.Properties)
-            {
-                <div class="columns">
-                    <div class="column is-3">
-                        <p class="control has-icons-left">
-                            <input class="input" @bind=prop.Name type="text" placeholder="Name">
-                            <span class="icon is-left">
-                                <i class="fa-solid fa-key"></i>
-                            </span>
-                        </p>
-                    </div>
-                    <div class="column is-3">
-                        <div class="control has-icons-left is-expanded">
-                            <div class="select is-fullwidth">
-                                <EnumSelect @bind-Value=prop.Type />
-                            </div>
-                            <div class="icon is-small is-left">
-                                <i class="fa-solid fa-superscript"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="column is-2">
-                        <div class="field">
-                            <p class="control">
-                                <label class="checkbox">
-                                    <input type="checkbox" @bind=prop.IsRequired>
-                                    Required
-                                </label>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="column is-3">
-                        <p class="control has-icons-left">
-                            <DataTypeSelector Type=prop.Type @bind-Value=prop.Default />
-                            <span class="icon is-left">
-                                <i class="fa-solid fa-suitcase"></i>
-                            </span>
-                        </p>
-                    </div>
-                    <div class="column is-1">
-                        <button class="button is-danger" @onclick=@(() => OnRemove_Click(prop))>
-                            <span class="icon is-small">
-                                <i class="fas fa-times"></i>
-                            </span>
-                        </button>
-                    </div>
-                </div>
-            }
+            <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Required</th>
+                        <th>Default</th>
+                        <th class="w50px"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var prop in dataTypeNode.Properties)
+                    {
+                        <tr>
+                            <td>
+                                <p class="control has-icons-left">
+                                    <input class="input" @bind=prop.Name type="text" placeholder="Name">
+                                    <span class="icon is-left">
+                                        <i class="fa-solid fa-key"></i>
+                                    </span>
+                                </p>
+                            </td>
+                            <td>
+                                <div class="control has-icons-left is-expanded">
+                                    <div class="select is-fullwidth">
+                                        <EnumSelect @bind-Value=prop.Type />
+                                    </div>
+                                    <div class="icon is-small is-left">
+                                        <i class="fa-solid fa-superscript"></i>
+                                    </div>
+                                </div>
+                            </td>
+                                <td class="has-text-centered is-vcentered">
+                                <input type="checkbox" class="scale2" @bind=prop.IsRequired>
+                            </td>
+                            <td>
+                                <p class="control has-icons-left">
+                                    <DataTypeSelector Type=prop.Type @bind-Value=prop.Default />
+                                    <span class="icon is-left">
+                                        <i class="fa-solid fa-suitcase"></i>
+                                    </span>
+                                </p>
+                            </td>
+                            <td class="has-text-centered">
+                                <button class="button is-danger" @onclick=@(() => OnRemove_Click(prop))>
+                                    <span class="icon is-small">
+                                        <i class="fas fa-times"></i>
+                                    </span>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
             <button type="button" class="button is-success" @onclick="OnCreate_Click">
                 <span class="icon is-small">
                     <i class="fa-solid fa-circle-plus"></i>
                 </span>
                 <span>Add</span>
             </button>
-            @* </div>
-    </nav> *@
         </div>
     }
 </div>
@@ -126,7 +125,7 @@
 
             dataTypeNode.Properties.Add(new DataTypeProperty
                 {
-                    Name = "New Property",
+                    Name = "NewProperty",
                     Type = DataTypeEnum.String,
                     IsRequired = false,
                     Default = string.Empty

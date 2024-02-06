@@ -1,13 +1,13 @@
-﻿using Runner.Business.Entities.Nodes.Types;
+﻿using Runner.Business.Datas.Model;
 
-namespace Runner.Business.DataNode.Validator.Types
+namespace Runner.Business.Datas.Validator.Types
 {
-    public class StringValidator : IDataValidator
+    public class NodePathValidator : IDataValidator
     {
         public ValidationError? ValidateValue(DataTypeProperty type, object? value)
         {
-            var valueStr = value as string;
-            if (string.IsNullOrEmpty(valueStr))
+            var notePathStr = value as string;
+            if (string.IsNullOrEmpty(notePathStr))
             {
                 if (type.IsRequired)
                 {

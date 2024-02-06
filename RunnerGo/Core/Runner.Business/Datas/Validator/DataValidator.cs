@@ -1,7 +1,7 @@
-﻿using Runner.Business.DataNode.Validator.Types;
-using Runner.Business.Entities.Nodes.Types;
+﻿using Runner.Business.Datas.Model;
+using Runner.Business.Datas.Validator.Types;
 
-namespace Runner.Business.DataNode.Validator
+namespace Runner.Business.Datas.Validator
 {
     public static class DataValidator
     {
@@ -10,6 +10,21 @@ namespace Runner.Business.DataNode.Validator
         static DataValidator()
         {
             _validatorCache = new Dictionary<DataTypeEnum, IDataValidator>();
+        }
+
+        public static IEnumerable<ValidationError> Validate(List<DataFullProperty> dataFullProperties)
+        {
+            foreach (var dataFullProperty in dataFullProperties)
+            {
+                var validated = Validate(dataFullProperty);
+                if (validated is not null)
+                {
+                    foreach (var error in validated)
+                    {
+                        yield return error;
+                    }
+                }
+            }
         }
 
         public static IEnumerable<ValidationError> Validate(DataTypeProperty typeProperty, object? value)
@@ -22,19 +37,13 @@ namespace Runner.Business.DataNode.Validator
             }
         }
 
-        public static IEnumerable<ValidationError> Validate(List<DataProperty> datas, List<DataTypeProperty> types)
+        public static IEnumerable<ValidationError> Validate(DataFullProperty dataFullProperty)
         {
-            foreach (var typeProp in types)
+            var validator = GetValidator(dataFullProperty.Type);
+            var validated = validator.ValidateValue(dataFullProperty.ToDataTypeProperty(), dataFullProperty.Value);
+            if (validated is not null)
             {
-                var validator = GetValidator(typeProp.Type);
-                var dataValue = datas
-                    .FirstOrDefault(dp => dp.Name == typeProp.Name);
-
-                var validated = validator.ValidateValue(typeProp, dataValue);
-                if (validated is not null)
-                {
-                    yield return validated;
-                }
+                yield return validated;
             }
         }
 
@@ -46,6 +55,7 @@ namespace Runner.Business.DataNode.Validator
                 {
                     DataTypeEnum.String => new StringValidator(),
                     DataTypeEnum.StringList => new StringListValidator(),
+                    DataTypeEnum.NodePath => new NodePathValidator(),
                     _ => throw new RunnerException($"Invalid DataTypeEnum: {type}")
                 };
             }

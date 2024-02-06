@@ -1,6 +1,6 @@
-﻿using Runner.Business.Entities.Nodes.Types;
+﻿using Runner.Business.Datas.Model;
 
-namespace Runner.Business.DataNode.Validator
+namespace Runner.Business.Datas.Validator
 {
     public class ValidationError
     {

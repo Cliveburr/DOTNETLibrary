@@ -36,6 +36,10 @@ html, body {
   width: 50px;
 }
 
+.scale2 {
+  transform: scale(2);
+}
+
 .pointer {
   cursor: pointer;
 }

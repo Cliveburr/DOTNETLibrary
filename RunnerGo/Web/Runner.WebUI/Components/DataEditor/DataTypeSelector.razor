@@ -1,4 +1,4 @@
-﻿@using Runner.Business.Entities.Nodes.Types
+﻿@using Runner.Business.Datas.Model
 
 @switch (Type)
 {
@@ -10,6 +10,11 @@
     case DataTypeEnum.StringList:
         {
             <StringListDataType @bind-Value:get=Value @bind-Value:set=SetValue />
+            break;
+        }
+    case DataTypeEnum.NodePath:
+        {
+            <NodePathDataType @bind-Value:get=Value @bind-Value:set=SetValue />
             break;
         }
 }

@@ -1,4 +1,4 @@
-﻿using Runner.Business.Entities.Nodes.Types;
+﻿using Runner.Business.Datas.Model;
 
 namespace Runner.Business.Model.Nodes.Types
 {
