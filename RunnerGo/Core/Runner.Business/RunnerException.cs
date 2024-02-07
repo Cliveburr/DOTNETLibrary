@@ -10,12 +10,12 @@ namespace Runner
         }
 
         public RunnerException(string msg, params string[] format)
-            : base(string.Format(msg, format))
+            : base(format.Length > 0 ? string.Format(msg, format) : msg)
         {
         }
 
         public RunnerException(Exception innerException, string msg, params string[] format)
-            : base(string.Format(msg, format), innerException)
+            : base(format.Length > 0 ? string.Format(msg, format) : msg, innerException)
         {
         }
     }

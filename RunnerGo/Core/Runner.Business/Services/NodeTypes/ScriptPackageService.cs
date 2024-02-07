@@ -166,7 +166,7 @@ namespace Runner.Business.Services.NodeTypes
                             {
                                 Version = scriptSet.Version,
                                 ScriptContentId = scriptContentId,
-                                Assembly = scriptSet.Assembly,
+                                Assembly = scriptSet.Assembly.Trim('\\'),
                                 FullTypeName = scriptSet.FullTypeName,
                                 InputTypes = scriptSet.InputTypes,
                                 OutputTypes = scriptSet.OutputTypes
@@ -196,7 +196,7 @@ namespace Runner.Business.Services.NodeTypes
                         {
                             Version = scriptSet.Version,
                             ScriptContentId = scriptContentId,
-                            Assembly = scriptSet.Assembly,
+                            Assembly = scriptSet.Assembly.Trim('\\'),
                             FullTypeName = scriptSet.FullTypeName,
                             InputTypes = scriptSet.InputTypes,
                             OutputTypes = scriptSet.OutputTypes

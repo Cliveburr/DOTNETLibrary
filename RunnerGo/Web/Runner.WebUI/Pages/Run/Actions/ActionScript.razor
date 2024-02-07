@@ -1,4 +1,5 @@
-﻿@implements IDisposable
+﻿@inherits BasePage
+@implements IDisposable
 @using Runner.Business.Actions
 
 <div class="runaction" @onclick=OnOpenEditor @onclick:stopPropagation=true>
@@ -72,29 +73,57 @@
         }
     }
 
-    private Task OnStop_Click()
+    private void CloseEditor()
     {
-        return View.StopAction(Action);
+        if (View.Panel is not null)
+        {
+            View.Panel.Close();
+        }
     }
 
-    private Task OnRun_Click()
+    private async Task OnStop_Click()
     {
-        return View.RunAction(Action);
+        CloseEditor();
+        try
+        {
+            await View.StopAction(Action);
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+    }
+
+    private async Task OnRun_Click()
+    {
+        CloseEditor();
+        try
+        {
+            await View.RunAction(Action);
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
     }
 
     private async Task OnBreakpoint_Click()
     {
-        if (Action.BreakPoint)
+        CloseEditor();
+        try
         {
-            await View.CleanBreakPoint(Action);
+            if (Action.BreakPoint)
+            {
+                await View.CleanBreakPoint(Action);
+            }
+            else
+            {
+                await View.SetBreakPoint(Action);
+            }
         }
-        else
+        catch (Exception err)
         {
-            await View.SetBreakPoint(Action);
-        }
-        if (View.Panel is not null)
-        {
-            View.Panel.Close();
+            await Notification.AddError(err);
         }
     }
 
@@ -106,7 +135,7 @@
             <div class="buttons">
                 @if (Action.BreakPoint)
                 {
-                    <button type="button" class="button is-danger is-outline" @onclick="OnBreakpoint_Click">
+                    <button type="button" class="button is-danger is-outline is-small" @onclick="OnBreakpoint_Click">
                         <span class="icon is-small">
                             <i class="fa-solid fa-xmark"></i>
                         </span>
@@ -115,7 +144,7 @@
                 }
                 else
                 {
-                    <button type="button" class="button is-danger" @onclick="OnBreakpoint_Click">
+                    <button type="button" class="button is-danger is-small" @onclick="OnBreakpoint_Click">
                         <span class="icon is-small">
                             <i class="fa-solid fa-xmark"></i>
                         </span>
@@ -126,10 +155,22 @@
             <div class="field">
                 <label class="label">Label</label>
                 <div class="control">
-                <input class="input" type="text" @bind=Action.Label placeholder="Label" readonly>
+                    <input class="input" type="text" value=@($"{Action.ActionId} - {Action.Label}") placeholder="Label" readonly>
                 </div>
             </div>
-
+            @if (Action.Data is not null)
+            @foreach (var data in Action.Data)
+            {
+                @if (data.Name != "ScriptPath")
+                {
+                    <div class="field">
+                        <label class="label">@data.Name</label>
+                        <div class="control">
+                            <DataTypeSelector Type=@data.Type @bind-Value=@data.Value />
+                        </div>
+                    </div>
+                }
+            }
         </div>;
     }
 }

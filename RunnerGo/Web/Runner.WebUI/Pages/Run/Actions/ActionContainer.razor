@@ -65,14 +65,10 @@
 
     private void OnOpenEditor()
     {
-        // if (GetPanel != null)
-        // {
-        //     var panel = GetPanel();
-        //     if (panel != null)
-        //     {
-        //         panel.SetOpen(EditorForm());
-        //     }
-        // }
+        if (View.Panel is not null)
+        {
+            View.Panel.SetOpen(EditorForm());
+        }
     }
 
     private Task OnStop_Click()
@@ -101,4 +97,31 @@
     //         Action = newAction;
     //     }
     // }
+
+    private RenderFragment EditorForm()
+    {
+        return
+        @<div class="is-flex is-flex-direction-column m-4">
+            <h3 class="title is-3">Script</h3>
+            <div class="buttons">
+                
+            </div>
+            <div class="field">
+                <label class="label">Label</label>
+                <div class="control">
+                    <input class="input" type="text" value=@($"{Action.ActionId} - {Action.Label}") placeholder="Label" readonly>
+                </div>
+            </div>
+            @if (Action.Data is not null)
+            @foreach (var data in Action.Data)
+            {
+                <div class="field">
+                    <label class="label">@data.Name</label>
+                    <div class="control">
+                        <DataTypeSelector Type=@data.Type @bind-Value=@data.Value />
+                    </div>
+                </div>
+            }
+        </div>;
+    }
 }

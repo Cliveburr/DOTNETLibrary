@@ -1,47 +1,64 @@
-﻿using Runner.Business.Datas.Model;
+﻿using Runner.Business.Datas.Control;
 
 namespace Runner.Business.Actions
 {
     public partial class ActionControl
     {
-
-        public List<DataProperty>? ReadActionData(int actionId)
+        public DataReader ComputeActionContextData(int actionId)
         {
-            return FindAction(actionId)?.Data;
+            var parents = new List<int>();
+            BuildParentIdRecursive(parents, actionId);
+            parents.Reverse();
+
+            var reader = new DataReader();
+            foreach (var id in parents)
+            {
+                var actionData = FindAction(id)?.Data;
+                if (actionData is not null)
+                {
+                    reader
+                        .ApplyDataProperty(actionData);
+                }
+            }
+
+            return reader;
         }
 
-        public string? ReadDataStringNotNullRecursive(int actionId, string dataName)
+        private void BuildParentIdRecursive(List<int> parents, int actionId)
         {
             var action = FindAction(actionId);
             if (action is not null)
             {
-                var value = action.Data?
-                    .FirstOrDefault(d => d.Name == dataName)?.Value as string;
-                if (!string.IsNullOrEmpty(value))
+                parents.Add(actionId);
+                if (action.Parent is not null)
                 {
-                    return value;
-                }
-                else
-                {
-                    if (action.Parent is not null)
-                    {
-                        return ReadDataStringNotNullRecursive(action.Parent.Value, dataName);
-                    }
+                    BuildParentIdRecursive(parents, action.Parent.Value);
                 }
             }
-            return null;
         }
 
-        public string? ReadDataString(int actionId, string dataName)
-        {
-            return FindAction(actionId)?.Data?
-                .FirstOrDefault(d => d.Name == dataName)?.Value as string;
-        }
+        //public string? ReadDataStringNotNullRecursive(int actionId, string dataName)
+        //{
+        //    var action = FindAction(actionId);
+        //    if (action is not null)
+        //    {
+        //        var value = action.Data?
+        //            .FirstOrDefault(d => d.Name == dataName)?.Value as string;
+        //        if (!string.IsNullOrEmpty(value))
+        //        {
+        //            return value;
+        //        }
+        //        else
+        //        {
+        //            if (action.Parent is not null)
+        //            {
+        //                return ReadDataStringNotNullRecursive(action.Parent.Value, dataName);
+        //            }
+        //        }
+        //    }
+        //    return null;
+        //}
 
-        public List<string>? ReadDataTagString(int actionId, string dataName)
-        {
-            return FindAction(actionId)?.Data?
-                .FirstOrDefault(d => d.Name == dataName)?.Value as List<string>;
-        }
+        
     }
 }

@@ -83,14 +83,6 @@ namespace Runner.Business.DataAccess
                 .DeleteOneAsync(filter, options);
         }
 
-        public Task<List<P>> ProjectToListAsync<P>(Expression<Func<T, bool>> filter, ProjectionDefinition<T, P> projection)
-        {
-            return Collection
-                .Find(filter)
-                .Project(projection)
-                .ToListAsync();
-        }
-
         //public Task<IClientSessionHandle> StartSessionAsync()
         //{
         //    return _collection.Database.Client.StartSessionAsync();

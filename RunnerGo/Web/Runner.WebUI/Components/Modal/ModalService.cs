@@ -32,6 +32,25 @@ namespace Runner.WebUI.Components.Modal
             });
         }
 
+        public Task Show<TRequest>(Type modal, TRequest request)
+        {
+            var control = new ModalControl
+            {
+                Request = request,
+                Resume = new ManualResetEvent(false)
+            };
+
+            return Task.Run(() =>
+            {
+                ShowModal?.Invoke(modal, control);
+
+                control.Resume.WaitOne();
+
+                CloseModal?.Invoke();
+            });
+        }
+
+
         public Task<TResponse?> Show<TRequest, TResponse>(Type modal, TRequest request)
         {
             var control = new ModalControl
@@ -77,6 +96,16 @@ namespace Runner.WebUI.Components.Modal
         public Task<List<DataProperty>?> DataFullEditor(List<DataFullProperty> request)
         {
             return Show<List<DataFullProperty>, List<DataProperty>>(typeof(DataFullEditor.DataFullEditorModal), request);
+        }
+
+        public Task ShowError(string error)
+        {
+            return Show(typeof(ErrorView.ErrorViewModal), error);
+        }
+
+        public Task ShowError(Exception ex)
+        {
+            return Show(typeof(ErrorView.ErrorViewModal), ex);
         }
     }
 }

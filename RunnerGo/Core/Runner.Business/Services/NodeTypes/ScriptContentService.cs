@@ -18,6 +18,15 @@ namespace Runner.Business.Services.NodeTypes
             _nodeService = nodeService;
         }
 
+        public Task<ScriptContent?> ReadByIdStr(string scriptContentIdStr)
+        {
+            if (ObjectId.TryParse(scriptContentIdStr, out var scriptContentId))
+            {
+                return ReadById(scriptContentId);
+            }
+            return Task.FromResult<ScriptContent?>(null);
+        }
+
         public Task<ScriptContent?> ReadById(ObjectId scriptContentId)
         {
             return ScriptContent

@@ -28,10 +28,25 @@ namespace Runner.Business.Services
                 .ToListAsync(j => j.AgentId == agentId);
         }
 
-        public Task<List<Job>> Read()
+        public Task<List<Job>> ReadTable()
         {
-            return Job
+            var sort = Builders<Job>.Sort
+                .Descending(r => r.Queued);
+
+            return Job.Collection
+                .Find(Builders<Job>.Filter.Empty)
+                .Sort(sort)
+                .Skip(0)
+                .Limit(10)
                 .ToListAsync();
+        }
+
+        public async Task Delete(ObjectId jobId)
+        {
+            Assert.MustNotNull(_identityProvider.User, "Not logged!");
+
+            await Job
+                .DeleteAsync(j => j.JobId == jobId);
         }
 
         public async Task QueueAgentUpdate(ObjectId agentId)

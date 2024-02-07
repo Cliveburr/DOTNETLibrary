@@ -3,10 +3,15 @@ using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Runner.Business.Actions;
 using Runner.Business.DataAccess;
+using Runner.Business.Datas.Control;
+using Runner.Business.Datas.Model;
+using Runner.Business.Entities.AgentVersion;
+using Runner.Business.Entities.Nodes;
 using Runner.Business.Entities.Nodes.Types;
 using Runner.Business.Model.Nodes.Types;
 using Runner.Business.Security;
 using Runner.Business.WatcherNotification;
+using System;
 
 namespace Runner.Business.Services.NodeTypes
 {
@@ -47,6 +52,9 @@ namespace Runner.Business.Services.NodeTypes
 
             // checar se ter permissão
 
+            var sort = Builders<Run>.Sort
+                .Descending(r => r.Created);
+
             var project = Builders<Run>.Projection
                 .Expression(r => new RunList
                 {
@@ -56,8 +64,24 @@ namespace Runner.Business.Services.NodeTypes
                     Created = r.Created
                 });
 
-            return Run
-                .ProjectToListAsync(r => r.FlowId == flow.FlowId, project);
+            return Run.Collection
+                .Find(r => r.FlowId == flow.FlowId)
+                .Sort(sort)
+                .Skip(0)
+                .Limit(7)
+                .Project(project)
+                .ToListAsync();
+
+            //return Run
+            //    .ProjectToListAsync(r => r.FlowId == flow.FlowId, project);
+        }
+
+        public async Task Delete(ObjectId runId)
+        {
+            Assert.MustNotNull(_identityProvider.User, "Not logged!");
+
+            await Run
+                .DeleteAsync(r => r.RunId == runId);
         }
 
         public async Task CreateRun(Flow flow, bool setToRun)
@@ -102,7 +126,9 @@ namespace Runner.Business.Services.NodeTypes
 
         private async Task ProcessEffects(Run run, List<CommandEffect> effects)
         {
-            foreach (var effect in effects)
+            var reverseEffects = effects.ToList();
+            reverseEffects.Reverse();
+            foreach (var effect in reverseEffects)
             {
                 switch (effect.Type)
                 {
@@ -137,7 +163,8 @@ namespace Runner.Business.Services.NodeTypes
             }
 
             await CheckRunState(run.RunId);
-            _manualAgentWatcherNotification?.InvokeRunUpdated(run);
+            var actualRun = await ReadById(run.RunId);
+            _manualAgentWatcherNotification?.InvokeRunUpdated(actualRun!);
         }
 
 
@@ -154,10 +181,13 @@ namespace Runner.Business.Services.NodeTypes
             //    .Where(r => r.Id == run.Id && r.Actions.Any(a => a.ActionId == action.ActionId));
 
             var update = Builders<Run>.Update
-                .Set(r => r.Actions.FirstMatchingElement().Status, action.Status);
+                .Set(r => r.Actions.FirstMatchingElement().Status, action.Status)
+                .Set(r => r.Actions.FirstMatchingElement().Data, action.Data);
 
             await Run
                 .UpdateAsync(r => r.RunId == run.RunId && r.Actions.Any(a => a.ActionId == action.ActionId), update);
+
+            //_manualAgentWatcherNotification?.InvokeActionUpdated(action);
         }
 
         private async Task ExecuteActionUpdateWithCursor(Run run, Actions.Action action)
@@ -167,6 +197,8 @@ namespace Runner.Business.Services.NodeTypes
 
             await Run
                 .UpdateAsync(r => r.RunId == run.RunId && r.Actions.Any(a => a.ActionId == action.ActionId), update);
+
+            //_manualAgentWatcherNotification?.InvokeActionUpdated(action);
         }
 
         private async Task ExecuteActionUpdateBreakPoint(Run run, Actions.Action action)
@@ -176,6 +208,8 @@ namespace Runner.Business.Services.NodeTypes
 
             await Run
                 .UpdateAsync(r => r.RunId == run.RunId && r.Actions.Any(a => a.ActionId == action.ActionId), update);
+
+            //manualAgentWatcherNotification?.InvokeActionUpdated(action);
         }
 
         private async Task ExecuteActionUpdateToStop(Run run, Actions.Action action)
@@ -227,35 +261,39 @@ namespace Runner.Business.Services.NodeTypes
 
             if (run.Status != actualStatus)
             {
-                var logText = string.Empty;
+                //var logText = string.Empty;
                 DateTime? completedDatetime = null; //TODO: fazer update condicional
 
                 run.Status = actualStatus;
-                switch (run.Status)
-                {
-                    case RunStatus.Waiting:
-                        logText = "Run is waiting!";
-                        break;
-                    case RunStatus.Running:
-                        logText = "Run started";
-                        break;
-                    case RunStatus.Completed:
-                        logText = "Run completed";
-                        completedDatetime = DateTime.Now;
-                        break;
-                    case RunStatus.Error:
-                        logText = "Run with error";
-                        break;
-                }
+                //switch (run.Status)
+                //{
+                //    case RunStatus.Waiting:
+                //        logText = "Run is waiting!";
+                //        break;
+                //    case RunStatus.Running:
+                //        logText = "Run started";
+                //        break;
+                //    case RunStatus.Completed:
+                //        logText = "Run completed";
+                //        completedDatetime = DateTime.Now;
+                //        break;
+                //    case RunStatus.Error:
+                //        logText = "Run stopped with error";
+                //        break;
+                //}
+
+                run.Completed = completedDatetime;
+                //var newLog = new RunLog
+                //{
+                //    Created = DateTime.Now,
+                //    Text = logText
+                //};
+                //run.Log.Add(newLog);
 
                 var update = Builders<Run>.Update
                     .Set(r => r.Status, run.Status)
-                    .Set(r => r.Completed, completedDatetime)
-                    .Push(r => r.Log, new RunLog
-                    {
-                        Created = DateTime.Now,
-                        Text = logText
-                    });
+                    .Set(r => r.Completed, run.Completed);
+                    //.Push(r => r.Log, newLog);
 
                 await Run
                     .UpdateAsync(r => r.RunId == run.RunId, update);
@@ -290,10 +328,10 @@ namespace Runner.Business.Services.NodeTypes
             await ProcessEffects(run, effects);
 
             var action = control.FindAction(actionId);
-            await WriteLogInner(runId, $"Action \"{action.Label}\" running...");
+            await WriteLogInner(runId, $"Action \"{action.Label}\" is running");
         }
 
-        public async Task SetCompleted(ObjectId runId, int actionId)
+        public async Task SetCompleted(ObjectId runId, int actionId, List<DataProperty>? actionOutput)
         {
             Assert.MustNotNull(_identityProvider.User, "Need to be logged to error script!");
 
@@ -305,6 +343,19 @@ namespace Runner.Business.Services.NodeTypes
 
             var control = ActionControl.From(run);
             var effects = control.SetCompleted(actionId);
+            if (actionOutput is not null && actionOutput.Any())
+            {
+                var actionEffect = effects
+                    .FirstOrDefault(e => e.Action.ActionId == actionId);
+                if (actionEffect is not null)
+                {
+                    var newData = new DataMerge()
+                        .ApplyDataProperty(actionEffect.Action.Data)
+                        .ApplyDataProperty(actionOutput)
+                        .ToDataProperty();
+                    actionEffect.Action.Data = newData;
+                }
+            }
             await ProcessEffects(run, effects);
 
             var action = control.FindAction(actionId);
@@ -351,8 +402,6 @@ namespace Runner.Business.Services.NodeTypes
             var control = ActionControl.From(run);
             var effects = control.Run(actionId);
             await ProcessEffects(run, effects);
-
-            await WriteLogInner(runId, "Set to run");
         }
 
         public async Task Stop(ObjectId runId, int actionId)

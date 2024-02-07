@@ -109,7 +109,8 @@ namespace Runner.Business.Actions.Types
         public override void SetError(CommandContext ctx)
         {
             Assert.Enum.In(_action.Status, new[] {
-                ActionStatus.Running
+                ActionStatus.Running,
+                ActionStatus.ToRun
             }, $"ActionScript in wrong status to Completed! {_action.ActionId}-{_action.Label}");
 
             _action.Status = ActionStatus.Error;

@@ -3,6 +3,7 @@ using Runner.Script.Interface.Model.Data;
 using Runner.Script.Interface.Scripts;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Loader;
 using System.Text;
 
 namespace Runner.Agent.Version.Scripts
@@ -53,7 +54,9 @@ namespace Runner.Agent.Version.Scripts
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void ExecuteAndUnload(out WeakReference contextRef, StringBuilder warnings)
         {
-            var context = new ScriptAssemblyLoadContext();
+            var myAssembly = typeof(ScriptIsolation).Assembly;
+            var mainContext = AssemblyLoadContext.GetLoadContext(myAssembly)!;
+            var context = new ScriptAssemblyLoadContext(_rootPath, mainContext);
             contextRef = new WeakReference(context, true);
 
             var iscript = typeof(IScript);

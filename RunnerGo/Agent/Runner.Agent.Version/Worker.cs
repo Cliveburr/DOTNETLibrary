@@ -266,6 +266,34 @@ namespace Runner.Agent.Version
                     throw new ArgumentNullException("RunScriptRequest");
                 }
 
+                _ = RunScriptDetached(request);
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    await _connection.InvokeAsync("ScriptError",
+                        new ScriptErrorRequest
+                        {
+                            Error = ex.ToString()
+                        }, _stoppingToken);
+                }
+                catch (Exception err)
+                {
+                    _logger.LogError(err, "ScriptError error!");
+                }
+            }
+        }
+
+        private async Task RunScriptDetached(RunScriptRequest request)
+        {
+            try
+            {
+                if (request is null)
+                {
+                    throw new ArgumentNullException("RunScriptRequest");
+                }
+
                 if (!ScriptsManager.CheckIfExist(request))
                 {
                     var getScriptResponse = await _connection.InvokeAsync<GetScriptResponse>("GetScript",
@@ -290,7 +318,6 @@ namespace Runner.Agent.Version
                     new RunScriptResponse
                     {
                         IsSuccess = result.IsSuccess,
-                        ContinueOnError = result.ContinueOnError,
                         ErrorMessage = result.ErrorMessage,
                         Data = result.Data,
                     }, _stoppingToken);

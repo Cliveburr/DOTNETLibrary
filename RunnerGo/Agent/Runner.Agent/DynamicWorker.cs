@@ -51,7 +51,7 @@ namespace Runner.Agent
 
         public void StartVersion()
         {
-            Task.Run(StartVersionWrap);
+            _ = Task.Run(StartVersionWrap);
         }
 
         private void StartVersionWrap()
@@ -68,8 +68,6 @@ namespace Runner.Agent
                 }
                 _shouldDowngrade = false;
             }
-
-            var assemblyPath = FoundAssemblyPath();
 
             _stoppingSource = new CancellationTokenSource();
 
@@ -113,7 +111,7 @@ namespace Runner.Agent
         {
             var assemblyPath = FoundAssemblyPath();
 
-            var context = new VersionAssemblyLoadContext();
+            var context = new VersionAssemblyLoadContext(Path.GetDirectoryName(assemblyPath)!);
             contextRef = new WeakReference(context, true);
             try
             {

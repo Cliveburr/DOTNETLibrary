@@ -5,7 +5,7 @@ namespace Runner.Business.Datas.Control
 {
     public class DataMerge
     {
-        private List<DataFullProperty> _datas;
+        protected List<DataFullProperty> _datas;
 
         public DataMerge()
         {

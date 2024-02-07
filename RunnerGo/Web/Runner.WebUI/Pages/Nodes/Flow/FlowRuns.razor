@@ -32,9 +32,9 @@
 </div>
 
 <div class="box mt-3">
-    @if (Items != null)
+    @if (items != null)
     {
-        <DataTable Items="Items">
+        <DataTable Items="items">
             <Header>
             <tr>
                 <th class="w50px">Type</th>
@@ -64,7 +64,7 @@
     [Parameter]
     public required Flow FlowNode { get; set; }
 
-    public List<RunList>? Items { get; set; }
+    private List<RunList>? items;
 
     protected override async Task OnInitializedAsync()
     {
@@ -73,18 +73,41 @@
 
     public async Task OnRefresh_Click()
     {
-        Items = await runService.ReadRuns(FlowNode);
-        StateHasChanged();
+        try
+        {
+            items = await runService.ReadRuns(FlowNode);
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+        //StateHasChanged();
     }
 
-    public Task OnNew_Click()
+    public async Task OnNew_Click()
     {
-        return runService.CreateRun(FlowNode, false);
+        try
+        {
+            await runService.CreateRun(FlowNode, false);
+            await OnRefresh_Click();
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
     }
 
-    public Task OnRun_Click()
+    public async Task OnRun_Click()
     {
-        return runService.CreateRun(FlowNode, true);
+        try
+        {
+            await runService.CreateRun(FlowNode, true);
+            await OnRefresh_Click();
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
     }
 
     public void OnNavigateApp_Click(RunList node)

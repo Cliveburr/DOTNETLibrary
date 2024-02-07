@@ -70,6 +70,10 @@
         if (id != tabId)
         {
             tabId = id;
+            if (panel is not null)
+            {
+                panel.Close(); 
+            }
             //StateHasChanged();
         }
     }

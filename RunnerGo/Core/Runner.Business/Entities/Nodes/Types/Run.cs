@@ -15,6 +15,7 @@ namespace Runner.Business.Entities.Nodes.Types
         public int RootActionId { get; set; }
         public int IdIndexes { get; set; }
         public RunStatus Status { get; set; }
+        [IndexDef]
         public DateTime Created { get; set; }
         public DateTime? Completed { get; set; }
         public required List<RunLog> Log { get; set; }

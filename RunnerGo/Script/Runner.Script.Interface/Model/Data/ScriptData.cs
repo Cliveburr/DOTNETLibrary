@@ -4,11 +4,11 @@
     {
         private List<ScriptDataState> _states;
 
-        public ScriptData(List<ScriptDataProperty> properties)
+        public ScriptData(List<ScriptDataProperty>? properties)
         {
-            _states = properties
+            _states = properties?
                 .Select(p => new ScriptDataState { Property = p, State = ScriptDataStateType.Pristine })
-                .ToList();
+                .ToList() ?? new List<ScriptDataState>();
         }
 
         private void Set(string name, ScriptDataTypeEnum type, object value)

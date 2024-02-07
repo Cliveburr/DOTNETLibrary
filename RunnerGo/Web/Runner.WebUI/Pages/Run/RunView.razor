@@ -20,6 +20,18 @@
                 <i class="fa-solid fa-square-caret-left"></i>
             </span>
         </button>
+        <button type="button" class="button is-info" @onclick="OnRefresh_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-rotate-right"></i>
+            </span>
+            <span>Refresh</span>
+        </button>
+        <button type="button" class="button is-danger" @onclick="OnDelete_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-trash"></i>
+            </span>
+            <span>Delete</span>
+        </button>
     </div>
 
     @if (ThisRun is not null)
@@ -75,7 +87,22 @@
     private void WatcherNotification_OnRunUpdated(Run newRun)
     {
         ThisRun = newRun;
-        //OnRunUpdated?.Invoke();
+        StateHasChanged();
+    }
+
+    private async Task OnRefresh_Click()
+    {
+        var gotRun = await runService.ReadByIdStr(RunIdStr);
+        if (gotRun == null)
+        {
+            await Notification.AddError("Run not found!");
+            PageNotFound();
+        }
+        else
+        {
+            ThisRun = gotRun;
+            StateHasChanged();
+        }
     }
 
     private string GetLog()
@@ -121,10 +148,24 @@
 
     private async Task OnDelete_Click()
     {
-        // if (await baseService.Modal.Confirm("Delete", "Confirm delete this node?"))
-        // {
-        //     await nodeService.Delete(Node);
-        //     baseService.BackNode();
-        // }
+        Assert.MustNotNull(ThisRun, "Internal - ThisRun null!");
+        if (await Modal.Question(new Components.Modal.Question.QuestionRequest
+            {
+                Title = "Delete",
+                Question = "Confirm delete this run?"
+            }) ?? false)
+        {
+            try
+            {
+                await runService.Delete(ThisRun.RunId);
+            }
+            catch (Exception err)
+            {
+                await Notification.AddError(err);
+                return;
+            }
+
+            NodeBack();
+        }
     }
 }

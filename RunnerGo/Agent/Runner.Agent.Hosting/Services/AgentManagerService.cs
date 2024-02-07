@@ -6,6 +6,7 @@ using Runner.Agent.Hosting.Hubs;
 using Runner.Agent.Interface.Model;
 using Runner.Agent.Interface.Model.Data;
 using Runner.Business.Actions;
+using Runner.Business.Datas.Model;
 using Runner.Business.Entities.Job;
 using Runner.Business.Entities.Nodes.Types;
 using Runner.Business.Entities.Security;
@@ -289,81 +290,144 @@ namespace Runner.Agent.Hosting.Services
             {
                 var jobService = scope.ServiceProvider.GetRequiredService<JobService>();
                 var runService = scope.ServiceProvider.GetRequiredService<RunService>();
-                Assert.MustNotNull(job.RunId, "RunActionJob missing RunId, JobId: " + job.JobId);
-                Assert.MustNotNull(job.ActionId, "RunActionJob missing ActionId, JobId: " + job.JobId);
-                var run = await runService.ReadById(job.RunId.Value);
-                Assert.MustNotNull(run, "RunActionJob invalid RunId, JobId: " + job.JobId);
+                var authenticationService = scope.ServiceProvider.GetRequiredService<AuthenticationService>();
+                authenticationService.LoginForInternalServices();
 
-                var control = ActionControl.From(run);
-
-                var scriptPath = control.ReadDataString(job.ActionId.Value, "ScriptPath");
-                Assert.MustNotNull(scriptPath, $"Run with invalid script path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value} }}");
-                var agentPoolPath = control.ReadDataStringNotNullRecursive(job.ActionId.Value, "AgentPoolPath");
-                Assert.MustNotNull(agentPoolPath, $"Run with invalid agent pool path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value} }}");
-
-                var scriptService = scope.ServiceProvider.GetRequiredService<ScriptService>();
-                var sts = await scriptService.ReadVersionByScriptPath(scriptPath);
-                Assert.MustNotNull(sts, $"Run with invalid script path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value}, ScriptPath: {scriptPath} }}");
-
-                var agentService = scope.ServiceProvider.GetRequiredService<AgentService>();
-                var agents = await agentService.ReadAgentsByAgentPoolPath(agentPoolPath);
-                Assert.MustNotNull(agents, $"Run with invalid agent pool path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value}, AgentPoolPath: {agentPoolPath} }}");
-
-                if (agents.Any())
+                try
                 {
-                    foreach (var agent in agents)
+                    Assert.MustNotNull(job.RunId, "RunActionJob missing RunId, JobId: " + job.JobId);
+                    Assert.MustNotNull(job.ActionId, "RunActionJob missing ActionId, JobId: " + job.JobId);
+                }
+                catch (Exception ex)
+                {
+                    await jobService.SetError(job.JobId, ex);
+                    return;
+                }
+
+                try
+                {
+                    var run = await runService.ReadById(job.RunId.Value);
+                    Assert.MustNotNull(run, "RunActionJob invalid RunId, JobId: " + job.JobId);
+
+                    var control = ActionControl.From(run);
+                    var contextData = control.ComputeActionContextData(job.ActionId.Value);
+
+                    var scriptPath = contextData.ReadString("ScriptPath");
+                    Assert.MustNotNull(scriptPath, $"Run with invalid script path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value} }}");
+                    var agentPoolPath = contextData.ReadNodePath("AgentPoolPath");
+                    Assert.MustNotNull(agentPoolPath, $"Run with invalid agent pool path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value} }}");
+
+                    var scriptService = scope.ServiceProvider.GetRequiredService<ScriptService>();
+                    var sts = await scriptService.ReadVersionByScriptPath(scriptPath);
+                    Assert.MustNotNull(sts, $"Run with invalid script path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value}, ScriptPath: {scriptPath} }}");
+
+                    var agentService = scope.ServiceProvider.GetRequiredService<AgentService>();
+                    var agents = await agentService.ReadAgentsByAgentPoolPath(agentPoolPath);
+                    Assert.MustNotNull(agents, $"Run with invalid agent pool path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value}, AgentPoolPath: {agentPoolPath} }}");
+
+                    if (agents.Any())
                     {
-                        var agentConnected = FindByAgent(agent.AgentId);
-                        if (agentConnected is not null)
+                        foreach (var agent in agents)
                         {
-                            var agentTags = agent.RegistredTags;
-                            if (agent.ExtraTags is not null)
+                            var agentConnected = FindByAgent(agent.AgentId);
+                            if (agentConnected is not null)
                             {
-                                agentTags.AddRange(agent.ExtraTags);
-                            }
-
-                            var actionTags = control.ReadDataTagString(job.ActionId.Value, "Tags")
-                                ?? new List<string>();
-
-                            if (agentTags.Intersect(actionTags).Count() == agentTags.Count)
-                            {
-                                agentConnected.ScriptJobRunning = new JobRunning
+                                var agentTags = agent.RegistredTags;
+                                if (agent.ExtraTags is not null)
                                 {
-                                    JobId = job.JobId,
-                                    RunId = job.RunId.Value,
-                                    ActionId = job.ActionId.Value
-                                };
+                                    agentTags.AddRange(agent.ExtraTags);
+                                }
 
-                                var runService2 = agentConnected.Scope.ServiceProvider.GetRequiredService<RunService>();
-                                await runService2.SetRunning(job.RunId.Value, job.ActionId.Value);
+                                var actionTags = contextData.ReadStringList( "Tags")
+                                    ?? new List<string>();
 
-                                var jobService2 = agentConnected.Scope.ServiceProvider.GetRequiredService<JobService>();
-                                await jobService2.SetRunning(job.JobId, agent.AgentId);
-
-                                var request = new RunScriptRequest
+                                if (agentTags.Intersect(actionTags).Count() == agentTags.Count)
                                 {
-                                    ScriptContentId = sts.Value.ScriptVersion.ScriptContentId.ToString(),
-                                    Assembly = sts.Value.ScriptVersion.Assembly,
-                                    FullTypeName = sts.Value.ScriptVersion.FullTypeName,
-                                    Data = control.ReadActionData(job.ActionId.Value)?
-                                        .Select(d => new AgentDataProperty
-                                        {
-                                            Name = d.Name,
-                                            Type = (AgentDataTypeEnum)d.Type,
-                                            Value = d.Value
-                                        }).ToList()
-                                };
+                                    agentConnected.ScriptJobRunning = new JobRunning
+                                    {
+                                        JobId = job.JobId,
+                                        RunId = job.RunId.Value,
+                                        ActionId = job.ActionId.Value
+                                    };
 
-                                _ = _agentHub.Clients.Client(agentConnected.ConnectionId).SendAsync("RunScript", request);
+                                    var runAgentService = agentConnected.Scope.ServiceProvider.GetRequiredService<RunService>();
+                                    await runAgentService.SetRunning(job.RunId.Value, job.ActionId.Value);
 
-                                return;
+                                    var jobAgentService = agentConnected.Scope.ServiceProvider.GetRequiredService<JobService>();
+                                    await jobAgentService.SetRunning(job.JobId, agent.AgentId);
+
+                                    var request = new RunScriptRequest
+                                    {
+                                        ScriptContentId = sts.Value.ScriptVersion.ScriptContentId.ToString(),
+                                        Assembly = sts.Value.ScriptVersion.Assembly,
+                                        FullTypeName = sts.Value.ScriptVersion.FullTypeName,
+                                        InputData = BuildDataTransfer(contextData.ToDataProperty())
+                                    };
+
+                                    _ = _agentHub.Clients.Client(agentConnected.ConnectionId).SendAsync("RunScript", request);
+
+                                    return;
+                                }
                             }
                         }
                     }
-                }
 
-                await jobService.SetWaiting(job.JobId);
+                    await jobService.SetWaiting(job.JobId);
+
+                }
+                catch (Exception ex)
+                {
+                    await runService.SetError(job.RunId.Value, job.ActionId.Value, ex.Message);
+
+                    await jobService.SetError(job.JobId, ex);
+                }
             }
+        }
+
+        private AgentDataTransfer BuildDataTransfer(List<DataProperty> properties)
+        {
+            var transfer = new AgentDataTransfer();
+
+            var strings = properties
+                .Where(p => p.Type == DataTypeEnum.String)
+                .Select(p => new AgentDataPropertyString
+                {
+                    Name = p.Name,
+                    Value = p.Value as string
+                })
+                .ToArray();
+            if (strings.Any())
+            {
+                transfer.Strings = strings;
+            }
+
+            var stringLists = properties
+                .Where(p => p.Type == DataTypeEnum.StringList)
+                .Select(p => new AgentDataPropertyStringList
+                {
+                    Name = p.Name,
+                    Value = p.Value as string[]
+                })
+                .ToArray();
+            if (stringLists.Any())
+            {
+                transfer.StringLists = stringLists;
+            }
+
+            var nodePaths = properties
+                .Where(p => p.Type == DataTypeEnum.NodePath)
+                .Select(p => new AgentDataPropertyNodePath
+                {
+                    Name = p.Name,
+                    Value = p.Value as string
+                })
+                .ToArray();
+            if (nodePaths.Any())
+            {
+                transfer.NodePaths = nodePaths;
+            }
+
+            return transfer;
         }
 
         private void OnJobStop(Job job)
@@ -401,6 +465,51 @@ namespace Runner.Agent.Hosting.Services
             }
         }
 
+        private List<DataProperty>? ReadDataTransfer(AgentDataTransfer? transfer)
+        {
+            if (transfer == null)
+            {
+                return null;
+            }
+
+            var properties = new List<DataProperty>();
+
+            if (transfer.Strings is not null && transfer.Strings.Length > 0)
+            {
+                properties.AddRange(transfer.Strings
+                    .Select(s => new DataProperty
+                    {
+                        Name = s.Name,
+                        Type = DataTypeEnum.String,
+                        Value = s.Value,
+                    }));
+            }
+
+            if (transfer.StringLists is not null && transfer.StringLists.Length > 0)
+            {
+                properties.AddRange(transfer.StringLists
+                    .Select(s => new DataProperty
+                    {
+                        Name = s.Name,
+                        Type = DataTypeEnum.StringList,
+                        Value = s.Value,
+                    }));
+            }
+
+            if (transfer.NodePaths is not null && transfer.NodePaths.Length > 0)
+            {
+                properties.AddRange(transfer.NodePaths
+                    .Select(s => new DataProperty
+                    {
+                        Name = s.Name,
+                        Type = DataTypeEnum.NodePath,
+                        Value = s.Value,
+                    }));
+            }
+
+            return properties;
+        }
+
         internal async Task ScriptFinish(string connectionId, RunScriptResponse request)
         {
             var agentConnect = FindByConnectionId(connectionId);
@@ -412,7 +521,15 @@ namespace Runner.Agent.Hosting.Services
             try
             {
                 var runService = agentConnect.Scope.ServiceProvider.GetRequiredService<RunService>();
-                await runService.SetCompleted(agentConnect.ScriptJobRunning.RunId, agentConnect.ScriptJobRunning.ActionId);
+
+                if (request.IsSuccess)
+                {
+                    await runService.SetCompleted(agentConnect.ScriptJobRunning.RunId, agentConnect.ScriptJobRunning.ActionId, ReadDataTransfer(request.OutputData));
+                }
+                else
+                {
+                    await runService.SetError(agentConnect.ScriptJobRunning.RunId, agentConnect.ScriptJobRunning.ActionId, request.ErrorMessage ?? "Undefined error!");
+                }
                 
                 await jobService.SetCompleted(agentConnect.ScriptJobRunning.JobId);
             }
@@ -435,6 +552,21 @@ namespace Runner.Agent.Hosting.Services
             Assert.MustNotNull(agentConnect.ScriptJobRunning?.RunId, "Missing ScriptJobRunning!");
             var runService = agentConnect.Scope.ServiceProvider.GetRequiredService<RunService>();
             await runService.WriteLog(agentConnect.ScriptJobRunning.RunId, request.Text);
+        }
+
+        internal async Task<GetScriptResponse> GetScript(string connectionId, GetScriptRequest request)
+        {
+            var agentConnect = FindByConnectionId(connectionId);
+            Assert.MustNotNull(agentConnect, "AgentConnect not found! connectionId: " + connectionId);
+
+            var scriptContentService = agentConnect.Scope.ServiceProvider.GetRequiredService<ScriptContentService>();
+            var scriptcontent = await scriptContentService.ReadByIdStr(request.ScriptContentId);
+            Assert.MustNotNull(scriptcontent, "ScriptContent not found! " + request.ScriptContentId);
+
+            return new GetScriptResponse
+            {
+                Content = scriptcontent.FileContent
+            };
         }
     }
 }

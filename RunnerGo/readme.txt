@@ -8,6 +8,10 @@
 - fazer filtos de tabela
 - criar o component de navegação lateral esquerdo
 
+
+
+
+
 root/
 	users
 		/eu

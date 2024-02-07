@@ -1,0 +1,55 @@
+﻿@using System.Text.RegularExpressions
+@inherits ModalBase
+
+@if (request != null)
+{
+    <div class="modal is-active">
+        <div class="modal-background" @onclick=Close></div>
+        <div class="modal-card w70">
+            <header class="modal-card-head">
+                <p class="modal-card-title">Error</p>
+                <button class="delete" aria-label="close" @onclick=Close></button>
+            </header>
+            <section class="modal-card-body">
+                @if (!string.IsNullOrEmpty(request.Value.Message))
+                {
+                    <div class="block">@request.Value.Message</div>
+                }
+                <div class="block">
+                    <pre><code>
+                        @request.Value.FullError
+                    </code></pre>
+                </div>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button" @onclick=Close>Close</button>
+            </footer>
+        </div>
+        <button class="modal-close is-large" aria-label="close" @onclick=Close></button>
+    </div>
+}
+
+@code {
+
+    private (string? Message, string FullError)? request;
+    public required string inputValue;
+
+    protected override void OnInitialized()
+    {
+        var ex = Control.Request as Exception;
+        if (ex is not null)
+        {
+            request = (ex.Message, ex.ToString());
+            return;
+        }
+
+        var exStr = Control.Request as string;
+        if (exStr is not null)
+        {
+            request = (null, exStr);
+            return;
+        }
+
+        throw new Exception("QuestionRequest invalid!");
+    }
+}

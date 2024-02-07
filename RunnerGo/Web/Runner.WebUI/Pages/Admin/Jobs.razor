@@ -33,6 +33,7 @@
                     <th>Status</th>
                     <th>Started</th>
                     <th>End</th>
+                    <th>Error</th>
                 </tr>
                 </Header>
                 <Body Context="Item">
@@ -42,6 +43,21 @@
                     <td>@Item.Status</td>
                     <td>@Item.Started</td>
                     <td>@Item.End</td>
+                    <td>
+                        <button type="button" class="button is-danger" @onclick="@(() => OnDelete_Click(Item))">
+                            <span class="icon is-small">
+                                <i class="fa-solid fa-trash"></i>
+                            </span>
+                        </button>
+                        @if (!string.IsNullOrEmpty(Item.ErrorMessage))
+                        {
+                            <button type="button" class="button is-info" @onclick=@(() => OnViewError_Click(Item))>
+                                <span class="icon is-small">
+                                    <i class="fa-solid fa-bug"></i>
+                                </span>
+                            </button>
+                        }
+                    </td>
                 </tr>
                 </Body>
             </DataTable>
@@ -63,12 +79,29 @@
     {
         try
         {
-            items = await jobService.Read();
+            items = await jobService.ReadTable();
         }
         catch (Exception err)
         {
             await Notification.AddError(err);
-            return;
+        }
+    }
+
+    public async Task OnViewError_Click(Runner.Business.Entities.Job.Job item)
+    {
+        await Modal.ShowError(item.ErrorMessage!);
+    }
+
+    public async Task OnDelete_Click(Runner.Business.Entities.Job.Job item)
+    {
+        try
+        {
+            await jobService.Delete(item.JobId);
+            await OnRefresh_Click();
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
         }
     }
 }

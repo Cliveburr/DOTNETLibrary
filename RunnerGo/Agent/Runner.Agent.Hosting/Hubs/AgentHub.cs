@@ -42,5 +42,10 @@ namespace Runner.Agent.Hosting.Hubs
         {
             return _agentManagerService.ScriptLog(Context.ConnectionId, request);
         }
+
+        public Task<GetScriptResponse> GetScript(GetScriptRequest request)
+        {
+            return _agentManagerService.GetScript(Context.ConnectionId, request);
+        }
     }
 }

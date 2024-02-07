@@ -1,10 +1,25 @@
-﻿using Runner.Business.Entities.Security;
+﻿using MongoDB.Bson;
+using Runner.Business.Entities.Identity;
+using Runner.Business.Entities.Security;
 using Runner.Business.Services;
 
 namespace Runner.Business.Security
 {
     public class AuthenticationService(UserService userService, AccessTokenService accessTokenService, IdentityProvider identityProvider)
     {
+        public void LoginForInternalServices()
+        {
+            identityProvider.Set(new User
+            {
+                UserId = ObjectId.Empty,
+                NickName = "Internal Services",
+                FullName = "Internal Services",
+                Email = "internal@internal.com",
+                PasswordHash = "",
+                PasswordSalt = ""
+            });
+        }
+
         public async Task<bool> LoginByAccessToken(string token, AccessTokenType type)
         {
             var accessToken = await accessTokenService.ReadByToken(token, type);
