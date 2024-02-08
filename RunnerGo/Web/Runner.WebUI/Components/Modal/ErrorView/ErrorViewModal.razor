@@ -50,6 +50,13 @@
             return;
         }
 
+        var exStr2 = Control.Request as (string, string)?;
+        if (exStr2 is not null)
+        {
+            request = exStr2;
+            return;
+        }
+
         throw new Exception("QuestionRequest invalid!");
     }
 }

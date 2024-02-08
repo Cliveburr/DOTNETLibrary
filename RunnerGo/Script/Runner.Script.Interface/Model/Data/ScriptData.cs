@@ -28,34 +28,16 @@
                 state.Property.Type = type;
                 state.Property.Value = value;
 
-                if (state.State == ScriptDataStateType.Pristine || state.State == ScriptDataStateType.Deleted)
+                if (state.State == ScriptDataStateType.Pristine)
                 {
                     state.State = ScriptDataStateType.Modified;
                 }
             }
         }
 
-        public ScriptData Delete(string name)
+        public IReadOnlyList<ScriptDataState> GetStates()
         {
-            var state = _states
-                .FirstOrDefault(s => s.Property.Name == name);
-            if (state is not null)
-            {
-                if (state.State == ScriptDataStateType.Add)
-                {
-                    _states.Remove(state);
-                }
-                else
-                {
-                    state.State = ScriptDataStateType.Deleted;
-                }
-            }
-            return this;
-        }
-
-        public List<T> MapTo<T>(Func<ScriptDataState, T> selector)
-        {
-            return _states.Select(selector).ToList();
+            return _states.AsReadOnly();
         }
 
         public ScriptData SetString(string name, string value)

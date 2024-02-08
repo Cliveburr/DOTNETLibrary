@@ -47,7 +47,7 @@ namespace Runner.Business.Datas.Validator
             }
         }
 
-        private static IDataValidator GetValidator(DataTypeEnum type)
+        public static IDataValidator GetValidator(DataTypeEnum type)
         {
             if (!_validatorCache.ContainsKey(type))
             {

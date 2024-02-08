@@ -31,5 +31,10 @@ namespace Runner.Business.Datas.Validator.Types
             }
             return null;
         }
+
+        public bool IsValidToOverride(object? old, object? nw)
+        {
+            return (nw as List<string>) != null;
+        }
     }
 }

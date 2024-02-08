@@ -125,6 +125,7 @@ $gaps: 6px;
     position: absolute;
     right: 0;
     height: calc(100% - 53px);
+    z-index: 40;
 
     > .rightpanelclose {
         top: 41px;

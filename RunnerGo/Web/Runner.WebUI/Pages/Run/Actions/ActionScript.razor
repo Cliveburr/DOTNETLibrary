@@ -1,6 +1,7 @@
 ﻿@inherits BasePage
 @implements IDisposable
 @using Runner.Business.Actions
+@using Runner.Business.Datas.Control
 
 <div class="runaction" @onclick=OnOpenEditor @onclick:stopPropagation=true>
     <div class="runlabel">
@@ -127,6 +128,28 @@
         }
     }
 
+    private async Task OnEditData_Click()
+    {
+        CloseEditor();
+
+        var datas = new DataMerge()
+            .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ScriptDataType.Get())
+            .ApplyDataProperty(Action.Data)
+            .ToDataFullProperty();
+
+        var scriptPathProperty = datas
+            .First(d => d.Name == "ScriptPath");
+        scriptPathProperty.Hidden = true;
+
+        var editedData = await Modal.DataFullEditor(datas);
+        if (editedData is not null)
+        {
+            Action.Data = editedData;
+            await View.UpdateActionData(Action);
+            OnOpenEditor();
+        }
+    }
+
     private RenderFragment EditorForm()
     {
         return
@@ -152,6 +175,14 @@
                     </button>
                 }
             </div>
+            <div class="buttons">
+                <button type="button" class="button is-primary is-small" @onclick="OnEditData_Click">
+                    <span class="icon is-small">
+                        <NodeTypeIcon Type=NodeType.Data />
+                    </span>
+                    <span>Edita Data</span>
+                </button>
+            </div>
             <div class="field">
                 <label class="label">Label</label>
                 <div class="control">
@@ -166,7 +197,7 @@
                     <div class="field">
                         <label class="label">@data.Name</label>
                         <div class="control">
-                            <DataTypeSelector Type=@data.Type @bind-Value=@data.Value />
+                            <DataTypeSelector Type=@data.Type @bind-Value=@data.Value Readonly />
                         </div>
                     </div>
                 }

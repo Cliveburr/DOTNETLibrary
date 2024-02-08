@@ -1,5 +1,5 @@
 ﻿
-<input class="input" @bind=innerValue type="text">
+<input class="input" @bind=innerValue type="text" readonly=@Readonly>
 
 @code {
 
@@ -8,6 +8,9 @@
 
     [Parameter]
     public EventCallback<object?> ValueChanged { get; set; }
+
+    [Parameter]
+    public bool Readonly { get; set; }
 
     private string innerValue
     {

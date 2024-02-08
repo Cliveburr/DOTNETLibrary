@@ -201,6 +201,8 @@
 
     private async Task OnEditData_Click()
     {
+        ClosePanel();
+
         var datas = new DataMerge()
             .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ContainerDataType.Get())
             .ApplyDataProperty(Node.Data)

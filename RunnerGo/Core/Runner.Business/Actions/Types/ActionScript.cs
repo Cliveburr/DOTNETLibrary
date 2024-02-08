@@ -10,26 +10,26 @@ namespace Runner.Business.Actions.Types
 
         public override FowardRunResult FowardRun(CommandContext ctx)
         {
-            Assert.Enum.In(_action.Status, new[] {
+            Assert.Enum.In(Action.Status, new[] {
                 ActionStatus.Waiting
-            }, $"ActionScript in wrong status to Cursor! {_action.ActionId}-{_action.Label}");
+            }, $"ActionScript in wrong status to Cursor! {Action.ActionId}-{Action.Label}");
 
-            Assert.MustFalse(_action.WithCursor, $"ActionScript already with Cursor! {_action.ActionId}-{_action.Label}");
+            Assert.MustFalse(Action.WithCursor, $"ActionScript already with Cursor! {Action.ActionId}-{Action.Label}");
 
-            _action.WithCursor = true;
-            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateWithCursor, _action));
+            Action.WithCursor = true;
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateWithCursor, Action));
 
-            if (_action.BreakPoint)
+            if (Action.BreakPoint)
             {
-                _action.Status = ActionStatus.Stopped;
-                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+                Action.Status = ActionStatus.Stopped;
+                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, Action));
 
                 return FowardRunResult.WasBreakPoint;
             }
             else
             {
-                _action.Status = ActionStatus.ToRun;
-                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateToRun, _action));
+                Action.Status = ActionStatus.ToRun;
+                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateToRun, Action));
 
                 return FowardRunResult.Running;
             }
@@ -37,20 +37,20 @@ namespace Runner.Business.Actions.Types
 
         public override void Run(CommandContext ctx)
         {
-            Assert.MustTrue(_action.WithCursor, $"ActionScript in without cursor to Run! {_action.ActionId}-{_action.Label}");
+            Assert.MustTrue(Action.WithCursor, $"ActionScript in without cursor to Run! {Action.ActionId}-{Action.Label}");
 
-            Assert.Enum.In(_action.Status, new[] {
+            Assert.Enum.In(Action.Status, new[] {
                 ActionStatus.Waiting,
                 ActionStatus.Stopped,
                 ActionStatus.Error
-            }, $"ActionScript in wrong status to Run! {_action.ActionId}-{_action.Label}");
+            }, $"ActionScript in wrong status to Run! {Action.ActionId}-{Action.Label}");
 
-            _action.Status = ActionStatus.ToRun;
-            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateToRun, _action));
+            Action.Status = ActionStatus.ToRun;
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateToRun, Action));
 
-            if (_action.Parent.HasValue)
+            if (Action.Parent.HasValue)
             {
-                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                var (action, actionType) = ctx.Control.FindActionAndType(Action.Parent.Value);
                 actionType.BackRun(ctx);
             }
         }
@@ -62,16 +62,16 @@ namespace Runner.Business.Actions.Types
 
         public override void SetRunning(CommandContext ctx)
         {
-            Assert.Enum.In(_action.Status, new[] {
+            Assert.Enum.In(Action.Status, new[] {
                 ActionStatus.ToRun
-            }, $"ActionScript in wrong status to Running! {_action.ActionId}-{_action.Label}");
+            }, $"ActionScript in wrong status to Running! {Action.ActionId}-{Action.Label}");
 
-            _action.Status = ActionStatus.Running;
-            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+            Action.Status = ActionStatus.Running;
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, Action));
 
-            if (_action.Parent.HasValue)
+            if (Action.Parent.HasValue)
             {
-                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                var (action, actionType) = ctx.Control.FindActionAndType(Action.Parent.Value);
                 actionType.BackSetRunning(ctx);
             }
         }
@@ -83,21 +83,21 @@ namespace Runner.Business.Actions.Types
 
         public override void SetCompleted(CommandContext ctx)
         {
-            Assert.Enum.In(_action.Status, new[] {
+            Assert.Enum.In(Action.Status, new[] {
                 ActionStatus.Running,
                 ActionStatus.ToStop
-            }, $"ActionScript in wrong status to Completed! {_action.ActionId}-{_action.Label}");
+            }, $"ActionScript in wrong status to Completed! {Action.ActionId}-{Action.Label}");
 
-            _action.Status = ActionStatus.Completed;
-            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+            Action.Status = ActionStatus.Completed;
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, Action));
 
-            _action.WithCursor = false;
-            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateWithCursor, _action));
+            Action.WithCursor = false;
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateWithCursor, Action));
 
-            if (_action.Parent.HasValue)
+            if (Action.Parent.HasValue)
             {
-                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
-                actionType.BackSetCompleted(ctx, _action.ActionId);
+                var (action, actionType) = ctx.Control.FindActionAndType(Action.Parent.Value);
+                actionType.BackSetCompleted(ctx, Action.ActionId);
             }
         }
 
@@ -108,17 +108,17 @@ namespace Runner.Business.Actions.Types
 
         public override void SetError(CommandContext ctx)
         {
-            Assert.Enum.In(_action.Status, new[] {
+            Assert.Enum.In(Action.Status, new[] {
                 ActionStatus.Running,
                 ActionStatus.ToRun
-            }, $"ActionScript in wrong status to Completed! {_action.ActionId}-{_action.Label}");
+            }, $"ActionScript in wrong status to Completed! {Action.ActionId}-{Action.Label}");
 
-            _action.Status = ActionStatus.Error;
-            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+            Action.Status = ActionStatus.Error;
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, Action));
 
-            if (_action.Parent.HasValue)
+            if (Action.Parent.HasValue)
             {
-                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                var (action, actionType) = ctx.Control.FindActionAndType(Action.Parent.Value);
                 actionType.BackSetError(ctx);
             }
         }
@@ -130,30 +130,30 @@ namespace Runner.Business.Actions.Types
 
         public override void Stop(CommandContext ctx)
         {
-            Assert.Enum.In(_action.Status, new[] {
+            Assert.Enum.In(Action.Status, new[] {
                 ActionStatus.Running,
                 ActionStatus.ToRun
-            }, $"ActionScript in wrong status to Completed! {_action.ActionId}-{_action.Label}");
+            }, $"ActionScript in wrong status to Completed! {Action.ActionId}-{Action.Label}");
 
-            if (_action.Status == ActionStatus.Running)
+            if (Action.Status == ActionStatus.Running)
             {
-                _action.Status = ActionStatus.ToStop;
-                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateToStop, _action));
+                Action.Status = ActionStatus.ToStop;
+                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateToStop, Action));
 
-                if (_action.Parent.HasValue)
+                if (Action.Parent.HasValue)
                 {
-                    var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                    var (action, actionType) = ctx.Control.FindActionAndType(Action.Parent.Value);
                     actionType.BackStop(ctx);
                 }
             }
             else
             {
-                _action.Status = ActionStatus.Stopped;
-                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateToStop, _action));
+                Action.Status = ActionStatus.Stopped;
+                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateToStop, Action));
 
-                if (_action.Parent.HasValue)
+                if (Action.Parent.HasValue)
                 {
-                    var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                    var (action, actionType) = ctx.Control.FindActionAndType(Action.Parent.Value);
                     actionType.BackSetStopped(ctx);
                 }
             }
@@ -166,16 +166,16 @@ namespace Runner.Business.Actions.Types
 
         public override void SetStopped(CommandContext ctx)
         {
-            Assert.Enum.In(_action.Status, new[] {
+            Assert.Enum.In(Action.Status, new[] {
                 ActionStatus.ToStop
-            }, $"ActionScript in wrong status to Completed! {_action.ActionId}-{_action.Label}");
+            }, $"ActionScript in wrong status to Completed! {Action.ActionId}-{Action.Label}");
 
-            _action.Status = ActionStatus.Stopped;
-            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+            Action.Status = ActionStatus.Stopped;
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, Action));
 
-            if (_action.Parent.HasValue)
+            if (Action.Parent.HasValue)
             {
-                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                var (action, actionType) = ctx.Control.FindActionAndType(Action.Parent.Value);
                 actionType.BackSetStopped(ctx);
             }
         }
@@ -187,25 +187,40 @@ namespace Runner.Business.Actions.Types
 
         public override void SetBreakPoint(CommandContext ctx)
         {
-            Assert.Enum.In(_action.Status, new[] {
+            Assert.Enum.In(Action.Status, new[] {
                 ActionStatus.Waiting,
                 ActionStatus.Stopped,
                 ActionStatus.Error
-            }, $"ActionScript in wrong status to set breakpoint! {_action.ActionId}-{_action.Label}");
+            }, $"ActionScript in wrong status to set breakpoint! {Action.ActionId}-{Action.Label}");
 
-            _action.BreakPoint = true;
-            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateBreakPoint, _action));
+            Action.BreakPoint = true;
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateBreakPoint, Action));
         }
 
         public override void CleanBreakPoint(CommandContext ctx)
         {
-            _action.BreakPoint = false;
-            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateBreakPoint, _action));
+            Action.BreakPoint = false;
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateBreakPoint, Action));
         }
 
         public override void BackBreakPoint(CommandContext ctx)
         {
             throw new RunnerException("ActionScript shound't never breakpoint from back!");
+        }
+
+        public override void BuildData(DataContext ctx)
+        {
+            ctx.Parents.Add(this);
+            if (Action.Parent.HasValue)
+            {
+                var (_, actionType) = ctx.Control.FindActionAndType(Action.Parent.Value);
+                actionType.BackBuildData(ctx, Action.ActionId);
+            }
+        }
+
+        public override void BackBuildData(DataContext ctx, int actionChildId)
+        {
+            throw new RunnerException("ActionScript shound't never call build data from back!");
         }
     }
 }

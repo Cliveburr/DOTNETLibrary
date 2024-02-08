@@ -164,7 +164,8 @@ namespace Runner.Agent.Hosting.Services
                 {
                     await ScriptError(connectionId, new ScriptErrorRequest
                     {
-                        Error = "Agent offline!"
+                        Message = "Agent offline!",
+                        FullError = ""
                     });
                 }
 
@@ -284,6 +285,15 @@ namespace Runner.Agent.Hosting.Services
             }
         }
 
+        private AgentConnect? FindByFunc(Func<AgentConnect, bool> func)
+        {
+            lock (_agents)
+            {
+                return _agents
+                    .FirstOrDefault(func);
+            }
+        }
+
         private async Task RunActionJob(Job job)
         {
             using (var scope = _serviceProvider.CreateScope())
@@ -304,6 +314,8 @@ namespace Runner.Agent.Hosting.Services
                     return;
                 }
 
+                AgentConnect? agentConnected = null;
+
                 try
                 {
                     var run = await runService.ReadById(job.RunId.Value);
@@ -312,7 +324,7 @@ namespace Runner.Agent.Hosting.Services
                     var control = ActionControl.From(run);
                     var contextData = control.ComputeActionContextData(job.ActionId.Value);
 
-                    var scriptPath = contextData.ReadString("ScriptPath");
+                    var scriptPath = contextData.ReadNodePath("ScriptPath");
                     Assert.MustNotNull(scriptPath, $"Run with invalid script path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value} }}");
                     var agentPoolPath = contextData.ReadNodePath("AgentPoolPath");
                     Assert.MustNotNull(agentPoolPath, $"Run with invalid agent pool path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value} }}");
@@ -325,50 +337,75 @@ namespace Runner.Agent.Hosting.Services
                     var agents = await agentService.ReadAgentsByAgentPoolPath(agentPoolPath);
                     Assert.MustNotNull(agents, $"Run with invalid agent pool path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value}, AgentPoolPath: {agentPoolPath} }}");
 
+                    var actionTags = contextData.ReadStringList("Tags")
+                        ?? new List<string>();
+
                     if (agents.Any())
                     {
                         foreach (var agent in agents)
                         {
-                            var agentConnected = FindByAgent(agent.AgentId);
-                            if (agentConnected is not null)
+                            var agentTags = agent.RegistredTags;
+                            if (agent.ExtraTags is not null)
                             {
-                                var agentTags = agent.RegistredTags;
-                                if (agent.ExtraTags is not null)
-                                {
-                                    agentTags.AddRange(agent.ExtraTags);
-                                }
-
-                                var actionTags = contextData.ReadStringList( "Tags")
-                                    ?? new List<string>();
-
-                                if (agentTags.Intersect(actionTags).Count() == agentTags.Count)
-                                {
-                                    agentConnected.ScriptJobRunning = new JobRunning
-                                    {
-                                        JobId = job.JobId,
-                                        RunId = job.RunId.Value,
-                                        ActionId = job.ActionId.Value
-                                    };
-
-                                    var runAgentService = agentConnected.Scope.ServiceProvider.GetRequiredService<RunService>();
-                                    await runAgentService.SetRunning(job.RunId.Value, job.ActionId.Value);
-
-                                    var jobAgentService = agentConnected.Scope.ServiceProvider.GetRequiredService<JobService>();
-                                    await jobAgentService.SetRunning(job.JobId, agent.AgentId);
-
-                                    var request = new RunScriptRequest
-                                    {
-                                        ScriptContentId = sts.Value.ScriptVersion.ScriptContentId.ToString(),
-                                        Assembly = sts.Value.ScriptVersion.Assembly,
-                                        FullTypeName = sts.Value.ScriptVersion.FullTypeName,
-                                        InputData = BuildDataTransfer(contextData.ToDataProperty())
-                                    };
-
-                                    _ = _agentHub.Clients.Client(agentConnected.ConnectionId).SendAsync("RunScript", request);
-
-                                    return;
-                                }
+                                agentTags.AddRange(agent.ExtraTags);
                             }
+
+                            lock (_agents)
+                            {
+                                agentConnected = _agents
+                                    .FirstOrDefault(a =>
+                                    {
+                                        if (a.ScriptJobRunning is not null)
+                                        {
+                                            return false;
+                                        }
+
+                                        if (a.AgentId != agent.AgentId)
+                                        {
+                                            return false;
+                                        }
+
+                                        return agentTags.Intersect(actionTags).Count() == agentTags.Count;
+                                    });
+
+                                if (agentConnected is null)
+                                {
+                                    continue;
+                                }
+
+                                agentConnected.ScriptJobRunning = new JobRunning
+                                {
+                                    JobId = job.JobId,
+                                    RunId = job.RunId.Value,
+                                    ActionId = job.ActionId.Value
+                                };
+                            }
+
+                            try
+                            {
+                                var runAgentService = agentConnected.Scope.ServiceProvider.GetRequiredService<RunService>();
+                                await runAgentService.SetRunning(job.RunId.Value, job.ActionId.Value);
+
+                                var jobAgentService = agentConnected.Scope.ServiceProvider.GetRequiredService<JobService>();
+                                await jobAgentService.SetRunning(job.JobId, agent.AgentId);
+
+                                var request = new RunScriptRequest
+                                {
+                                    ScriptContentId = sts.Value.ScriptVersion.ScriptContentId.ToString(),
+                                    Assembly = sts.Value.ScriptVersion.Assembly,
+                                    FullTypeName = sts.Value.ScriptVersion.FullTypeName,
+                                    InputData = BuildDataTransfer(contextData.ToDataProperty())
+                                };
+
+                                _ = _agentHub.Clients.Client(agentConnected.ConnectionId).SendAsync("RunScript", request);
+                            }
+                            catch
+                            {
+                                agentConnected.ScriptJobRunning = null;
+                                throw;
+                            }
+
+                            return;
                         }
                     }
 
@@ -377,9 +414,23 @@ namespace Runner.Agent.Hosting.Services
                 }
                 catch (Exception ex)
                 {
-                    await runService.SetError(job.RunId.Value, job.ActionId.Value, ex.Message);
+                    try
+                    {
+                        await runService.SetError(job.RunId.Value, job.ActionId.Value, ex.Message, ex.ToString());
 
-                    await jobService.SetError(job.JobId, ex);
+                        await jobService.SetError(job.JobId, ex);
+                    }
+                    catch (Exception ex2)
+                    {
+                        await jobService.SetError(job.JobId, new Exception(ex.ToString() + Environment.NewLine + ex2.ToString()));
+                    }
+                    finally
+                    {
+                        if (agentConnected is not null)
+                        {
+                            _ = CheckJobsForAgent(agentConnected);
+                        }
+                    }
                 }
             }
         }
@@ -451,9 +502,9 @@ namespace Runner.Agent.Hosting.Services
             try
             {
                 var runService = agentConnect.Scope.ServiceProvider.GetRequiredService<RunService>();
-                await runService.SetError(agentConnect.ScriptJobRunning.RunId, agentConnect.ScriptJobRunning.ActionId, request.Error);
+                await runService.SetError(agentConnect.ScriptJobRunning.RunId, agentConnect.ScriptJobRunning.ActionId, request.Message, request.FullError);
 
-                await jobService.SetError(agentConnect.ScriptJobRunning.JobId, request.Error);
+                await jobService.SetError(agentConnect.ScriptJobRunning.JobId, request.FullError);
             }
             catch (Exception ex)
             {
@@ -462,6 +513,7 @@ namespace Runner.Agent.Hosting.Services
             finally
             {
                 agentConnect.ScriptJobRunning = null;
+                _ = CheckJobsForAgent(agentConnect);
             }
         }
 
@@ -522,14 +574,7 @@ namespace Runner.Agent.Hosting.Services
             {
                 var runService = agentConnect.Scope.ServiceProvider.GetRequiredService<RunService>();
 
-                if (request.IsSuccess)
-                {
-                    await runService.SetCompleted(agentConnect.ScriptJobRunning.RunId, agentConnect.ScriptJobRunning.ActionId, ReadDataTransfer(request.OutputData));
-                }
-                else
-                {
-                    await runService.SetError(agentConnect.ScriptJobRunning.RunId, agentConnect.ScriptJobRunning.ActionId, request.ErrorMessage ?? "Undefined error!");
-                }
+                await runService.SetCompleted(agentConnect.ScriptJobRunning.RunId, agentConnect.ScriptJobRunning.ActionId, ReadDataTransfer(request.OutputData));
                 
                 await jobService.SetCompleted(agentConnect.ScriptJobRunning.JobId);
             }

@@ -2,7 +2,7 @@
 
 namespace Runner.ScriptExample
 {
-    [Script(0, "Delay")]
+    [Script(2, "Delay")]
     public class DelayScript : IScript
     {
         public async Task Run(ScriptRunContext context)
@@ -11,7 +11,7 @@ namespace Runner.ScriptExample
 
             if (int.TryParse(delaySeconds, out var delay))
             {
-                await Task.Delay(delay);
+                await Task.Delay(delay * 1000);
             }
         }
     }

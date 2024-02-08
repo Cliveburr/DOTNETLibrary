@@ -9,9 +9,11 @@ namespace Runner.Agent.Version.Scripts
 {
     public class ScriptIsolation
     {
+        public RunScriptResponse? Result { get; set; }
+        public Exception? Exception { get; set; }
+
         private readonly RunScriptRequest _request;
         private readonly Func<string, Task> _log;
-        private RunScriptResponse? _result;
 
         public ScriptIsolation(RunScriptRequest request, Func<string, Task> log)
         {
@@ -19,7 +21,8 @@ namespace Runner.Agent.Version.Scripts
             _log = log;
         }
 
-        public async Task<RunScriptResponse> Execute(CancellationToken cancellationToken)
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void Execute(CancellationToken cancellationToken)
         {
             WeakReference contextRef;
             ExecuteAndUnload(out contextRef, cancellationToken);
@@ -42,14 +45,8 @@ namespace Runner.Agent.Version.Scripts
             if (contextRef.IsAlive)
             {
                 //throw new Exception("AssemblyLoadContext not unloaded!");
-                await _log("AssemblyLoadContext not unloaded!");
+                _log("AssemblyLoadContext not unloaded!").Wait();
             }
-
-            return _result ?? new RunScriptResponse
-            {
-                IsSuccess = false,
-                ErrorMessage = "ExecuteAndUnload dont return result!"
-            };
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -65,22 +62,16 @@ namespace Runner.Agent.Version.Scripts
 
             if (!File.Exists(assemblyPath))
             {
-                _result = new RunScriptResponse
-                {
-                    IsSuccess = false,
-                    ErrorMessage = $"File not found: \"{_request.Assembly}\"!"
-                };
+                Exception = new FileNotFoundException($"File not found: \"{_request.Assembly}\"!");
+                context.Unload();
                 return;
             }
 
             var assembly = context.LoadFromAssemblyPath(assemblyPath);
             if (assembly is null)
             {
-                _result = new RunScriptResponse
-                {
-                    IsSuccess = false,
-                    ErrorMessage = $"Invalid assemblyPath: \"{assemblyPath}\"!"
-                };
+                Exception = new TypeLoadException($"Invalid assemblyPath: \"{assemblyPath}\"!");
+                context.Unload();
                 return;
             }
 
@@ -88,82 +79,58 @@ namespace Runner.Agent.Version.Scripts
             
             if (type is null)
             {
-                _result = new RunScriptResponse
-                {
-                    IsSuccess = false,
-                    ErrorMessage = $"Cannot find: \"{_request.FullTypeName}\" class!"
-                };
+                Exception = new ArgumentException($"Cannot find: \"{_request.FullTypeName}\" class!");
+                context.Unload();
                 return;
             }
-
-            //var runMethod = type.GetMethod("Run");
-            //if (runMethod is null)
-            //{
-            //    _result = new ExecuteResult
-            //    {
-            //        IsSuccess = false,
-            //        ErrorMessage = $"Class: \"{_request.FullTypeName}\" dont have Run method!"
-            //    };
-            //    return;
-            //}
 
             var instance = Activator.CreateInstance(type) as IScript;
             if (instance is null)
             {
-                _result = new RunScriptResponse
-                {
-                    IsSuccess = false,
-                    ErrorMessage = $"Instance fail: \"{_request.FullTypeName}\"!"
-                };
+                Exception = new Exception($"Instance fail: \"{_request.FullTypeName}\"!");
+                context.Unload();
                 return;
             }
 
-            try
-            {
-                //var dataMap = _request.InputData?
-                //    .Select(p => new ScriptDataProperty
-                //    {
-                //        Name = p.Name,
-                //        Type = (ScriptDataTypeEnum)p.Type,
-                //        Value = p.Value
-                //    })
-                //    .ToList();
-
+            //try
+            //{
                 var scriptRunContext = new ScriptRunContext
                 {
-                    IsSuccess = true,
                     Data = MapDataInput(_request.InputData),
                     Log = _log,
                     CancellationToken = cancellationToken
                 };
 
-                //var taskAwait = runMethod.Invoke(instance, [scriptRunContext]) as Task;
-                //if (taskAwait is not null)
-                //{
-                //    taskAwait.Wait();
-                //}
-                instance.Run(scriptRunContext).Wait();
-
-                _result = new RunScriptResponse
-                {
-                    IsSuccess = scriptRunContext.IsSuccess,
-                    ErrorMessage = scriptRunContext.ErrorMessage,
-                    OutputData = MapDataOutput(scriptRunContext.Data)
-                    
-                };
-            }
-            catch (Exception ex)
-            {
-                _result = new RunScriptResponse
-                {
-                    IsSuccess = false,
-                    ErrorMessage = $"Run Error: {ex}"
-                };
-            }
-            finally
-            {
+                //instance.Run(scriptRunContext).Wait();
+                instance.Run(scriptRunContext)
+                    .ContinueWith(t =>
+                    {
+                        //context.Unload();
+                        if (t.IsFaulted)
+                        {
+                            Exception = t.Exception;
+                        }
+                        else
+                        {
+                            Result = new RunScriptResponse
+                            {
+                                OutputData = MapDataOutput(scriptRunContext.Data)
+                            };
+                        }
+                    })
+                    .Wait();
+                    //.ConfigureAwait(true)
+                    //.GetAwaiter()
+                    //.GetResult();
+            //}
+            //catch (Exception ex)
+            //{
+            //    Exception = ex.InnerException ?? ex;
+            //}
+            //finally
+            //{
                 context.Unload();
-            }
+            //}
         }
 
         private ScriptData MapDataInput(AgentDataTransfer? transfer)
@@ -211,17 +178,15 @@ namespace Runner.Agent.Version.Scripts
 
         private AgentDataTransfer? MapDataOutput(ScriptData data)
         {
-            var properties = data.MapTo(s => new AgentDataPropertyString
-                {
-                    Name = s.Property.Name,
-                    Type = (Interface.Model.Data.AgentDataTypeEnum)s.Property.Type,
-                    Value = s.Property.Value
-                });
+            var properties = data.GetStates()
+                .Where(s => s.State != ScriptDataStateType.Pristine)
+                .Select(s => s.Property)
+                .ToList();
 
             var transfer = new AgentDataTransfer();
 
             var strings = properties
-                .Where(p => p.Type == DataTypeEnum.String)
+                .Where(p => p.Type == ScriptDataTypeEnum.String)
                 .Select(p => new AgentDataPropertyString
                 {
                     Name = p.Name,
@@ -234,7 +199,7 @@ namespace Runner.Agent.Version.Scripts
             }
 
             var stringLists = properties
-                .Where(p => p.Type == DataTypeEnum.StringList)
+                .Where(p => p.Type == ScriptDataTypeEnum.StringList)
                 .Select(p => new AgentDataPropertyStringList
                 {
                     Name = p.Name,
@@ -247,7 +212,7 @@ namespace Runner.Agent.Version.Scripts
             }
 
             var nodePaths = properties
-                .Where(p => p.Type == DataTypeEnum.NodePath)
+                .Where(p => p.Type == ScriptDataTypeEnum.NodePath)
                 .Select(p => new AgentDataPropertyNodePath
                 {
                     Name = p.Name,

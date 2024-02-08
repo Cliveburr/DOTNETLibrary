@@ -1,4 +1,6 @@
-﻿@using Runner.Business.Actions
+﻿@inherits BasePage
+@using Runner.Business.Actions
+@using Runner.Business.Datas.Control
 
 <div class="runactioncontainer" @onclick=OnOpenEditor @onclick:stopPropagation=true>
     <div class="runlabel">
@@ -71,14 +73,38 @@
         }
     }
 
-    private Task OnStop_Click()
+    private void CloseEditor()
     {
-        return View.StopAction(Action);
+        if (View.Panel is not null)
+        {
+            View.Panel.Close();
+        }
     }
 
-    private Task OnRun_Click()
+    private async Task OnStop_Click()
     {
-        return View.RunAction(Action);
+        CloseEditor();
+        try
+        {
+            await View.StopAction(Action);
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+    }
+
+    private async Task OnRun_Click()
+    {
+        CloseEditor();
+        try
+        {
+            await View.RunAction(Action);
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
     }
 
     // public void OnRunUpdated()
@@ -98,13 +124,40 @@
     //     }
     // }
 
+    private async Task OnEditData_Click()
+    {
+        CloseEditor();
+
+        var datas = new DataMerge()
+            .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ScriptDataType.Get())
+            .ApplyDataProperty(Action.Data)
+            .ToDataFullProperty();
+
+        var scriptPathProperty = datas
+            .First(d => d.Name == "ScriptPath");
+        scriptPathProperty.Hidden = true;
+
+        var editedData = await Modal.DataFullEditor(datas);
+        if (editedData is not null)
+        {
+            Action.Data = editedData;
+            await View.UpdateActionData(Action);
+            OnOpenEditor();
+        }
+    }
+
     private RenderFragment EditorForm()
     {
         return
         @<div class="is-flex is-flex-direction-column m-4">
             <h3 class="title is-3">Script</h3>
             <div class="buttons">
-                
+                <button type="button" class="button is-primary is-small" @onclick="OnEditData_Click">
+                    <span class="icon is-small">
+                        <NodeTypeIcon Type=NodeType.Data />
+                    </span>
+                    <span>Edita Data</span>
+                </button>
             </div>
             <div class="field">
                 <label class="label">Label</label>

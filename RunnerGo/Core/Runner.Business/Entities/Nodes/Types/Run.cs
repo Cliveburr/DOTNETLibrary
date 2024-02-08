@@ -33,5 +33,6 @@ namespace Runner.Business.Entities.Nodes.Types
     {
         public DateTime Created { get; set; }
         public required string Text { get; set; }
+        public string? FullError { get; set; }
     }
 }

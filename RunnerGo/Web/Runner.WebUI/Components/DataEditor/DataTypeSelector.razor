@@ -4,17 +4,17 @@
 {
     case DataTypeEnum.String:
         {
-            <StringDataType @bind-Value:get=Value @bind-Value:set=SetValue />
+            <StringDataType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly />
             break;
         }
     case DataTypeEnum.StringList:
         {
-            <StringListDataType @bind-Value:get=Value @bind-Value:set=SetValue />
+            <StringListDataType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly />
             break;
         }
     case DataTypeEnum.NodePath:
         {
-            <NodePathDataType @bind-Value:get=Value @bind-Value:set=SetValue />
+            <NodePathDataType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly />
             break;
         }
 }
@@ -29,6 +29,9 @@
 
     [Parameter]
     public EventCallback<object?> ValueChanged { get; set; }
+
+    [Parameter]
+    public bool Readonly { get; set; }
 
     private Task SetValue(object? value)
     {

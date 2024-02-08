@@ -1,5 +1,6 @@
 ﻿using Runner.Business.Datas.Model;
 using Runner.Business.Datas.Validator;
+using System.ComponentModel.DataAnnotations;
 
 namespace Runner.Business.Datas.Control
 {
@@ -28,8 +29,19 @@ namespace Runner.Business.Datas.Control
                 }
                 else
                 {
-                    has.Type = dataProperty.Type;
-                    has.Value = dataProperty.Value;
+                    if (has.Type == dataProperty.Type)
+                    {
+                        var validator = DataValidator.GetValidator(dataProperty.Type);
+                        if (validator.IsValidToOverride(has.Value, dataProperty.Value))
+                        {
+                            has.Value = dataProperty.Value;
+                        }
+                    }
+                    else
+                    {
+                        has.Type = dataProperty.Type;
+                        has.Value = dataProperty.Value;
+                    }
                 }
             }
             return this;
@@ -83,14 +95,32 @@ namespace Runner.Business.Datas.Control
                 }
                 else
                 {
-                    has.Type = dataFullProperty.Type;
                     has.Default = dataFullProperty.Default;
                     has.IsRequired = dataFullProperty.IsRequired;
 
-                    var validation = DataValidator.Validate(dataFullProperty.ToDataTypeProperty(), has.Value);
-                    if (validation.Any())
+                    if (has.Type == dataFullProperty.Type)
                     {
-                        has.Value = dataFullProperty.Default; //TODO: try conversion
+                        var validator = DataValidator.GetValidator(dataFullProperty.Type);
+                        if (validator.IsValidToOverride(has.Value, dataFullProperty.Value))
+                        {
+                            has.Value = dataFullProperty.Value;
+                        }
+                    }
+                    else
+                    {
+                        has.Type = dataFullProperty.Type;
+
+                        var validator = DataValidator.GetValidator(dataFullProperty.Type);
+                        var validation = validator.ValidateValue(dataFullProperty.ToDataTypeProperty(), has.Value);
+                        if (validation is not null)
+                        {
+                            has.Value = dataFullProperty.Default; //TODO: try conversion
+                        }
+
+                        if (validator.IsValidToOverride(has.Value, dataFullProperty.Value))
+                        {
+                            has.Value = dataFullProperty.Value;
+                        }
                     }
                 }
             }

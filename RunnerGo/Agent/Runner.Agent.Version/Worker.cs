@@ -275,7 +275,8 @@ namespace Runner.Agent.Version
                     await _connection.InvokeAsync("ScriptError",
                         new ScriptErrorRequest
                         {
-                            Error = ex.ToString()
+                            Message = ex.Message,
+                            FullError = ex.ToString()
                         }, _stoppingToken);
                 }
                 catch (Exception err)
@@ -311,30 +312,34 @@ namespace Runner.Agent.Version
                 _executionCancellation = new CancellationTokenSource();
                 var executeCancelationToken = CancellationTokenSource.CreateLinkedTokenSource(_executionCancellation.Token, _stoppingToken);
                 var scriptIsolation = new ScriptIsolation(request, ScriptLog);
-                var result = await scriptIsolation.Execute(executeCancelationToken.Token);
+                scriptIsolation.Execute(executeCancelationToken.Token);
                 _executionCancellation = null;
 
-                await _connection.InvokeAsync("ScriptFinish",
-                    new RunScriptResponse
-                    {
-                        IsSuccess = result.IsSuccess,
-                        ErrorMessage = result.ErrorMessage,
-                        Data = result.Data,
-                    }, _stoppingToken);
+                if (scriptIsolation.Result is not null)
+                {
+                    await _connection.InvokeAsync("ScriptFinish", scriptIsolation.Result, _stoppingToken);
+                }
+                else
+                {
+                    throw scriptIsolation.Exception ?? new Exception("Internal - ScriptIsolation dont return result or exception!");
+                }
             }
             catch (Exception ex)
             {
                 try
                 {
+                    var thisEx = ex.InnerException ?? ex;
                     await _connection.InvokeAsync("ScriptError",
                         new ScriptErrorRequest
                         {
-                            Error = ex.ToString()
+                            Message = thisEx.Message,
+                            FullError = thisEx.ToString()
                         }, _stoppingToken);
                 }
-                catch (Exception err)
+                catch (Exception ex2)
                 {
-                    _logger.LogError(err, "ScriptError error!");
+                    _logger.LogError(ex, "RunScript error!");
+                    _logger.LogError(ex2, "ScriptError error!");
                 }
             }
         }

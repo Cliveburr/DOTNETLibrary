@@ -178,7 +178,7 @@ namespace Runner.Business.Services.NodeTypes
                     }
                     else
                     {
-                        warnings.AppendLine($"Invalid script version, expected 0 found {scriptSet.Version}");
+                        warnings.AppendLine($"Script \"{scriptSet.Name}\" wrong version, expected 0 found {scriptSet.Version}");
                     }
                 }
                 else
@@ -207,7 +207,7 @@ namespace Runner.Business.Services.NodeTypes
                     }
                     else
                     {
-                        warnings.AppendLine($"Invalid script version, expected {script.NextVersion} found {scriptSet.Version}");
+                        warnings.AppendLine($"Script \"{node.Name}\" wrong version, expected {script.NextVersion} found {scriptSet.Version}");
                     }
                 }
             }

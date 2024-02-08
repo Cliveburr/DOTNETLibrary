@@ -2,10 +2,10 @@
 
 namespace Runner.ScriptExample
 {
-    [Script(0, "RaiseError")]
+    [Script(2, "RaiseError")]
     public class RaiseErrorScript : IScript
     {
-        public async Task Run(ScriptRunContext context)
+        public Task Run(ScriptRunContext context)
         {
             var errorMessage = context.Data.GetString("ErrorMessage");
 
@@ -13,6 +13,8 @@ namespace Runner.ScriptExample
             {
                 throw new Exception(errorMessage);
             }
+
+            return Task.CompletedTask;
         }
     }
 }

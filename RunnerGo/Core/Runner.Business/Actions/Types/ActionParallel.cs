@@ -10,28 +10,28 @@ namespace Runner.Business.Actions.Types
 
         public override FowardRunResult FowardRun(CommandContext ctx)
         {
-            Assert.Enum.In(_action.Status, new[] {
+            Assert.Enum.In(Action.Status, new[] {
                 ActionStatus.Waiting
-            }, $"ActionParallel in wrong status to Cursor! {_action.ActionId}-{_action.Label}");
+            }, $"ActionParallel in wrong status to Cursor! {Action.ActionId}-{Action.Label}");
 
-            Assert.MustFalse(_action.WithCursor, $"ActionParallel already with Cursor! {_action.ActionId}-{_action.Label}");
+            Assert.MustFalse(Action.WithCursor, $"ActionParallel already with Cursor! {Action.ActionId}-{Action.Label}");
 
-            if (_action.BreakPoint)
+            if (Action.BreakPoint)
             {
-                _action.WithCursor = true;
-                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateWithCursor, _action));
+                Action.WithCursor = true;
+                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateWithCursor, Action));
 
-                _action.Status = ActionStatus.Stopped;
-                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+                Action.Status = ActionStatus.Stopped;
+                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, Action));
 
                 return FowardRunResult.WasBreakPoint;
             }
             else
             {
-                if (_action.Childs is not null && _action.Childs.Any())
+                if (Action.Childs is not null && Action.Childs.Any())
                 {
                     var fowardRunResults = new List<FowardRunResult>();
-                    foreach (var childAction in _action.Childs)
+                    foreach (var childAction in Action.Childs)
                     {
                         var (nextAction, nextActionType) = ctx.Control.FindActionAndType(childAction);
                         fowardRunResults.Add(nextActionType.FowardRun(ctx));
@@ -41,8 +41,8 @@ namespace Runner.Business.Actions.Types
                         .Any(cs => cs == FowardRunResult.Running);
                     if (isSomeoneRunning)
                     {
-                        _action.Status = ActionStatus.Running;
-                        ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+                        Action.Status = ActionStatus.Running;
+                        ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, Action));
                         return FowardRunResult.Running;
                     }
 
@@ -50,8 +50,8 @@ namespace Runner.Business.Actions.Types
                         .Any(cs => cs == FowardRunResult.WasBreakPoint);
                     if (isSomeoneBreakPoint)
                     {
-                        _action.Status = ActionStatus.Stopped;
-                        ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+                        Action.Status = ActionStatus.Stopped;
+                        ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, Action));
                         return FowardRunResult.WasBreakPoint;
                     }
 
@@ -59,8 +59,8 @@ namespace Runner.Business.Actions.Types
                 }
                 else
                 {
-                    _action.Status = ActionStatus.Completed;
-                    ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+                    Action.Status = ActionStatus.Completed;
+                    ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, Action));
 
                     return FowardRunResult.WasCompleted;
                 }
@@ -69,20 +69,20 @@ namespace Runner.Business.Actions.Types
 
         public override void Run(CommandContext ctx)
         {
-            Assert.Enum.In(_action.Status, new[] {
+            Assert.Enum.In(Action.Status, new[] {
                 ActionStatus.Waiting,
                 ActionStatus.Stopped,
                 ActionStatus.Error
-            }, $"ActionParallel in wrong status to Run! {_action.ActionId}-{_action.Label}");
+            }, $"ActionParallel in wrong status to Run! {Action.ActionId}-{Action.Label}");
 
-            Assert.MustTrue(_action.WithCursor, $"ActionParallel in without cursor to Run! {_action.ActionId}-{_action.Label}");
+            Assert.MustTrue(Action.WithCursor, $"ActionParallel in without cursor to Run! {Action.ActionId}-{Action.Label}");
 
-            _action.WithCursor = false;
-            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateWithCursor, _action));
+            Action.WithCursor = false;
+            ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateWithCursor, Action));
 
-            if (_action.Childs is not null && _action.Childs.Any())
+            if (Action.Childs is not null && Action.Childs.Any())
             {
-                foreach (var childAction in _action.Childs)
+                foreach (var childAction in Action.Childs)
                 {
                     var (nextAction, nextActionType) = ctx.Control.FindActionAndType(childAction);
                     _ = nextActionType.FowardRun(ctx);
@@ -92,28 +92,28 @@ namespace Runner.Business.Actions.Types
             }
             else
             {
-                _action.Status = ActionStatus.Completed;
-                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+                Action.Status = ActionStatus.Completed;
+                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, Action));
 
-                if (_action.Parent.HasValue)
+                if (Action.Parent.HasValue)
                 {
-                    var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
-                    actionType.BackSetCompleted(ctx, _action.ActionId);
+                    var (action, actionType) = ctx.Control.FindActionAndType(Action.Parent.Value);
+                    actionType.BackSetCompleted(ctx, Action.ActionId);
                 }
             }
         }
 
         public override void BackRun(CommandContext ctx)
         {
-            if (_action.Status != ActionStatus.Running)
+            if (Action.Status != ActionStatus.Running)
             {
-                _action.Status = ActionStatus.Running;
-                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+                Action.Status = ActionStatus.Running;
+                ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, Action));
             }
 
-            if (_action.Parent.HasValue)
+            if (Action.Parent.HasValue)
             {
-                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                var (action, actionType) = ctx.Control.FindActionAndType(Action.Parent.Value);
                 actionType.BackRun(ctx);
             }
         }
@@ -125,9 +125,9 @@ namespace Runner.Business.Actions.Types
 
         public override void BackSetRunning(CommandContext ctx)
         {
-            Assert.Enum.In(_action.Status, new[] {
+            Assert.Enum.In(Action.Status, new[] {
                 ActionStatus.Running
-            }, $"ActionParallel in wrong status to BackSetRunning! {_action.ActionId}-{_action.Label}");
+            }, $"ActionParallel in wrong status to BackSetRunning! {Action.ActionId}-{Action.Label}");
 
             CheckStatus(ctx);
         }
@@ -139,10 +139,10 @@ namespace Runner.Business.Actions.Types
 
         public override void BackSetCompleted(CommandContext ctx, int actionChildId)
         {
-            Assert.Enum.In(_action.Status, new[] {
+            Assert.Enum.In(Action.Status, new[] {
                 ActionStatus.Running,
                 ActionStatus.ToStop
-            }, $"ActionParallel in wrong status to BackSetCompleted! {_action.ActionId}-{_action.Label}");
+            }, $"ActionParallel in wrong status to BackSetCompleted! {Action.ActionId}-{Action.Label}");
 
             CheckStatus(ctx);
         }
@@ -154,10 +154,10 @@ namespace Runner.Business.Actions.Types
 
         public override void BackSetError(CommandContext ctx)
         {
-            Assert.Enum.In(_action.Status, new[] {
+            Assert.Enum.In(Action.Status, new[] {
                 ActionStatus.Running,
                 ActionStatus.ToStop
-            }, $"Action container in wrong status to BackSetError! {_action.ActionId}-{_action.Label}");
+            }, $"Action container in wrong status to BackSetError! {Action.ActionId}-{Action.Label}");
 
             CheckStatus(ctx);
         }
@@ -170,13 +170,13 @@ namespace Runner.Business.Actions.Types
 
         public override void BackStop(CommandContext ctx)
         {
-            Assert.Enum.In(_action.Status, new[] {
+            Assert.Enum.In(Action.Status, new[] {
                 ActionStatus.Running
-            }, $"ActionParallel in wrong status to Stop! {_action.ActionId}-{_action.Label}");
+            }, $"ActionParallel in wrong status to Stop! {Action.ActionId}-{Action.Label}");
 
-            if (_action.Parent.HasValue)
+            if (Action.Parent.HasValue)
             {
-                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                var (action, actionType) = ctx.Control.FindActionAndType(Action.Parent.Value);
                 actionType.BackStop(ctx);
             }
         }
@@ -188,9 +188,9 @@ namespace Runner.Business.Actions.Types
 
         public override void BackSetStopped(CommandContext ctx)
         {
-            Assert.Enum.In(_action.Status, new[] {
+            Assert.Enum.In(Action.Status, new[] {
                 ActionStatus.Running
-            }, $"ActionParallel in wrong status to Stopped! {_action.ActionId}-{_action.Label}");
+            }, $"ActionParallel in wrong status to Stopped! {Action.ActionId}-{Action.Label}");
 
             CheckStatus(ctx);
         }
@@ -209,9 +209,9 @@ namespace Runner.Business.Actions.Types
         {
             CheckStatus(ctx);
 
-            if (_action.Parent.HasValue)
+            if (Action.Parent.HasValue)
             {
-                var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                var (action, actionType) = ctx.Control.FindActionAndType(Action.Parent.Value);
                 actionType.BackBreakPoint(ctx);
             }
         }
@@ -228,9 +228,9 @@ namespace Runner.Business.Actions.Types
                 Completed = 6
             */
 
-            Assert.MustNotNull(_action.Childs, $"ActionParallel with invalid Childs! {_action.ActionId}-{_action.Label}");
+            Assert.MustNotNull(Action.Childs, $"ActionParallel with invalid Childs! {Action.ActionId}-{Action.Label}");
 
-            var childsStatus = _action.Childs
+            var childsStatus = Action.Childs
                 .Select(i => ctx.Control.FindAction(i).Status)
                 .ToList();
 
@@ -240,14 +240,14 @@ namespace Runner.Business.Actions.Types
                     cs == ActionStatus.ToRun);
             if (isSomeoneRunning)
             {
-                if (_action.Status != ActionStatus.Running)
+                if (Action.Status != ActionStatus.Running)
                 {
-                    _action.Status = ActionStatus.Running;
-                    ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+                    Action.Status = ActionStatus.Running;
+                    ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, Action));
 
-                    if (_action.Parent.HasValue)
+                    if (Action.Parent.HasValue)
                     {
-                        var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                        var (action, actionType) = ctx.Control.FindActionAndType(Action.Parent.Value);
                         actionType.BackSetRunning(ctx);
                     }
                 }
@@ -258,14 +258,14 @@ namespace Runner.Business.Actions.Types
                 .Any(cs => cs == ActionStatus.Error);
             if (isSomeoneError)
             {
-                if (_action.Status != ActionStatus.Error)
+                if (Action.Status != ActionStatus.Error)
                 {
-                    _action.Status = ActionStatus.Error;
-                    ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+                    Action.Status = ActionStatus.Error;
+                    ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, Action));
 
-                    if (_action.Parent.HasValue)
+                    if (Action.Parent.HasValue)
                     {
-                        var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                        var (action, actionType) = ctx.Control.FindActionAndType(Action.Parent.Value);
                         actionType.BackSetError(ctx);
                     }
                 }
@@ -276,14 +276,14 @@ namespace Runner.Business.Actions.Types
                 .Any(cs => cs == ActionStatus.Stopped);
             if (isSomeoneStopped)
             {
-                if (_action.Status != ActionStatus.Stopped)
+                if (Action.Status != ActionStatus.Stopped)
                 {
-                    _action.Status = ActionStatus.Stopped;
-                    ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+                    Action.Status = ActionStatus.Stopped;
+                    ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, Action));
 
-                    if (_action.Parent.HasValue)
+                    if (Action.Parent.HasValue)
                     {
-                        var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
+                        var (action, actionType) = ctx.Control.FindActionAndType(Action.Parent.Value);
                         actionType.BackSetStopped(ctx);
                     }
 
@@ -295,18 +295,33 @@ namespace Runner.Business.Actions.Types
                 .Any(ac => ac != ActionStatus.Completed);
             if (isAllCompleted)
             {
-                if (_action.Status != ActionStatus.Completed)
+                if (Action.Status != ActionStatus.Completed)
                 {
-                    _action.Status = ActionStatus.Completed;
-                    ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, _action));
+                    Action.Status = ActionStatus.Completed;
+                    ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, Action));
 
-                    if (_action.Parent.HasValue)
+                    if (Action.Parent.HasValue)
                     {
-                        var (action, actionType) = ctx.Control.FindActionAndType(_action.Parent.Value);
-                        actionType.BackSetCompleted(ctx, _action.ActionId);
+                        var (action, actionType) = ctx.Control.FindActionAndType(Action.Parent.Value);
+                        actionType.BackSetCompleted(ctx, Action.ActionId);
                     }
                 }
                 return;
+            }
+        }
+
+        public override void BuildData(DataContext ctx)
+        {
+            throw new RunnerException("ActionParallel shound't never call build data!");
+        }
+
+        public override void BackBuildData(DataContext ctx, int actionChildId)
+        {
+            ctx.Parents.Add(this);
+            if (Action.Parent.HasValue)
+            {
+                var (_, actionType) = ctx.Control.FindActionAndType(Action.Parent.Value);
+                actionType.BackBuildData(ctx, Action.ActionId);
             }
         }
     }

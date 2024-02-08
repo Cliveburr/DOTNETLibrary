@@ -2,7 +2,7 @@
 
 namespace Runner.ScriptExample
 {
-    [Script(1, "HelloWorld")]
+    [Script(2, "HelloWorld")]
     public class SayHelloWorld : IScript
     {
         public async Task Run(ScriptRunContext context)

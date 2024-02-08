@@ -158,6 +158,7 @@ html, body {
   position: absolute;
   right: 0;
   height: calc(100% - 53px);
+  z-index: 40;
 }
 .rightpanel > .rightpanelclose {
   top: 41px;
@@ -263,7 +264,9 @@ html, body {
 }
 .runactionparallel > .runlabel {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-left: 4px;
 }
 .runactionparallel > .runlabel > p {
   font-size: 1.1em;
@@ -292,16 +295,20 @@ html, body {
   width: 100%;
   height: 250px;
   background-color: #a2c4f3;
-  z-index: 700;
+  z-index: 30;
   box-shadow: -2px -1em 1em -0.125em rgba(113, 76, 76, 0.1), 0px -6px 0 1px rgba(10, 10, 10, 0.02);
   display: flex;
+  overflow-y: auto;
 }
 .runlogview > .textarea {
   height: 100%;
   background-color: rgb(26, 32, 41);
   color: rgb(209, 210, 212);
   font-family: Menlo, Consolas, "Courier New", monospace;
-  font-size: 12px;
+  font-size: 13px;
+  border: none;
+  border-style: none;
+  border-radius: 0;
 }
 
 /* Bulma Utilities */
@@ -9805,4 +9812,7 @@ a.has-text-danger-dark:hover, a.has-text-danger-dark:focus {
   margin-top: 0.1em !important;
   flex-grow: 1;
   min-width: 100px;
+}
+.tagsfield > .fakeInput {
+  height: 1.6em;
 }

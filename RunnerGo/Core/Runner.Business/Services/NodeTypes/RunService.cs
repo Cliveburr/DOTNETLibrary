@@ -127,7 +127,6 @@ namespace Runner.Business.Services.NodeTypes
         private async Task ProcessEffects(Run run, List<CommandEffect> effects)
         {
             var reverseEffects = effects.ToList();
-            reverseEffects.Reverse();
             foreach (var effect in reverseEffects)
             {
                 switch (effect.Type)
@@ -163,8 +162,6 @@ namespace Runner.Business.Services.NodeTypes
             }
 
             await CheckRunState(run.RunId);
-            var actualRun = await ReadById(run.RunId);
-            _manualAgentWatcherNotification?.InvokeRunUpdated(actualRun!);
         }
 
 
@@ -300,6 +297,20 @@ namespace Runner.Business.Services.NodeTypes
             }
         }
 
+        private async Task WriteLogErrorInner(ObjectId runId, string message, string fullError)
+        {
+            var update = Builders<Run>.Update
+                .Push(r => r.Log, new RunLog
+                {
+                    Created = DateTime.Now,
+                    Text = message,
+                    FullError = fullError
+                });
+
+            await Run
+                .UpdateAsync(r => r.RunId == runId, update);
+        }
+
         private async Task WriteLogInner(ObjectId runId, string text)
         {
             var update = Builders<Run>.Update
@@ -329,6 +340,9 @@ namespace Runner.Business.Services.NodeTypes
 
             var action = control.FindAction(actionId);
             await WriteLogInner(runId, $"Action \"{action.Label}\" is running");
+
+            var actualRun = await ReadById(run.RunId);
+            _manualAgentWatcherNotification?.InvokeRunUpdated(actualRun!);
         }
 
         public async Task SetCompleted(ObjectId runId, int actionId, List<DataProperty>? actionOutput)
@@ -360,9 +374,12 @@ namespace Runner.Business.Services.NodeTypes
 
             var action = control.FindAction(actionId);
             await WriteLogInner(runId, $"Action \"{action.Label}\" was completed!");
+
+            var actualRun = await ReadById(run.RunId);
+            _manualAgentWatcherNotification?.InvokeRunUpdated(actualRun!);
         }
 
-        public async Task SetError(ObjectId runId, int actionId, string text)
+        public async Task SetError(ObjectId runId, int actionId, string message, string fullError)
         {
             Assert.MustNotNull(_identityProvider.User, "Need to be logged to error script!");
 
@@ -377,7 +394,10 @@ namespace Runner.Business.Services.NodeTypes
             await ProcessEffects(run, effects);
 
             var action = control.FindAction(actionId);
-            await WriteLogInner(runId, $"Error on \"{action.Label}\": {text}");
+            await WriteLogErrorInner(runId, $"Action \"{action.Label}\" error: {message}", fullError);
+
+            var actualRun = await ReadById(run.RunId);
+            _manualAgentWatcherNotification?.InvokeRunUpdated(actualRun!);
         }
 
         public async Task WriteLog(ObjectId runId, string text)
@@ -387,6 +407,9 @@ namespace Runner.Business.Services.NodeTypes
             // checar se ter permissão
 
             await WriteLogInner(runId, text);
+
+            var actualRun = await ReadById(runId);
+            _manualAgentWatcherNotification?.InvokeRunUpdated(actualRun!);
         }
 
         public async Task SetRun(ObjectId runId, int actionId)
@@ -402,6 +425,9 @@ namespace Runner.Business.Services.NodeTypes
             var control = ActionControl.From(run);
             var effects = control.Run(actionId);
             await ProcessEffects(run, effects);
+
+            var actualRun = await ReadById(run.RunId);
+            _manualAgentWatcherNotification?.InvokeRunUpdated(actualRun!);
         }
 
         public async Task Stop(ObjectId runId, int actionId)
@@ -419,6 +445,9 @@ namespace Runner.Business.Services.NodeTypes
             await ProcessEffects(run, effects);
 
             await WriteLogInner(runId, "Set to stop");
+
+            var actualRun = await ReadById(runId);
+            _manualAgentWatcherNotification?.InvokeRunUpdated(actualRun!);
         }
 
         public async Task SetBreakPoint(ObjectId runId, int actionId)
@@ -437,6 +466,9 @@ namespace Runner.Business.Services.NodeTypes
 
             var action = control.FindAction(actionId);
             await WriteLogInner(runId, $"BreakPoint on action \"{action.Label}\" setted");
+
+            var actualRun = await ReadById(runId);
+            _manualAgentWatcherNotification?.InvokeRunUpdated(actualRun!);
         }
 
         public async Task CleanBreakPoint(ObjectId runId, int actionId)
@@ -455,6 +487,23 @@ namespace Runner.Business.Services.NodeTypes
 
             var action = control.FindAction(actionId);
             await WriteLogInner(runId, $"BreakPoint on action \"{action.Label}\" was cleared");
+
+            var actualRun = await ReadById(runId);
+            _manualAgentWatcherNotification?.InvokeRunUpdated(actualRun!);
+        }
+
+
+        public async Task UpdateActionData(ObjectId runId, Actions.Action action)
+        {
+            Assert.MustNotNull(_identityProvider.User, "Need to be logged to error script!");
+
+            // checar se ter permissão
+
+            var update = Builders<Run>.Update
+                .Set(r => r.Actions.FirstMatchingElement().Data, action.Data);
+
+            await Run
+                .UpdateAsync(r => r.RunId == runId && r.Actions.Any(a => a.ActionId == action.ActionId), update);
         }
     }
 }

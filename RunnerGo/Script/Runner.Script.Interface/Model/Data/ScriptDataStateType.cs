@@ -4,7 +4,6 @@
     {
         Pristine = 0,
         Add = 1,
-        Modified = 2,
-        Deleted = 3
+        Modified = 2
     }
 }

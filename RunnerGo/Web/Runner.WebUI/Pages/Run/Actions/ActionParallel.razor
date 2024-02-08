@@ -1,4 +1,47 @@
-﻿<h3>ActionParallel</h3>
+﻿@inherits BasePage
+@using Runner.Business.Actions
+@using Runner.Business.Datas.Control
+
+<div class="runactionparallel" @onclick=OnOpenEditor @onclick:stopPropagation=true>
+    <div class="runlabel">
+        <ActionStatusView Status=Action.Status></ActionStatusView>
+        <p>@ValidLabel()</p>
+        <div>
+            @if (Action.WithCursor)
+            {
+                switch (Action.Status)
+                {
+                    case ActionStatus.ToRun:
+                    case ActionStatus.Running:
+                        {
+                            <span class="icon" @onclick=OnStop_Click @onclick:stopPropagation=true>
+                                <i class="fa-solid fa-stop fa-xl" style="color: #cc3030"></i>
+                            </span>
+                            break;
+                        }
+                    case ActionStatus.Waiting:
+                    case ActionStatus.Error:
+                    case ActionStatus.Stopped:
+                        {
+                            <span class="icon" @onclick=OnRun_Click @onclick:stopPropagation=true>
+                                <i class="fa-solid fa-play fa-lg" style="color: #398d22"></i>
+                            </span>
+                            break;
+                        }
+                }
+            }
+        </div>
+    </div>
+    @if (Action.Childs is not null)
+    {
+        <div class="runchilds">
+            @foreach (var action in GetChilds())
+            {
+                <RunViewSelector Action=action />
+            }
+        </div>
+    }
+</div>
 
 @code {
 
@@ -8,9 +51,83 @@
     [CascadingParameter(Name = "RunView")]
     public required RunView View { get; set; }
 
-    // public void OnRunUpdated()
-    // {
-    // }
+    private string ValidLabel()
+    {
+        return string.IsNullOrEmpty(Action.Label) ?
+            " " :
+            Action.Label;
+    }
+
+    private List<Runner.Business.Actions.Action> GetChilds()
+    {
+        return Action.Childs!
+            .Select(c => View.ThisRun!.Actions.First(a => a.ActionId == c))
+            .ToList();
+    }
+
+    private void OnOpenEditor()
+    {
+        if (View.Panel is not null)
+        {
+            View.Panel.SetOpen(EditorForm());
+        }
+    }
+
+    private void CloseEditor()
+    {
+        if (View.Panel is not null)
+        {
+            View.Panel.Close();
+        }
+    }
+
+    private async Task OnStop_Click()
+    {
+        CloseEditor();
+        try
+        {
+            await View.StopAction(Action);
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+    }
+
+    private async Task OnRun_Click()
+    {
+        CloseEditor();
+        try
+        {
+            await View.RunAction(Action);
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+    }
+
+    private async Task OnEditData_Click()
+    {
+        CloseEditor();
+
+        var datas = new DataMerge()
+            .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ScriptDataType.Get())
+            .ApplyDataProperty(Action.Data)
+            .ToDataFullProperty();
+
+        var scriptPathProperty = datas
+            .First(d => d.Name == "ScriptPath");
+        scriptPathProperty.Hidden = true;
+
+        var editedData = await Modal.DataFullEditor(datas);
+        if (editedData is not null)
+        {
+            Action.Data = editedData;
+            await View.UpdateActionData(Action);
+            OnOpenEditor();
+        }
+    }
 
     private RenderFragment EditorForm()
     {
@@ -18,7 +135,12 @@
         @<div class="is-flex is-flex-direction-column m-4">
             <h3 class="title is-3">Script</h3>
             <div class="buttons">
-                
+                <button type="button" class="button is-primary is-small" @onclick="OnEditData_Click">
+                    <span class="icon is-small">
+                        <NodeTypeIcon Type=NodeType.Data />
+                    </span>
+                    <span>Edita Data</span>
+                </button>
             </div>
             <div class="field">
                 <label class="label">Label</label>

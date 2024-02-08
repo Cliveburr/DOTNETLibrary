@@ -103,6 +103,11 @@ namespace Runner.WebUI.Components.Modal
             return Show(typeof(ErrorView.ErrorViewModal), error);
         }
 
+        public Task ShowError(string message, string fullError)
+        {
+            return Show(typeof(ErrorView.ErrorViewModal), (message, fullError));
+        }
+
         public Task ShowError(Exception ex)
         {
             return Show(typeof(ErrorView.ErrorViewModal), ex);

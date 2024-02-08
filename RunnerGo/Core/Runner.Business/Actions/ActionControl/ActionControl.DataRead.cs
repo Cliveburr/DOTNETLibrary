@@ -1,4 +1,5 @@
-﻿using Runner.Business.Datas.Control;
+﻿using Runner.Business.Actions.Types;
+using Runner.Business.Datas.Control;
 
 namespace Runner.Business.Actions
 {
@@ -6,14 +7,16 @@ namespace Runner.Business.Actions
     {
         public DataReader ComputeActionContextData(int actionId)
         {
-            var parents = new List<int>();
-            BuildParentIdRecursive(parents, actionId);
+            var parents = new List<ActionTypesBase>();
+            var reader = new DataReader();
+
+            var (_, actionType) = FindActionAndType(actionId);
+            actionType.BuildData(new DataContext(this, parents));
             parents.Reverse();
 
-            var reader = new DataReader();
-            foreach (var id in parents)
+            foreach (var parent in parents)
             {
-                var actionData = FindAction(id)?.Data;
+                var actionData = parent.Action.Data;
                 if (actionData is not null)
                 {
                     reader
@@ -24,18 +27,18 @@ namespace Runner.Business.Actions
             return reader;
         }
 
-        private void BuildParentIdRecursive(List<int> parents, int actionId)
-        {
-            var action = FindAction(actionId);
-            if (action is not null)
-            {
-                parents.Add(actionId);
-                if (action.Parent is not null)
-                {
-                    BuildParentIdRecursive(parents, action.Parent.Value);
-                }
-            }
-        }
+        //private void BuildParentIdRecursive(List<int> parents, int actionId)
+        //{
+        //    var action = FindAction(actionId);
+        //    if (action is not null)
+        //    {
+        //        parents.Add(actionId);
+        //        if (action.Parent is not null)
+        //        {
+        //            BuildParentIdRecursive(parents, action.Parent.Value);
+        //        }
+        //    }
+        //}
 
         //public string? ReadDataStringNotNullRecursive(int actionId, string dataName)
         //{

@@ -3,11 +3,11 @@ namespace Runner.Business.Actions.Types
 {
     public abstract class ActionTypesBase
     {
-        protected readonly Action _action;
+        public Action Action { get; init; }
 
         public ActionTypesBase(Action action)
         {
-            _action = action;
+            Action = action;
         }
 
         public abstract void Run(CommandContext ctx);
@@ -26,6 +26,8 @@ namespace Runner.Business.Actions.Types
         public abstract void SetBreakPoint(CommandContext ctx);
         public abstract void CleanBreakPoint(CommandContext ctx);
         public abstract void BackBreakPoint(CommandContext ctx);
+        public abstract void BuildData(DataContext ctx);
+        public abstract void BackBuildData(DataContext ctx, int actionChildId);
 
         public enum FowardRunResult
         {

@@ -20,5 +20,10 @@ namespace Runner.Business.Datas.Validator.Types
             }
             return null;
         }
+
+        public bool IsValidToOverride(object? old, object? nw)
+        {
+            return !string.IsNullOrEmpty(nw as string);
+        }
     }
 }
