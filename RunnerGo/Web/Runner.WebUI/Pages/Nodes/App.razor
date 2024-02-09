@@ -44,7 +44,7 @@
     </div>
 
     <div class="box mt-3">
-        <DataTable Func=@((request) => nodeService.ReadChildsTable(request, Node.NodeId))>
+        <DataTable @ref=table Func=@((request) => nodeService.ReadChildsTable(request, Node.NodeId))>
             <Header>
                 <tr>
                     <th class="w50px">Type</th>

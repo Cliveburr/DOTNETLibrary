@@ -83,7 +83,7 @@ namespace Runner.Business.Services.NodeTypes
                 .DeleteAsync(r => r.RunId == runId);
         }
 
-        public async Task CreateRun(Flow flow, bool setToRun)
+        public async Task CreateRun(Flow flow, List<DataProperty>? input, bool setToRun)
         {
             Assert.MustNotNull(_identityProvider.User, "Need to be logged to create app!");
 
@@ -93,6 +93,7 @@ namespace Runner.Business.Services.NodeTypes
 
             run.Status = RunStatus.Waiting;
             run.Created = DateTime.Now;
+            run.Input = input;
             if (setToRun)
             {
                 run.Log.Add(new RunLog

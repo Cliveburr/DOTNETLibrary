@@ -44,7 +44,7 @@
     </div>
 
     <div class="box mt-3">
-        <DataTable Func=@((request) => nodeService.ReadChildsTable(request, Node.NodeId))>
+        <DataTable @ref=table Func=@((request) => nodeService.ReadChildsTable(request, Node.NodeId))>
             <Header>
                 <tr>
                     <th class="w50px">Type</th>
@@ -126,6 +126,12 @@
                     {
                         var scriptPackageService = serviceProvider.GetRequiredService<Business.Services.NodeTypes.ScriptPackageService>();
                         await scriptPackageService.Create(reponse.Name, Node.NodeId);
+                        break;
+                    }
+                case NodeType.Flow:
+                    {
+                        var flowService = serviceProvider.GetRequiredService<Business.Services.NodeTypes.FlowService>();
+                        await flowService.Create(reponse.Name, Node.NodeId);
                         break;
                     }
                 default:

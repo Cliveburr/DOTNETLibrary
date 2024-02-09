@@ -17,6 +17,11 @@
             <NodePathDataType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly />
             break;
         }
+    case DataTypeEnum.DataReference:
+        {
+            <DataReferenceDataType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly />
+            break;
+        }
 }
 
 @code {

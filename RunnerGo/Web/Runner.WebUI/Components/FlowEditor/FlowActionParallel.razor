@@ -1,7 +1,6 @@
 ﻿@using Runner.Business.Datas.Control
 @using Runner.Business.Entities.Nodes.Types
-@inherits BasePage
-@implements IFlowActionView
+@inherits FlowActionView
 @inject ClipboardInterop clipboardInterop
 @inject NotificationService notificationService
 
@@ -22,18 +21,6 @@
 
 @code {
 
-    [Parameter]
-    public required FlowAction Node { get; set; }
-
-    [Parameter]
-    public required IFlowActionView? Parent { get; set; }
-
-    [Parameter]
-    public required Action UpdateParent { get; set; }
-
-    [CascadingParameter(Name = "GetPanel")]
-    public Func<RightPanel?>? GetPanel { get; set; }
-
     protected override void OnInitialized()
     {
         Node.Data = new DataMerge()
@@ -42,38 +29,7 @@
             .ToDataProperty();
     }
 
-    private string ValidLabel()
-    {
-        return string.IsNullOrEmpty(Node.Label) ?
-            " " :
-            Node.Label;
-    }
-
-    private void OnOpenEditor()
-    {
-        if (GetPanel != null)
-        {
-            var panel = GetPanel();
-            if (panel != null)
-            {
-                panel.SetOpen(EditorForm());
-            }
-        }
-    }
-
-    private void ClosePanel()
-    {
-        if (GetPanel != null)
-        {
-            var panel = GetPanel();
-            if (panel != null)
-            {
-                panel.CleanPanel();
-            }
-        }
-    }
-
-    public void RemoveChild(FlowAction node)
+    public override void RemoveChild(FlowAction node)
     {
         if (Node.Childs is not null)
         {
@@ -82,12 +38,7 @@
         }
     }
 
-    public void UpdateState()
-    {
-        StateHasChanged();
-    }
-
-    public void MoveUp(FlowAction node)
+    public override void MoveUp(FlowAction node)
     {
         if (Node.Childs is not null)
         {
@@ -101,7 +52,7 @@
         }
     }
 
-    public void MoveDown(FlowAction node)
+    public override void MoveDown(FlowAction node)
     {
         if (Node.Childs is not null)
         {
@@ -199,40 +150,6 @@
         }
     }
 
-    private void AdjustValueKind(FlowAction? action)
-    {
-        if (action is null)
-        {
-            return;
-        }
-        if (action.Data is not null)
-        {
-            foreach (var data in action.Data)
-            {
-                if (data.Value is not null)
-                {
-                    var value = (System.Text.Json.JsonElement)data.Value;
-                    data.Value = data.Type switch
-                    {
-                        Business.Datas.Model.DataTypeEnum.String => value.GetString(),
-                        Business.Datas.Model.DataTypeEnum.StringList => value.EnumerateArray()
-                            .Select(e => e.GetString())
-                            .ToList(),
-                        Business.Datas.Model.DataTypeEnum.NodePath => value.GetString(),
-                        _ => data.Value
-                    };
-                }
-            }
-        }
-        if (action.Childs is not null)
-        {
-            foreach (var child in action.Childs)
-            {
-                AdjustValueKind(child);
-            }
-        }
-    }
-
     private async Task OnEditData_Click()
     {
         ClosePanel();
@@ -250,7 +167,7 @@
         }
     }
 
-    private RenderFragment EditorForm()
+    protected override RenderFragment EditorForm()
     {
         return
     @<div class="is-flex is-flex-direction-column m-4">

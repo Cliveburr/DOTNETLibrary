@@ -333,6 +333,11 @@ namespace Runner.Agent.Hosting.Services
                     var sts = await scriptService.ReadVersionByScriptPath(scriptPath);
                     Assert.MustNotNull(sts, $"Run with invalid script path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value}, ScriptPath: {scriptPath} }}");
 
+                    //if (sts.Value.ScriptVersion.InputTypes.Count > 0)
+                    //{
+                        //TODO: checar
+                    //}
+
                     var agentService = scope.ServiceProvider.GetRequiredService<AgentService>();
                     var agents = await agentService.ReadAgentsByAgentPoolPath(agentPoolPath);
                     Assert.MustNotNull(agents, $"Run with invalid agent pool path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value}, AgentPoolPath: {agentPoolPath} }}");

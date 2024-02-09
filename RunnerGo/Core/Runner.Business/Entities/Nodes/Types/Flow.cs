@@ -14,6 +14,7 @@ namespace Runner.Business.Entities.Nodes.Types
         [IndexDef]
         public required ObjectId NodeId { get; set; }
         public required FlowAction Root { get; set; }
+        public List<DataTypeProperty>? Input { get; set; }
     }
 
     public class FlowAction

@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Runner.Business.DataAccess.Attributes;
+using Runner.Business.Datas.Model;
 
 namespace Runner.Business.Entities.Nodes.Types
 {
@@ -19,6 +20,7 @@ namespace Runner.Business.Entities.Nodes.Types
         public DateTime Created { get; set; }
         public DateTime? Completed { get; set; }
         public required List<RunLog> Log { get; set; }
+        public List<DataProperty>? Input { get; set; }
     }
 
     public enum RunStatus

@@ -1,8 +1,7 @@
 ﻿@using Runner.Business.Datas.Control
 @using Runner.Business.Datas.Model
 @using Runner.Business.Entities.Nodes.Types
-@inherits BasePage
-@implements IFlowActionView
+@inherits FlowActionView
 @inject ClipboardInterop clipboardInterop
 @inject ScriptService scriptService
 
@@ -12,72 +11,12 @@
 
 @code {
 
-    [Parameter]
-    public required FlowAction Node { get; set; }
-
-    [Parameter]
-    public required IFlowActionView? Parent { get; set; }
-
-    [Parameter]
-    public required Action UpdateParent { get; set; }
-
-    [CascadingParameter(Name = "GetPanel")]
-    public Func<RightPanel?>? GetPanel { get; set; }
-
     protected override void OnInitialized()
     {
         Node.Data = new DataMerge()
             .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ScriptDataType.Get())
             .ApplyDataProperty(Node.Data)
             .ToDataProperty();
-    }
-
-    private string ValidLabel()
-    {
-        return string.IsNullOrEmpty(Node.Label) ?
-            " " :
-            Node.Label;
-    }
-
-    private void OnOpenEditor()
-    {
-        if (GetPanel != null)
-        {
-            var panel = GetPanel();
-            if (panel != null)
-            {
-                panel.SetOpen(EditorForm());
-            }
-        }
-    }
-
-    private void ClosePanel()
-    {
-        if (GetPanel != null)
-        {
-            var panel = GetPanel();
-            if (panel != null)
-            {
-                panel.CleanPanel();
-            }
-        }
-    }
-
-    public void RemoveChild(FlowAction node)
-    {
-    }
-
-    public void UpdateState()
-    {
-        StateHasChanged();
-    }
-
-    public void MoveUp(FlowAction node)
-    {
-    }
-
-    public void MoveDown(FlowAction node)
-    {
     }
 
     private void OnRemove_Click()
@@ -180,7 +119,7 @@
         }
     }
 
-    private RenderFragment EditorForm()
+    protected override RenderFragment EditorForm()
     {
         return
         @<div class="is-flex is-flex-direction-column m-4">

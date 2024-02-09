@@ -4,7 +4,8 @@
 - criar acion de run
 - criar o jobschedule
 
-
+- criar botões de move
+- criar copia do path do node nas tabelas
 - fazer limpeza de ScriptContent q não é mais usado
 - visualizar types input e output nos scripts
 - criar o component de navegação lateral esquerdo

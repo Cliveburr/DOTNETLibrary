@@ -1,4 +1,6 @@
-﻿@using Runner.Business.Entities.Nodes.Types;
+﻿@using Runner.Business.Datas.Control
+@using Runner.Business.Datas.Validator
+@using Runner.Business.Entities.Nodes.Types;
 @using Runner.Business.Model.Nodes.Types;
 @inject NodeService nodeService
 @inject RunService runService
@@ -32,7 +34,7 @@
 </div>
 
 <div class="box mt-3">
-    <DataTable Func=@((request) => runService.ReadRunsTable(request, FlowNode))>
+    <DataTable @ref=table Func=@((request) => runService.ReadRunsTable(request, FlowNode))>
         <Header>
         <tr>
             <th class="w50px">Type</th>
@@ -78,25 +80,50 @@
         }
     }
 
-    public async Task OnNew_Click()
+    public Task OnNew_Click()
     {
-        try
-        {
-            await runService.CreateRun(FlowNode, false);
-            await OnRefresh_Click();
-        }
-        catch (Exception err)
-        {
-            await Notification.AddError(err);
-        }
+        return CreateNewRun(false);
     }
 
-    public async Task OnRun_Click()
+    public Task OnRun_Click()
+    {
+        return CreateNewRun(true);
+    }
+
+    public async Task CreateNewRun(bool setToRun)
     {
         try
         {
-            await runService.CreateRun(FlowNode, true);
-            await OnRefresh_Click();
+            if (FlowNode.Input is not null)
+            {
+                var dataMerge = new DataMerge()
+                    .ApplyDataTypeProperty(FlowNode.Input);
+
+                var dataProperties = await Modal.DataFullEditor(dataMerge.ToDataFullProperty());
+                if (dataProperties is not null)
+                {
+                    dataMerge
+                        .ApplyDataProperty(dataProperties);
+                    var validation = dataMerge.Validate();
+                    if (validation.Any())
+                    {
+                        foreach (var validate in validation)
+                        {
+                            await Notification.AddInfo(validate.Text);
+                        }
+                    }
+                    else
+                    {
+                        await runService.CreateRun(FlowNode, dataProperties, setToRun);
+                        await OnRefresh_Click();
+                    }
+                }
+            }
+            else
+            {
+                await runService.CreateRun(FlowNode, null, setToRun);
+                await OnRefresh_Click();
+            }
         }
         catch (Exception err)
         {

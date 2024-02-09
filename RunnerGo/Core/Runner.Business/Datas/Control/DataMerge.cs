@@ -70,7 +70,7 @@ namespace Runner.Business.Datas.Control
                     has.IsRequired = dataTypeProperty.IsRequired;
 
                     var validation = DataValidator.Validate(dataTypeProperty, has.Value);
-                    if (validation.Any())
+                    if (validation is not null)
                     {
                         has.Value = dataTypeProperty.Default; //TODO: try conversion
                     }
@@ -144,6 +144,18 @@ namespace Runner.Business.Datas.Control
         public List<DataFullProperty> ToDataFullProperty()
         {
             return _datas;
+        }
+
+        public IEnumerable<ValidationError> Validate()
+        {
+            foreach (var data in _datas)
+            {
+                var validated = DataValidator.Validate(data);
+                if (validated is not null)
+                {
+                    yield return validated;
+                }
+            }
         }
     }
 }

@@ -19,32 +19,21 @@ namespace Runner.Business.Datas.Validator
                 var validated = Validate(dataFullProperty);
                 if (validated is not null)
                 {
-                    foreach (var error in validated)
-                    {
-                        yield return error;
-                    }
+                    yield return validated;
                 }
             }
         }
 
-        public static IEnumerable<ValidationError> Validate(DataTypeProperty typeProperty, object? value)
+        public static ValidationError? Validate(DataTypeProperty typeProperty, object? value)
         {
             var validator = GetValidator(typeProperty.Type);
-            var validated = validator.ValidateValue(typeProperty, value);
-            if (validated is not null)
-            {
-                yield return validated;
-            }
+            return validator.ValidateValue(typeProperty, value);
         }
 
-        public static IEnumerable<ValidationError> Validate(DataFullProperty dataFullProperty)
+        public static ValidationError? Validate(DataFullProperty dataFullProperty)
         {
             var validator = GetValidator(dataFullProperty.Type);
-            var validated = validator.ValidateValue(dataFullProperty.ToDataTypeProperty(), dataFullProperty.Value);
-            if (validated is not null)
-            {
-                yield return validated;
-            }
+            return validator.ValidateValue(dataFullProperty.ToDataTypeProperty(), dataFullProperty.Value);
         }
 
         public static IDataValidator GetValidator(DataTypeEnum type)
@@ -56,6 +45,7 @@ namespace Runner.Business.Datas.Validator
                     DataTypeEnum.String => new StringValidator(),
                     DataTypeEnum.StringList => new StringListValidator(),
                     DataTypeEnum.NodePath => new NodePathValidator(),
+                    DataTypeEnum.DataReference => new DataReferenceValidator(),
                     _ => throw new RunnerException($"Invalid DataTypeEnum: {type}")
                 };
             }

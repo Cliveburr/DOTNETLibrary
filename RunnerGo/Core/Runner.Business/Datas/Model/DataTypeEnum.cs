@@ -5,6 +5,7 @@ namespace Runner.Business.Datas.Model
     {
         String = 0,
         StringList = 1,
-        NodePath = 2
+        NodePath = 2,
+        DataReference = 3
     }
 }
