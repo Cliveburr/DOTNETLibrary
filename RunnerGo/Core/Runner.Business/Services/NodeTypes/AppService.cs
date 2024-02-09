@@ -1,18 +1,12 @@
 ﻿using MongoDB.Driver;
 using Runner.Business.DataAccess;
 using Runner.Business.Entities.Nodes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Runner.Business.Security;
 using MongoDB.Bson;
 using MongoDB.Driver.Linq;
 using Runner.Business.Entities.Nodes.Types;
-using Runner.Business.Entities.Identity;
 using Runner.Business.Model.Nodes.Types;
-using System.Xml.Linq;
+using Runner.Business.Model.Table;
 
 namespace Runner.Business.Services.NodeTypes
 {
@@ -28,7 +22,7 @@ namespace Runner.Business.Services.NodeTypes
             _nodeService = nodeService;
         }
 
-        public Task<List<Node>> ReadLoggedAppsAsNode()
+        public Task<List<Node>> ReadTable(TableRequest request)
         {
             Assert.MustNotNull(_identityProvider.User, "Not logged!");
 
@@ -38,6 +32,8 @@ namespace Runner.Business.Services.NodeTypes
                         select n;
 
             return query
+                .Skip(request.Skip)
+                .Take(request.Take)
                 .ToListAsync();
         }
 

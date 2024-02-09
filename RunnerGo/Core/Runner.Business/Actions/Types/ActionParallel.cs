@@ -127,7 +127,7 @@ namespace Runner.Business.Actions.Types
         {
             Assert.Enum.In(Action.Status, new[] {
                 ActionStatus.Running
-            }, $"ActionParallel in wrong status to BackSetRunning! {Action.ActionId}-{Action.Label}");
+            }, $"ActionParallel status {Action.Status} wrong to BackSetRunning! {Action.ActionId}-{Action.Label}");
 
             CheckStatus(ctx);
         }

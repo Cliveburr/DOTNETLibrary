@@ -44,46 +44,46 @@
     </div>
 
     <div class="box mt-3">
-        @if (items != null)
-        {
-            <DataTable Items="items">
-                <Header>
-                    <tr>
-                        <th class="w50px">Type</th>
-                        <th>Name</th>
-                        <th>Created</th>
-                        <th>Updated</th>
-                    </tr>
-                </Header>
-                <Body Context="Item">
-                    <tr class="pointer" @onclick="@(_ => OnItem_Click(Item))">
-                        <td class="has-text-centered">
-                            <NodeTypeIcon Type="Item.Type" />
-                        </td>
-                        <td>@Item.Name</td>
-                        <td>@Item.CreatedUtc</td>
-                        <td>@Item.UpdatedUtc</td>
-                    </tr>
-                </Body>
-            </DataTable>
-        }
+        <DataTable Func=@((request) => nodeService.ReadChildsTable(request, Node.NodeId))>
+            <Header>
+                <tr>
+                    <th class="w50px">Type</th>
+                    <th>Name</th>
+                    <th>Created</th>
+                    <th>Updated</th>
+                </tr>
+            </Header>
+            <Body Context="Item">
+                <tr class="pointer" @onclick="@(_ => OnItem_Click(Item))">
+                    <td class="has-text-centered">
+                        <NodeTypeIcon Type="Item.Type" />
+                    </td>
+                    <td>@Item.Name</td>
+                    <td>@Item.CreatedUtc</td>
+                    <td>@Item.UpdatedUtc</td>
+                </tr>
+            </Body>
+        </DataTable>
     </div>
 </div>
 
 @code {
 
-    private List<Node>? items;
-
-
-    protected override async Task OnInitializedAsync()
-    {
-        await OnRefresh_Click();
-    }
+    private DataTable<Node>? table;
 
     public async Task OnRefresh_Click()
     {
-        items = await nodeService.ReadChilds(Node.NodeId);
-        StateHasChanged();
+        try
+        {
+            if (table is not null)
+            {
+                await table.Refresh();
+            }
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
     }
 
     public async Task OnCreate_Click()

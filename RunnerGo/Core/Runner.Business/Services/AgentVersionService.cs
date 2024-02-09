@@ -2,6 +2,7 @@
 using MongoDB.Driver;
 using Runner.Business.DataAccess;
 using Runner.Business.Entities.AgentVersion;
+using Runner.Business.Model.Table;
 using Runner.Business.Security;
 
 namespace Runner.Business.Services
@@ -16,9 +17,16 @@ namespace Runner.Business.Services
             _identityProvider = identityProvider;
         }
 
-        public Task<List<AgentVersion>> Read()
+        public Task<List<AgentVersion>> ReadTable(TableRequest request)
         {
-            return AgentVersion
+            //var sort = Builders<Job>.Sort
+            //    .Descending(r => r.Queued);
+
+            return AgentVersion.Collection
+                .Find(Builders<AgentVersion>.Filter.Empty)
+                //.Sort(sort)
+                .Skip(request.Skip)
+                .Limit(request.Take)
                 .ToListAsync();
         }
 

@@ -29,53 +29,48 @@
     </div>
 
     <div class="box mt-3">
-        @if (items != null)
-        {
-            <DataTable Items="items">
-                <Header>
-                <tr>
-                    <th class="w50px">Type</th>
-                    <th>Version</th>
-                    <th>Created</th>
-                    <th></th>
-                </tr>
-                </Header>
-                <Body Context="Item">
-                <tr>
-                    <td class="has-text-centered">
-                        <i class="fa-solid fa-boxes-packing"></i>
-                    </td>
-                    <td>@Item.Version</td>
-                    <td>@Item.CreatedUtc</td>
-                    <td>
-                        <button type="button" class="button is-danger" @onclick="@(_ => OnDeleteItem_Click(Item))">
-                            <span class="icon is-small">
-                                <i class="fa-solid fa-trash"></i>
-                            </span>
-                        </button>
-                    </td>
-                </tr>
-                </Body>
-            </DataTable>
-        }
+        <DataTable Func=agentVersionService.ReadTable>
+            <Header>
+            <tr>
+                <th class="w50px">Type</th>
+                <th>Version</th>
+                <th>Created</th>
+                <th></th>
+            </tr>
+            </Header>
+            <Body Context="Item">
+            <tr>
+                <td class="has-text-centered">
+                    <i class="fa-solid fa-boxes-packing"></i>
+                </td>
+                <td>@Item.Version</td>
+                <td>@Item.CreatedUtc</td>
+                <td>
+                    <button type="button" class="button is-danger" @onclick="@(_ => OnDeleteItem_Click(Item))">
+                        <span class="icon is-small">
+                            <i class="fa-solid fa-trash"></i>
+                        </span>
+                    </button>
+                </td>
+            </tr>
+            </Body>
+        </DataTable>
     </div>
 </div>
 
 
 @code {
 
-    private List<Runner.Business.Entities.AgentVersion.AgentVersion>? items;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await OnRefresh_Click();
-    }
+    private DataTable<Runner.Business.Entities.AgentVersion.AgentVersion>? table;
 
     public async Task OnRefresh_Click()
     {
         try
         {
-            items = await agentVersionService.Read();
+            if (table is not null)
+            {
+                await table.Refresh();
+            }
         }
         catch (Exception err)
         {
@@ -127,7 +122,6 @@
                 await Notification.AddError(err);
                 return;
             }
-
             await OnRefresh_Click();
         }
     }

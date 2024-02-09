@@ -3,6 +3,7 @@ using MongoDB.Driver;
 using Runner.Business.DataAccess;
 using Runner.Business.Entities.Job;
 using Runner.Business.Entities.Nodes.Types;
+using Runner.Business.Model.Table;
 using Runner.Business.Security;
 using Runner.Business.WatcherNotification;
 
@@ -28,7 +29,7 @@ namespace Runner.Business.Services
                 .ToListAsync(j => j.AgentId == agentId);
         }
 
-        public Task<List<Job>> ReadTable()
+        public Task<List<Job>> ReadTable(TableRequest request)
         {
             var sort = Builders<Job>.Sort
                 .Descending(r => r.Queued);
@@ -36,8 +37,8 @@ namespace Runner.Business.Services
             return Job.Collection
                 .Find(Builders<Job>.Filter.Empty)
                 .Sort(sort)
-                .Skip(0)
-                .Limit(10)
+                .Skip(request.Skip)
+                .Limit(request.Take)
                 .ToListAsync();
         }
 

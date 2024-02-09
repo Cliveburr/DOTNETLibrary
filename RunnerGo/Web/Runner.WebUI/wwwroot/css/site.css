@@ -48,6 +48,20 @@ html, body {
   cursor: pointer;
 }
 
+.pagination > .pagination-take {
+  order: 2;
+  flex-wrap: wrap;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.mainView {
+  overflow: auto;
+  max-height: 100%;
+}
+
 .flowactionedit {
   display: flex;
   gap: 6px;
@@ -298,7 +312,6 @@ html, body {
   z-index: 30;
   box-shadow: -2px -1em 1em -0.125em rgba(113, 76, 76, 0.1), 0px -6px 0 1px rgba(10, 10, 10, 0.02);
   display: flex;
-  overflow-y: auto;
 }
 .runlogview > .textarea {
   height: 100%;
@@ -309,6 +322,7 @@ html, body {
   border: none;
   border-style: none;
   border-radius: 0;
+  overflow-y: auto;
 }
 
 /* Bulma Utilities */

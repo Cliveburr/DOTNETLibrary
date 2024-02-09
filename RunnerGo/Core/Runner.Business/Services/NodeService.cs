@@ -1,7 +1,9 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using Runner.Business.DataAccess;
+using Runner.Business.Entities.AgentVersion;
 using Runner.Business.Entities.Nodes;
+using Runner.Business.Model.Table;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
@@ -111,6 +113,22 @@ namespace Runner.Business.Services
         {
             return Node
                 .ToListAsync(n => n.ParentId == parentId);
+        }
+
+        public Task<List<Node>> ReadChildsTable(TableRequest request, ObjectId? parentId)
+        {
+            var filter = Builders<Node>.Filter
+                .Eq(n => n.ParentId, parentId);
+
+            //var sort = Builders<Job>.Sort
+            //    .Descending(r => r.Queued);
+
+            return Node.Collection
+                .Find(filter)
+                //.Sort(sort)
+                .Skip(request.Skip)
+                .Limit(request.Take)
+                .ToListAsync();
         }
 
         public Task<Node?> ReadChildByName(ObjectId parentId, string name)

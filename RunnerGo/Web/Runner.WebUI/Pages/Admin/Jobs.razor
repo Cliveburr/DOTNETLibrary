@@ -2,7 +2,7 @@
 @inherits BasePage
 @inject JobService jobService
 
-<div class="container">
+<div class="container mb-4">
 
     <div class="box mt-4">
         <h3 class="title is-3">Jobs <i class="fa-solid fa-user-doctor" style="color: #8a3c9d"></i></h3>
@@ -23,20 +23,18 @@
     </div>
 
     <div class="box mt-3">
-        @if (items != null)
-        {
-            <DataTable Items="items">
-                <Header>
+        <DataTable @ref=table Func=jobService.ReadTable>
+            <Header>
                 <tr>
                     <th class="w50px">Type</th>
                     <th>Queued</th>
                     <th>Status</th>
                     <th>Started</th>
                     <th>End</th>
-                    <th>Error</th>
+                    <th></th>
                 </tr>
-                </Header>
-                <Body Context="Item">
+            </Header>
+            <Body Context="Item">
                 <tr>
                     <td>@Item.Type</td>
                     <td>@Item.Queued</td>
@@ -59,27 +57,24 @@
                         }
                     </td>
                 </tr>
-                </Body>
-            </DataTable>
-        }
+            </Body>
+        </DataTable>
     </div>
 </div>
 
 
 @code {
 
-    private List<Runner.Business.Entities.Job.Job>? items;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await OnRefresh_Click();
-    }
+    private DataTable<Runner.Business.Entities.Job.Job>? table;
 
     public async Task OnRefresh_Click()
     {
         try
         {
-            items = await jobService.ReadTable();
+            if (table is not null)
+            {
+                await table.Refresh();
+            }
         }
         catch (Exception err)
         {
@@ -97,6 +92,7 @@
         try
         {
             await jobService.Delete(item.JobId);
+            
             await OnRefresh_Click();
         }
         catch (Exception err)

@@ -72,9 +72,9 @@ namespace Runner.Business.Tests.Actions
             Run("Root")
                 .HasActionClearingCursor("Root")
                 .HasActionUpdateRunning("Root")
-                .HasActionUpdateRunning("Cont")
-                .HasActionSettingCursor("Hello")
-                .HasActionUpdateToRun("Hello")
+                    .HasActionUpdateRunning("Cont")
+                    .HasActionSettingCursor("Hello")
+                    .HasActionUpdateToRun("Hello")
                 .HasActionSettingCursor("Other")
                 .HasActionUpdateToRun("Other")
                 .IsCheckedAll();

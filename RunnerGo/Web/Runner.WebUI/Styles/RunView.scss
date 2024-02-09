@@ -130,7 +130,6 @@ $gaps: 6px;
     z-index: 30;
     box-shadow: -2px -1em 1em -0.125em rgb(113 76 76 / 10%), 0px -6px 0 1px rgba(10, 10, 10, 0.02);
     display: flex;
-    overflow-y: auto;
 
     > .textarea {
         height: 100%;
@@ -141,5 +140,6 @@ $gaps: 6px;
         border: none;
         border-style: none;
         border-radius: 0;
+        overflow-y: auto;
     }
 }

@@ -45,3 +45,21 @@ html, body {
 .pointer {
     cursor: pointer;
 }
+
+
+.pagination {
+
+    > .pagination-take {
+        order: 2;
+        flex-wrap: wrap;
+        align-items: center;
+        display: flex;
+        justify-content: center;
+        text-align: center;
+    }
+}
+
+.mainView {
+    overflow: auto;
+    max-height: 100%;
+}

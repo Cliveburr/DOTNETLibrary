@@ -9,9 +9,11 @@ using Runner.Business.Entities.AgentVersion;
 using Runner.Business.Entities.Nodes;
 using Runner.Business.Entities.Nodes.Types;
 using Runner.Business.Model.Nodes.Types;
+using Runner.Business.Model.Table;
 using Runner.Business.Security;
 using Runner.Business.WatcherNotification;
 using System;
+using static System.Collections.Specialized.BitVector32;
 
 namespace Runner.Business.Services.NodeTypes
 {
@@ -46,7 +48,7 @@ namespace Runner.Business.Services.NodeTypes
                 .FirstOrDefaultAsync(r => r.RunId == runId);
         }
 
-        public Task<List<RunList>> ReadRuns(Flow flow)
+        public Task<List<RunList>> ReadRunsTable(TableRequest request, Flow flow)
         {
             Assert.MustNotNull(_identityProvider.User, "Need to be logged to error script!");
 
@@ -67,13 +69,10 @@ namespace Runner.Business.Services.NodeTypes
             return Run.Collection
                 .Find(r => r.FlowId == flow.FlowId)
                 .Sort(sort)
-                .Skip(0)
-                .Limit(7)
+                .Skip(request.Skip)
+                .Limit(request.Take)
                 .Project(project)
                 .ToListAsync();
-
-            //return Run
-            //    .ProjectToListAsync(r => r.FlowId == flow.FlowId, project);
         }
 
         public async Task Delete(ObjectId runId)
@@ -161,6 +160,28 @@ namespace Runner.Business.Services.NodeTypes
                 }
             }
 
+            foreach (var effect in reverseEffects)
+            {
+                switch (effect.Type)
+                {
+                    case ComandEffectType.ActionUpdateStatus: break;
+                    case ComandEffectType.ActionUpdateToRun:
+                        {
+                            await _jobService.QueueRunAction(effect.Action.ActionId, run.RunId);
+                            break;
+                        }
+                    case ComandEffectType.ActionUpdateWithCursor: break;
+                    case ComandEffectType.ActionUpdateBreakPoint: break;
+                    case ComandEffectType.ActionUpdateToStop:
+                        {
+                            await _jobService.StopJob(run, effect.Action);
+                            break;
+                        }
+                    default:
+                        throw new Exception("Invalid CommandEffect Type: " + effect.Type);
+                }
+            }
+
             await CheckRunState(run.RunId);
         }
 
@@ -168,8 +189,6 @@ namespace Runner.Business.Services.NodeTypes
         private async Task ExecuteActionUpdateToRun(Run run, Actions.Action action)
         {
             await ExecuteActionUpdateStatus(run, action);
-
-            await _jobService.QueueRunAction(action.ActionId, run.RunId);
         }
 
         private async Task ExecuteActionUpdateStatus(Run run, Actions.Action action)
@@ -212,8 +231,6 @@ namespace Runner.Business.Services.NodeTypes
         private async Task ExecuteActionUpdateToStop(Run run, Actions.Action action)
         {
             await ExecuteActionUpdateStatus(run, action);
-
-            await _jobService.StopJob(run, action);
         }
 
         private async Task CheckRunState(ObjectId runId)

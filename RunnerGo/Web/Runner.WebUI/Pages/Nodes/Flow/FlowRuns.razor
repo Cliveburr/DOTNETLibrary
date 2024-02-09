@@ -32,31 +32,28 @@
 </div>
 
 <div class="box mt-3">
-    @if (items != null)
-    {
-        <DataTable Items="items">
-            <Header>
-            <tr>
-                <th class="w50px">Type</th>
-                <th>RunId</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Completed</th>
-            </tr>
-            </Header>
-            <Body Context="Item">
-            <tr class="pointer" @onclick="@(_ => OnNavigateApp_Click(Item))">
-                <td class="has-text-centered">
-                    <NodeTypeIcon Type="NodeType.Run" />
-                </td>
-                <td>@Item.RunId</td>
-                <td>@Item.Status</td>
-                <td>@Item.Created</td>
-                <td>@Item.Completed</td>
-            </tr>
-            </Body>
-        </DataTable>
-    }
+    <DataTable Func=@((request) => runService.ReadRunsTable(request, FlowNode))>
+        <Header>
+        <tr>
+            <th class="w50px">Type</th>
+            <th>RunId</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Completed</th>
+        </tr>
+        </Header>
+        <Body Context="Item">
+        <tr class="pointer" @onclick="@(_ => OnNavigateApp_Click(Item))">
+            <td class="has-text-centered">
+                <NodeTypeIcon Type="NodeType.Run" />
+            </td>
+            <td>@Item.RunId</td>
+            <td>@Item.Status</td>
+            <td>@Item.Created</td>
+            <td>@Item.Completed</td>
+        </tr>
+        </Body>
+    </DataTable>
 </div>
 
 @code {
@@ -64,24 +61,21 @@
     [Parameter]
     public required Flow FlowNode { get; set; }
 
-    private List<RunList>? items;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await OnRefresh_Click();
-    }
+    private DataTable<RunList>? table;
 
     public async Task OnRefresh_Click()
     {
         try
         {
-            items = await runService.ReadRuns(FlowNode);
+            if (table is not null)
+            {
+                await table.Refresh();
+            }
         }
         catch (Exception err)
         {
             await Notification.AddError(err);
         }
-        //StateHasChanged();
     }
 
     public async Task OnNew_Click()

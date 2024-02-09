@@ -1,49 +1,69 @@
-﻿@typeparam TItem
+﻿@using Runner.Business.Model.Table
+@typeparam TItem
+@inject Runner.WebUI.Components.Notification.NotificationService notification
 
 <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
     <thead>
         @Header
     </thead>
     <tbody>
-        @foreach (var item in Items)
+        @if (items is not null)
+        @foreach (var item in items)
         {
             @Body(item)
         }
     </tbody>
-    <!--<tfoot>
+    <tfoot>
         <tr>
             <td colspan="999">
                 <nav class="pagination" role="navigation" aria-label="pagination">
                     <ul class="pagination-list">
-                        <li>
-                            <a class="pagination-link is-current" aria-label="Page 1" aria-current="page">1</a>
-                        </li>
-                        <li>
-                            <a class="pagination-link" aria-label="Goto page 2">2</a>
-                        </li>
-                        <li>
-                            <a class="pagination-link" aria-label="Goto page 3">3</a>
-                        </li>
+                        @if (pages is not null)
+                        @foreach (var goPage in pages)
+                        {
+                            if (goPage == page)
+                            {
+                                <li>
+                                    <a class="pagination-link is-current" aria-label="Page @goPage">@goPage</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li>
+                                    <a class="pagination-link" aria-label="Goto page @goPage" @onclick=@(() => ChangePage(goPage))>@goPage</a>
+                                </li>
+                            }
+                        }
                     </ul>
-                    <ul class="pagination-list">
-                        <li>
-                            <a class="pagination-link is-current" aria-label="Page 1" aria-current="page">1</a>
-                        </li>
-                        <li>
-                            <a class="pagination-link" aria-label="Goto page 2">2</a>
-                        </li>
-                        <li>
-                            <a class="pagination-link" aria-label="Goto page 3">3</a>
-                        </li>
+                    <ul class="pagination-take">
+                        @foreach (var take in new int[] { 10, 20, 30, 50, 100 })
+                        {
+                            if (take == tableRequest.Take)
+                            {
+                                <li>
+                                    <a class="pagination-link is-current" aria-label="Take @take">@take</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li>
+                                    <a class="pagination-link" aria-label="Take @take" @onclick=@(() => ChangeTake(take))>@take</a>
+                                </li>
+                            }
+                        }
                     </ul>
                 </nav>
             </td>
         </tr>
-    </tfoot>-->
+    </tfoot>
 </table>
 
 @code {
 
+    private List<TItem>? items;
+    private TableRequest tableRequest = new();
+    private int page = 1;
+    private List<int>? pages;
 
     [Parameter]
     public required RenderFragment Header { get; set; }
@@ -52,5 +72,66 @@
     public required RenderFragment<TItem> Body { get; set; }
 
     [Parameter]
-    public required IEnumerable<TItem> Items { get; set; }
+    public required Func<TableRequest, Task<List<TItem>>> Func { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await Refresh();
+        }
+        catch (Exception err)
+        {
+            await notification.AddError(err);
+        }
+    }
+
+    public async Task Refresh()
+    {
+        items = await Func(tableRequest);
+        MakePages();
+    }
+
+    private async Task ChangeTake(int take)
+    {
+        tableRequest.Take = take;
+        try
+        {
+            await Refresh();
+        }
+        catch (Exception err)
+        {
+            await notification.AddError(err);
+        }
+    }
+
+    private async Task ChangePage(int gotoPage)
+    {
+        page = gotoPage;
+        tableRequest.Skip = (page - 1) * tableRequest.Take;
+        try
+        {
+            await Refresh();
+        }
+        catch (Exception err)
+        {
+            await notification.AddError(err);
+        }
+    }
+
+    private void MakePages()
+    {
+        if (page <= 4)
+        {
+            pages = [1, 2, 3, 4, 5, 6, 20];
+        }
+        else if (page > 4 && page < 20)
+        {
+            pages = [1, page - 2, page - 1, page, page + 1, page + 2, page + 19];
+        }
+        else
+        {
+            pages = [page - 19, page - 2, page - 1, page, page + 1, page + 2, page + 19];
+        }
+    }
 }
