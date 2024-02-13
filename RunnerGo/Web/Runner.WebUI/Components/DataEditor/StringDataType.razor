@@ -1,5 +1,16 @@
 ﻿
-<input class="input" @bind=innerValue type="text" readonly=@Readonly>
+<div class="field">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="label">@Label</label>
+    }
+    <div class="control has-icons-left">
+        <input class="input" @bind=innerValue type="text" readonly=@Readonly>
+        <span class="icon is-left">
+            <i class="fa-solid fa-suitcase"></i>
+        </span>
+    </div>
+</div>
 
 @code {
 
@@ -11,6 +22,9 @@
 
     [Parameter]
     public bool Readonly { get; set; }
+
+    [Parameter]
+    public string? Label { get; set; }
 
     private string innerValue
     {

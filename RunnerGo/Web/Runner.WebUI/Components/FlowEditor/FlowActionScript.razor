@@ -190,21 +190,11 @@
             {
                 @if (data.Name == "ScriptPath")
                 {
-                    <div class="field">
-                        <label class="label">@data.Name</label>
-                        <div class="control">
-                            <NodePathDataType Value=@data.Value ValueChanged=OnScriptPath_Changed />
-                        </div>
-                    </div>
+                    <NodePathDataType Value=@data.Value ValueChanged=OnScriptPath_Changed Label=@data.Name />
                 }
                 else
                 {
-                    <div class="field">
-                        <label class="label">@data.Name</label>
-                        <div class="control">
-                            <DataTypeSelector Type=@data.Type @bind-Value=@data.Value />
-                        </div>
-                    </div>
+                    <DataTypeSelector Type=@data.Type @bind-Value=@data.Value Label=@data.Name />
                 }
             }
         </div>;

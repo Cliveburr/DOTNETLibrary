@@ -2,7 +2,6 @@
 using Runner.Business.DataAccess;
 using Runner.Business.Entities.Identity;
 using Runner.Business.Security;
-using System.Xml.Linq;
 
 namespace Runner.Business.Services
 {

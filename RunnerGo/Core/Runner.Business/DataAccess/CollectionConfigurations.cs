@@ -23,7 +23,7 @@ namespace Runner.Business.DataAccess
 
         private async Task ConfigureAsync()
         {
-            await CheckConfiguration("EnsureIndexes_0", EnsureIndexes);
+            await CheckConfiguration("EnsureIndexes_1", EnsureIndexes);
         }
 
         private async Task CheckConfiguration(string configurationName, Func<Task> execute)
@@ -108,6 +108,7 @@ namespace Runner.Business.DataAccess
             await EnsureIndexesByAttributes(
                 typeof(Business.Entities.Nodes.Node),
                 typeof(Business.Entities.Identity.User),
+                typeof(Business.Entities.Identity.UserHome),
                 typeof(Business.Entities.Security.AccessToken),
 
                 typeof(Business.Entities.Job.Job),

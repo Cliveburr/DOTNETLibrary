@@ -14,6 +14,17 @@ namespace Runner.WebUI.Pages.Nodes
         {
             FowardNode(node.Name);
         }
+
+        public Task FavoriteThisNode()
+        {
+            return UserHomeService.AddFavorite(new Business.Entities.Identity.UserHomeFavorite
+            {
+                Title = Node.Name,
+                Subtitle = Node.Type.ToString(),
+                NodeType = Node.Type,
+                NodeId = Node.NodeId
+            });
+        }
     }
 }
 

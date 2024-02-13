@@ -1,0 +1,66 @@
+﻿@inherits ModalBase;
+@inject NodeService nodeService;
+@inject NotificationService notification;
+
+@if (request != null)
+{
+    <div class="modal is-active">
+        <div class="modal-background" @onclick=Close></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title">@request.Title</p>
+                <button class="delete" aria-label="close" @onclick=Close></button>
+            </header>
+            <section class="modal-card-body">
+                <input class="input" type="text" @bind-value=inputValue placeholder="@request.PlaceHolder" autofocus>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button is-success" @onclick=OnOk_Click>Ok</button>
+                <button class="button" @onclick=Close>Cancel</button>
+            </footer>
+        </div>
+        <button class="modal-close is-large" aria-label="close" @onclick=Close></button>
+    </div>
+}
+
+@code {
+
+    private SelectNodeRequest? request;
+    public required string inputValue;
+
+    protected override void OnInitialized()
+    {
+        request = Control.Request as SelectNodeRequest;
+        if (request == null)
+        {
+            throw new Exception("SelectNodeRequest invalid!");
+        }
+
+        inputValue = request.Value;
+    }
+
+    private async Task OnOk_Click()
+    {
+        var node = await nodeService.ReadLocation(inputValue);
+        if (node is not null)
+        {
+            if (request?.AllowedTypes is not null)
+            {
+                if (!request.AllowedTypes.Contains(node.Type))
+                {
+                    await notification.AddInfo("Wrong node type to select!");
+                    return;
+                }
+            }
+            Resume(new SelectNodeResponse
+            {
+                NodePath = inputValue,
+                Node = node
+            });
+        }
+        else
+        {
+            await notification.AddInfo("Node not found!");
+        }
+    }
+}

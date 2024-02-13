@@ -1,0 +1,70 @@
+﻿<div class=@DropdownClass() @onfocusout=OnButton_FocusOut>
+    <div class="dropdown-trigger">
+        <button class="button is-primary" @onclick=OnButton_Click>
+            @if (!string.IsNullOrEmpty(Text))
+            {
+                <span>@Text</span>
+            }
+            @if (!string.IsNullOrEmpty(Icon))
+            {
+                <span class="icon is-small">
+                    <i class=@Icon></i>
+                </span>
+            }
+        </button>
+    </div>
+    <div class="dropdown-menu">
+        <div class="dropdown-content">
+            @if (isActive)
+            {
+                @ChildContent
+            }
+        </div>
+     </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public string? Text { get; set; }
+
+    [Parameter]
+    public string? Icon { get; set; }
+
+    [Parameter]
+    public bool IsRight { get; set; }
+
+    [Parameter]
+    public required RenderFragment ChildContent { get; set; }
+
+    private bool isActive = false;
+
+    private string DropdownClass()
+    {
+        return new ElementClass("dropdown")
+            .AddIf(IsRight, "is-right")
+            .AddIf(isActive, "is-active")
+            .ToString();
+    }
+
+    private void OnButton_Click()
+    {
+        if (isActive)
+        {
+            isActive = false;
+        }
+        else
+        {
+            isActive = true;
+        }
+    }
+
+    private async Task OnButton_FocusOut()
+    {
+        if (isActive)
+        {
+            await Task.Delay(200);
+            isActive = false;
+        }
+    }
+}

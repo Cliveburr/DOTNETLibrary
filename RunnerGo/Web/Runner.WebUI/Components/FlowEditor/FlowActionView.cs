@@ -71,7 +71,7 @@ namespace Runner.WebUI.Components.FlowEditor
                                 .Select(e => e.GetString())
                                 .ToList(),
                             Business.Datas.Model.DataTypeEnum.NodePath => value.GetString(),
-                            Business.Datas.Model.DataTypeEnum.DataReference => value.GetString(),
+                            Business.Datas.Model.DataTypeEnum.Reference => value.GetString(),
                             _ => data.Value
                         };
                     }

@@ -329,7 +329,7 @@ namespace Runner.Business.Services.NodeTypes
                 .UpdateAsync(r => r.RunId == runId, update);
         }
 
-        private async Task WriteLogInner(ObjectId runId, string text)
+        private Task WriteLogInner(ObjectId runId, string text)
         {
             var update = Builders<Run>.Update
                 .Push(r => r.Log, new RunLog
@@ -338,7 +338,7 @@ namespace Runner.Business.Services.NodeTypes
                     Text = text
                 });
 
-            await Run
+            return Run
                 .UpdateAsync(r => r.RunId == runId, update);
         }
 

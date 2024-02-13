@@ -45,7 +45,7 @@ namespace Runner.Business.Datas.Validator
                     DataTypeEnum.String => new StringValidator(),
                     DataTypeEnum.StringList => new StringListValidator(),
                     DataTypeEnum.NodePath => new NodePathValidator(),
-                    DataTypeEnum.DataReference => new DataReferenceValidator(),
+                    DataTypeEnum.Reference => new DataReferenceValidator(),
                     _ => throw new RunnerException($"Invalid DataTypeEnum: {type}")
                 };
             }

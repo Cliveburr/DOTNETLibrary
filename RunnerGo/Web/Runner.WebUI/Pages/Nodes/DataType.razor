@@ -10,31 +10,61 @@
         <h3 class="title is-3">DataType: @Node.Name <NodeTypeIcon Type="NodeType.DataType" /></h3>
     </div>
 
-    <div class="buttons mt-3">
-        <button type="button" class="button is-primary" @onclick="NodeBack">
-            <span class="icon is-small">
-                <i class="fa-solid fa-square-caret-left"></i>
-            </span>
-        </button>
-        <button type="button" class="button is-primary" @onclick="OnRename_Click">
-            <span class="icon is-small">
-                <i class="fa-solid fa-signature"></i>
-            </span>
-            <span>Rename</span>
-        </button>
-        <button type="button" class="button is-success" @onclick="OnSave_Click">
-            <span class="icon is-small">
-                <i class="fa-solid fa-floppy-disk"></i>
-            </span>
-            <span>Save</span>
-        </button>
-        <button type="button" class="button is-danger" @onclick="OnDelete_Click">
-            <span class="icon is-small">
-                <i class="fa-solid fa-trash"></i>
-            </span>
-            <span>Delete</span>
-        </button>
-    </div>
+    <div class="is-flex is-justify-content-space-between">
+        <div class="is-flex is-gap">
+            <button type="button" class="button is-primary" @onclick="NodeBack">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-square-caret-left"></i>
+                </span>
+            </button>
+            <button type="button" class="button is-primary" @onclick="OnRename_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-signature"></i>
+                </span>
+                <span>Rename</span>
+            </button>
+            <button type="button" class="button is-success" @onclick="OnSave_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                </span>
+                <span>Save</span>
+            </button>
+            <button type="button" class="button is-danger" @onclick="OnDelete_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-trash"></i>
+                </span>
+                <span>Delete</span>
+            </button>
+        </div>
+        <Dropdown IsRight Icon="fa-solid fa-ellipsis">
+             <a class="dropdown-item" @onclick=FavoriteThisNode>
+                 <i class="fa-solid fa-star"></i>
+                 <span>Favorite</span>
+             </a>
+             <a class="dropdown-item" @onclick=CopyPathToClipboard>
+                 <i class="fa-brands fa-stackpath"></i>
+                 <span>Node Path</span>
+             </a>
+             <hr class="dropdown-divider">
+             <div class="dropdown-item" @onclick="OnRename_Click">
+                 <i class="fa-solid fa-signature"></i>
+                 <span>Rename</span>
+             </div>
+             <div class="dropdown-item">
+                 <i class="fa-solid fa-scissors"></i>
+                 <span>Mark to move</span>
+             </div>
+             <div class="dropdown-item">
+                 <i class="fa-solid fa-paste"></i>
+                 <span>Move marked here</span>
+             </div>
+             <hr class="dropdown-divider">
+             <a class="dropdown-item" @onclick="OnDelete_Click">
+                 <i class="fa-solid fa-trash has-text-danger"></i>
+                 <span>Delete</span>
+             </a>
+         </Dropdown>
+     </div>
 
     @if (dataTypeNode != null)
     {
@@ -64,7 +94,7 @@
                             <td>
                                 <div class="control has-icons-left is-expanded">
                                     <div class="select is-fullwidth">
-                                        <EnumSelect @bind-Value=prop.Type />
+                                        <EnumSelect Value=prop.Type ValueChanged="@((DataTypeEnum e) => OnPropSelect_ValueChanged(prop, e))" />
                                     </div>
                                     <div class="icon is-small is-left">
                                         <i class="fa-solid fa-superscript"></i>
@@ -75,12 +105,7 @@
                                 <input type="checkbox" class="scale2" @bind=prop.IsRequired>
                             </td>
                             <td>
-                                <p class="control has-icons-left">
-                                    <DataTypeSelector Type=prop.Type @bind-Value=prop.Default />
-                                    <span class="icon is-left">
-                                        <i class="fa-solid fa-suitcase"></i>
-                                    </span>
-                                </p>
+                                <DataTypeSelector Type=prop.Type @bind-Value=prop.Default />
                             </td>
                             <td class="has-text-centered">
                                 <button class="button is-danger" @onclick=@(() => OnRemove_Click(prop))>
@@ -114,6 +139,18 @@
         {
             await Notification.AddError("DataType not found!");
             PageNotFound();
+        }
+    }
+
+    private void OnPropSelect_ValueChanged(DataTypeProperty prop, DataTypeEnum dataTypeEnum)
+    {
+        prop.Type = dataTypeEnum;
+        if (prop.Type == DataTypeEnum.Reference)
+        {
+            prop.Default = new Business.Datas.Model.ReferenceValues.DataTypeReferenceValue
+            {
+                DataTypePath = ""
+            };
         }
     }
 

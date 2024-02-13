@@ -1,7 +1,10 @@
 ﻿@page "/"
 @inherits BasePage
+@implements IDisposable
+@using Runner.Business.Entities.Identity
 @using Runner.WebUI.Security
 @inject WebAuthenticationService authenticationService
+@inject NodeService nodeService
 
 <div class="container">
 
@@ -41,31 +44,55 @@
 
     <div class="box mt-3">
         <div class="columns">
-            <div class="column">
-                <div class="card">
-                    <div class="card-content" @onclick=click>
-                        <div class="media">
-                            <div class="media-left">
-                                <figure class="image is-48x48">
-                                    <img src="https://bulma.io/images/placeholders/96x96.png" alt="Placeholder image">
-                                </figure>
-                            </div>
+            @if (userHome is not null)
+            @foreach (var favorite in userHome.Favorite)
+            {
+                <div class="column is-3">
+                    <div class="card homecard">
+                        <div class="card-content" @onclick=@(() => OnCard_Click(favorite))>
+                            <span class="icon">
+                                @if (favorite.NodeType is not null)
+                                {
+                                    <NodeTypeIcon Type=favorite.NodeType.Value />
+                                }
+                            </span>
                             <div class="media-content">
-                                <p class="title is-4">flow2</p>
-                                <p class="subtitle is-6">Flow</p>
+                                <p class="title is-4">@favorite.Title</p>
+                                <p class="subtitle is-6">@favorite.Subtitle</p>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            }
         </div>
     </div>
 </div>
 
 @code {
 
-    protected override void OnInitialized()
+    private UserHome? userHome;
+
+    protected override async Task OnInitializedAsync()
     {
+        if (UserHomeService.IdentityProvider.IsLogged)
+        {
+            userHome = await UserHomeService.ReadOrCreate();
+        }
+        else
+        {
+            UserHomeService.IdentityProvider.OnSetUser += IdentityProvider_OnSetUser;
+        }
+    }
+
+    public void Dispose()
+    {
+        UserHomeService.IdentityProvider.OnSetUser -= IdentityProvider_OnSetUser;
+    }
+
+    private async void IdentityProvider_OnSetUser()
+    {
+        userHome = await UserHomeService.ReadOrCreate();
+        StateHasChanged();
     }
 
     public async Task OnLogoff_Click()
@@ -74,8 +101,20 @@
         NavigateTo("/");
     }
 
-    private void click()
+    private async Task OnCard_Click(UserHomeFavorite favorite)
     {
-        NavigateTo("/app/test/pasta/flow2");
+        if (!string.IsNullOrEmpty(favorite.DirectPath))
+        {
+            NavigateTo(favorite.DirectPath);
+        }
+        else if (favorite.NodeId.HasValue)
+        {
+            var nodePath = await nodeService
+                .BuildPath(favorite.NodeId.Value);
+            if (!string.IsNullOrEmpty(nodePath))
+            {
+                NavigateTo(nodePath);
+            }
+        }
     }
 }

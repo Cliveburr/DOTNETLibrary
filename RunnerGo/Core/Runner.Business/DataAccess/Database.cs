@@ -1,4 +1,6 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Bson.Serialization;
+using MongoDB.Driver;
 using MongoDB.Driver.Core.Configuration;
 
 namespace Runner.Business.DataAccess
@@ -14,7 +16,9 @@ namespace Runner.Business.DataAccess
 
             Client = new MongoClient(connectionString);
             Main = Client.GetDatabase(cb.DatabaseName);
-            
+
+            var objectSerializer = new ObjectSerializer(x => true);
+            BsonSerializer.RegisterSerializer(objectSerializer);
             //CheckUpdates();
         }
 

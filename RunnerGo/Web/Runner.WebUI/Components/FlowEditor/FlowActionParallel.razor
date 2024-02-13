@@ -242,12 +242,7 @@
         @if (Node.Data is not null)
         @foreach (var data in Node.Data)
         {
-            <div class="field">
-                <label class="label">@data.Name</label>
-                <div class="control">
-                    <DataTypeSelector Type=@data.Type @bind-Value=@data.Value />
-                </div>
-            </div>
+            <DataTypeSelector Type=@data.Type @bind-Value=@data.Value Label=@data.Name />
         }
     </div>;
     }

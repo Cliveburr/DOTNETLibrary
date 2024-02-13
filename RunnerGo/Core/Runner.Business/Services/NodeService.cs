@@ -177,5 +177,28 @@ namespace Runner.Business.Services
             await Node
                 .UpdateAsync(n => n.NodeId == nodeId, nodeUpdate);
         }
+
+        public async Task<string?> BuildPath(ObjectId nodeId)
+        {
+            var names = new List<string>();
+            await GetNodeNameRecursive(nodeId, names);
+            names.Add("app");
+            names.Reverse();
+            return string.Join('/', names);
+        }
+
+        public async Task GetNodeNameRecursive(ObjectId nodeId, List<string> names)
+        {
+            var node = await Node
+                .FirstOrDefaultAsync(n => n.NodeId == nodeId);
+            if (node is not null)
+            {
+                names.Add(node.Name);
+                if (node.ParentId is not null)
+                {
+                    await GetNodeNameRecursive(node.ParentId.Value, names);
+                }
+            }
+        }
     }
 }

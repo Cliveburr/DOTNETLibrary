@@ -1,26 +1,33 @@
 ﻿
-
-<div class="tagsfield field is-grouped is-grouped-multiline input">
-    @foreach (var tag in _tags)
+<div class="field">
+    @if (!string.IsNullOrEmpty(Label))
     {
-        <div class="control">
-            <div class="tags has-addons">
-                <span class="tag">@tag</span>
-                @if (!Readonly)
-                {
-                    <a class="tag is-delete" @onclick=@(() => Remove(tag))></a>
-                }
-            </div>
+        <label class="label">@Label</label>
+    }
+    <p class="control">
+        <div class="tagsfield field is-grouped is-grouped-multiline input">
+            @foreach (var tag in _tags)
+            {
+                <div class="control">
+                    <div class="tags has-addons">
+                        <span class="tag">@tag</span>
+                        @if (!Readonly)
+                        {
+                            <a class="tag is-delete" @onclick=@(() => Remove(tag))></a>
+                        }
+                    </div>
+                </div>
+            }
+            @if (!Readonly)
+            {
+                <input type="text" placeholder="Add tag" @bind-value=inputValue @onkeyup=Input_OnKeyUp @onkeyup:preventDefault="inputPreventDefault">
+            }
+            else
+            {
+                <div class="fakeInput"></div>
+            }
         </div>
-    }
-    @if (!Readonly)
-    {
-        <input type="text" placeholder="Add tag" @bind-value=inputValue @onkeyup=Input_OnKeyUp @onkeyup:preventDefault="inputPreventDefault">
-    }
-    else
-    {
-        <div class="fakeInput"></div>
-    }
+    </p>
 </div>
 
 @code {
@@ -42,6 +49,9 @@
 
     [Parameter]
     public bool Readonly { get; set; }
+
+    [Parameter]
+    public string? Label { get; set; }
 
     private List<string> _tags = new List<string>();
     private bool inputPreventDefault;

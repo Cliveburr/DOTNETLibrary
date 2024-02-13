@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Runner.Business.Entities.Identity;
+using Runner.Business.Services;
 using Runner.WebUI.Components.Modal;
 using Runner.WebUI.Components.Notification;
 using Runner.WebUI.JSInterop;
@@ -16,10 +18,16 @@ namespace Runner.WebUI.Pages
         protected GlobalJavascript JS { get; set; }
 
         [Inject]
+        protected ClipboardInterop Clipboard { get; set; }
+
+        [Inject]
         protected ModalService Modal { get; set; }
 
         [Inject]
         protected NotificationService Notification { get; set; }
+
+        [Inject]
+        protected UserHomeService UserHomeService { get; set; }
 
         protected void NavigateTo(string uri, bool forceLoad = false, bool replace = false)
         {
@@ -55,6 +63,18 @@ namespace Runner.WebUI.Pages
                 .Split("/", StringSplitOptions.RemoveEmptyEntries));
             parts.Add(name);
             NavigationManager.NavigateTo($"/{string.Join('/', parts)}", false, true);
+        }
+
+        public Task CopyPathToClipboard()
+        {
+            var path = NavigationManager.Uri
+                .Substring(NavigationManager.BaseUri.Length + 3);
+            return Clipboard.WriteTextAsync(path);
+        }
+
+        public Task AddFavorite(UserHomeFavorite favorite)
+        {
+            return UserHomeService.AddFavorite(favorite);
         }
     }
 }

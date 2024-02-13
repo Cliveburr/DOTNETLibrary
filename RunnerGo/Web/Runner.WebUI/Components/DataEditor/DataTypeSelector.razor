@@ -4,22 +4,22 @@
 {
     case DataTypeEnum.String:
         {
-            <StringDataType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly />
+            <StringDataType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly Label=@Label />
             break;
         }
     case DataTypeEnum.StringList:
         {
-            <StringListDataType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly />
+            <StringListDataType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly Label=@Label />
             break;
         }
     case DataTypeEnum.NodePath:
         {
-            <NodePathDataType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly />
+            <NodePathDataType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly Label=@Label />
             break;
         }
-    case DataTypeEnum.DataReference:
+    case DataTypeEnum.Reference:
         {
-            <DataReferenceDataType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly />
+            <ReferenceDataType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly Label=@Label />
             break;
         }
 }
@@ -37,6 +37,9 @@
 
     [Parameter]
     public bool Readonly { get; set; }
+
+    [Parameter]
+    public string? Label { get; set; }
 
     private Task SetValue(object? value)
     {

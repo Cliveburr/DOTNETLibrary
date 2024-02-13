@@ -13,31 +13,61 @@
         <h3 class="title is-3">Data: @Node.Name <NodeTypeIcon Type="NodeType.Data" /></h3>
     </div>
 
-    <div class="buttons mt-3">
-        <button type="button" class="button is-primary" @onclick="NodeBack">
-            <span class="icon is-small">
-                <i class="fa-solid fa-square-caret-left"></i>
-            </span>
-        </button>
-        <button type="button" class="button is-primary" @onclick="OnRename_Click">
-            <span class="icon is-small">
-                <i class="fa-solid fa-signature"></i>
-            </span>
-            <span>Rename</span>
-        </button>
-        <button type="button" class="button is-success" @onclick="OnSave_Click">
-            <span class="icon is-small">
-                <i class="fa-solid fa-floppy-disk"></i>
-            </span>
-            <span>Save</span>
-        </button>
-        <button type="button" class="button is-danger" @onclick="OnDelete_Click">
-            <span class="icon is-small">
-                <i class="fa-solid fa-trash"></i>
-            </span>
-            <span>Delete</span>
-        </button>
-    </div>
+    <div class="is-flex is-justify-content-space-between">
+        <div class="is-flex is-gap">
+            <button type="button" class="button is-primary" @onclick="NodeBack">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-square-caret-left"></i>
+                </span>
+            </button>
+            <button type="button" class="button is-primary" @onclick="OnRename_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-signature"></i>
+                </span>
+                <span>Rename</span>
+            </button>
+            <button type="button" class="button is-success" @onclick="OnSave_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                </span>
+                <span>Save</span>
+            </button>
+            <button type="button" class="button is-danger" @onclick="OnDelete_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-trash"></i>
+                </span>
+                <span>Delete</span>
+            </button>
+        </div>
+        <Dropdown IsRight Icon="fa-solid fa-ellipsis">
+             <a class="dropdown-item" @onclick=FavoriteThisNode>
+                 <i class="fa-solid fa-star"></i>
+                 <span>Favorite</span>
+             </a>
+             <a class="dropdown-item" @onclick=CopyPathToClipboard>
+                 <i class="fa-brands fa-stackpath"></i>
+                 <span>Node Path</span>
+             </a>
+             <hr class="dropdown-divider">
+             <div class="dropdown-item" @onclick="OnRename_Click">
+                 <i class="fa-solid fa-signature"></i>
+                 <span>Rename</span>
+             </div>
+             <div class="dropdown-item">
+                 <i class="fa-solid fa-scissors"></i>
+                 <span>Mark to move</span>
+             </div>
+             <div class="dropdown-item">
+                 <i class="fa-solid fa-paste"></i>
+                 <span>Move marked here</span>
+             </div>
+             <hr class="dropdown-divider">
+             <a class="dropdown-item" @onclick="OnDelete_Click">
+                 <i class="fa-solid fa-trash has-text-danger"></i>
+                 <span>Delete</span>
+             </a>
+         </Dropdown>
+     </div>
 
     @if (dataNode is not null)
     {

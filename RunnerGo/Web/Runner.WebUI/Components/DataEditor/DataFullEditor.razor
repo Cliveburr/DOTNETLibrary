@@ -28,7 +28,7 @@
                     {
                         <div class="control has-icons-left is-expanded">
                             <div class="select is-fullwidth">
-                                <EnumSelect @bind-Value=data.Type />
+                                <EnumSelect Value=data.Type ValueChanged="@((DataTypeEnum e) => OnDataSelect_ValueChanged(data, e))" />
                             </div>
                             <div class="icon is-small is-left">
                                 <i class="fa-solid fa-superscript"></i>
@@ -37,21 +37,16 @@
                     }
                     else
                     {
-                        <p class="control has-icons-left">
+                        <div class="control has-icons-left">
                             <input class="input" value=@data.Type type="text" readonly>
                             <span class="icon is-small is-left">
                                 <i class="fa-solid fa-superscript"></i>
                             </span>
-                        </p>
+                        </div>
                     }
                 </td>
                 <td>
-                    <p class="control has-icons-left">
-                        <DataTypeSelector Type=data.Type @bind-Value=data.Value />
-                        <span class="icon is-small is-left">
-                            <i class="fa-solid fa-suitcase"></i>
-                        </span>
-                    </p>
+                    <DataTypeSelector Type=data.Type @bind-Value=data.Value />
                 </td>
                 <td class="has-text-centered">
                     @if (data.IsEditable)
@@ -115,6 +110,18 @@
         catch (Exception err)
         {
             await Notification.AddError(err);
+        }
+    }
+
+    private void OnDataSelect_ValueChanged(DataFullProperty data, DataTypeEnum dataTypeEnum)
+    {
+        data.Type = dataTypeEnum;
+        if (data.Type == DataTypeEnum.Reference)
+        {
+            data.Value = new Business.Datas.Model.ReferenceValues.DataReferenceValue
+            {
+                DataPath = ""
+            };
         }
     }
 }

@@ -4,6 +4,9 @@ namespace Runner.Business.Security
 {
     public class IdentityProvider
     {
+        public delegate void OnSetUserDelegate();
+        public event OnSetUserDelegate? OnSetUser;
+
         public User? User { get; private set; }
         public bool IsLogged { get => User != null; }
 
@@ -15,6 +18,7 @@ namespace Runner.Business.Security
         internal void Set(User user)
         {
             User = user;
+            OnSetUser?.Invoke();
         }
     }
 }

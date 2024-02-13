@@ -112,5 +112,10 @@ namespace Runner.WebUI.Components.Modal
         {
             return Show(typeof(ErrorView.ErrorViewModal), ex);
         }
+
+        public Task<SelectNode.SelectNodeResponse?> SelectNode(SelectNode.SelectNodeRequest request)
+        {
+            return Show<SelectNode.SelectNodeRequest, SelectNode.SelectNodeResponse?>(typeof(SelectNode.SelectNodeModal), request);
+        }
     }
 }
