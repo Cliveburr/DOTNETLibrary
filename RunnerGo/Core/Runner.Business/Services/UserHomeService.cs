@@ -1,6 +1,8 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
 using Runner.Business.DataAccess;
 using Runner.Business.Entities.Identity;
+using Runner.Business.Entities.Nodes;
 using Runner.Business.Security;
 
 namespace Runner.Business.Services
@@ -38,15 +40,28 @@ namespace Runner.Business.Services
             }
         }
 
-        public Task AddFavorite(UserHomeFavorite favorite)
+        public async Task CheckAndAddNodeFavorite(string title, string subtitle, NodeType nodeType, ObjectId nodeId)
         {
-            Assert.MustNotNull(IdentityProvider.User, "Not logged!");
+            var userHome = await ReadOrCreate();
+
+            if (userHome.Favorite.Any(f => f.NodeId == nodeId))
+            {
+                return;
+            }
+
+            var favorite = new UserHomeFavorite
+            {
+                Title = title,
+                Subtitle = subtitle,
+                NodeType = nodeType,
+                NodeId = nodeId
+            };
 
             var update = Builders<UserHome>.Update
                 .Push(r => r.Favorite, favorite);
 
-            return UserHome 
-                .UpdateAsync(uh => uh.UserId == IdentityProvider.User.UserId, update);
+            await UserHome 
+                .UpdateAsync(uh => uh.UserId == userHome.UserId, update);
         }
 
         public Task UpdateFavorite(List<UserHomeFavorite> favorites)

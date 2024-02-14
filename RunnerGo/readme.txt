@@ -11,7 +11,7 @@ done - edição da DataReference escolher um node DataType
 - criar o job do tipo ActionOfRun
 	- criar o handler desse tipo
 	- criar o Run
-- criar property no Run indicando q é referenciado, RunParent { ActionId, RunId }
+	- criar property no Run indicando q é referenciado, RunParent { ActionId, RunId }
 
 
 
@@ -23,16 +23,12 @@ done - edição da DataReference escolher um node DataType
 
 
 - fazer filtos de tabela
-- criar o type reference
-- criar acion de run
 - criar o jobschedule
 
 - criar botões de move
-- criar copia do path do node nas tabelas
 - fazer limpeza de ScriptContent q não é mais usado
 - visualizar types input e output nos scripts
 - criar o component de navegação lateral esquerdo
-- criar o esquema de atalhos no home
 
 
 

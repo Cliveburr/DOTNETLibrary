@@ -4,7 +4,7 @@ namespace Runner.Business.Security
 {
     public class IdentityProvider
     {
-        public delegate void OnSetUserDelegate();
+        public delegate Task OnSetUserDelegate();
         public event OnSetUserDelegate? OnSetUser;
 
         public User? User { get; private set; }

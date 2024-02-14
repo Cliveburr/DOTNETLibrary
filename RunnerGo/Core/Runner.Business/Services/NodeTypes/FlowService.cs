@@ -93,7 +93,8 @@ namespace Runner.Business.Services.NodeTypes
                             Label = "Action"
                         }
                     }
-                }
+                },
+                Input = []
             };
             await Flow
                 .InsertAsync(flow);

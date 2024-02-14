@@ -95,7 +95,12 @@ namespace Runner.WebUI.Components.Modal
 
         public Task<List<DataProperty>?> DataFullEditor(List<DataFullProperty> request)
         {
-            return Show<List<DataFullProperty>, List<DataProperty>>(typeof(DataFullEditor.DataFullEditorModal), request);
+            return Show<List<DataFullProperty>, List<DataProperty>>(typeof(DataEditor.DataFullEditorModal), request);
+        }
+
+        public Task<List<DataTypeProperty>?> DataTypeEditor(List<DataTypeProperty> request)
+        {
+            return Show<List<DataTypeProperty>, List<DataTypeProperty>>(typeof(DataEditor.DataTypeEditorModal), request);
         }
 
         public Task ShowError(string error)

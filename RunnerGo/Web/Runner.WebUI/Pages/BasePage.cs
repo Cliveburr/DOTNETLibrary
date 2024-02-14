@@ -72,10 +72,10 @@ namespace Runner.WebUI.Pages
             return Clipboard.WriteTextAsync(path);
         }
 
-        public Task AddFavorite(UserHomeFavorite favorite)
-        {
-            return UserHomeService.AddFavorite(favorite);
-        }
+        //public Task AddFavorite(UserHomeFavorite favorite)
+        //{
+        //    return UserHomeService.AddFavorite(favorite);
+        //}
     }
 }
 

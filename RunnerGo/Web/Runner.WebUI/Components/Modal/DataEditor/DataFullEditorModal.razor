@@ -3,26 +3,26 @@
 @inherits ModalBase
 @inject NotificationService notification
 
-@if (request != null)
-{
-    <div class="modal is-active">
-        <div class="modal-background" @onclick=Close></div>
-        <div class="modal-card w70">
-            <header class="modal-card-head">
-                <p class="modal-card-title">Edit Data</p>
-                <button class="delete" aria-label="close" @onclick=Close></button>
-            </header>
-            <section class="modal-card-body">
+<div class="modal is-active">
+    <div class="modal-background" @onclick=Close></div>
+    <div class="modal-card w70">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Edit Data</p>
+            <button class="delete" aria-label="close" @onclick=Close></button>
+        </header>
+        <section class="modal-card-body">
+            @if (request != null)
+            {
                 <DataFullEditor Properties=request />
-            </section>
-            <footer class="modal-card-foot is-justify-content-flex-end">
-                <button class="button is-success" @onclick=ResumeOk>Ok</button>
-                <button class="button" @onclick=Close>Cancel</button>
-            </footer>
-        </div>
-        <button class="modal-close is-large" aria-label="close" @onclick=Close></button>
+            }
+        </section>
+        <footer class="modal-card-foot is-justify-content-flex-end">
+            <button class="button is-success" @onclick=ResumeOk>Ok</button>
+            <button class="button" @onclick=Close>Cancel</button>
+        </footer>
     </div>
-}
+    <button class="modal-close is-large" aria-label="close" @onclick=Close></button>
+</div>
 
 @code {
 
@@ -34,7 +34,7 @@
         request = Control.Request as List<DataFullProperty>;
         if (request == null)
         {
-            throw new Exception("InputTextRequest invalid!");
+            throw new Exception("List<DataFullProperty> invalid!");
         }
     }
 

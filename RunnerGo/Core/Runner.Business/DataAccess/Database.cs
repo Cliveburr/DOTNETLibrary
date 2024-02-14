@@ -2,6 +2,7 @@
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using MongoDB.Driver.Core.Configuration;
+using MongoDB.Bson.Serialization.Conventions;
 
 namespace Runner.Business.DataAccess
 {
@@ -19,6 +20,11 @@ namespace Runner.Business.DataAccess
 
             var objectSerializer = new ObjectSerializer(x => true);
             BsonSerializer.RegisterSerializer(objectSerializer);
+
+            ConventionRegistry.Register("Ignore", new ConventionPack
+            {
+                new IgnoreIfNullConvention(true)
+            }, t => true);
             //CheckUpdates();
         }
 

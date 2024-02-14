@@ -24,6 +24,12 @@
             </li>
             <li class="@GetTabActive(2)" @onclick="(() => OnTabClick(2))">
                 <a>
+                    <span class="icon is-small"><i class="fa-solid fa-superscript"></i></span>
+                    <span>Input</span>
+                </a>
+            </li>
+            <li class="@GetTabActive(3)" @onclick="(() => OnTabClick(3))">
+                <a>
                     <span class="icon is-small"><i class="fa-solid fa-calendar-days"></i></span>
                     <span>Schedule</span>
                 </a>
@@ -41,6 +47,9 @@
             <FlowEdit FlowNode=flowNode Panel=panel />
             break;
         case 2:
+            <FlowInput FlowNode=flowNode Panel=panel />
+            break;
+        case 3:
             <FlowSchedule />
             break;
     }
@@ -74,7 +83,6 @@
             {
                 panel.Close(); 
             }
-            //StateHasChanged();
         }
     }
 }

@@ -5,6 +5,6 @@ namespace Runner.Business.Datas.Model
     {
         public required string Name { get; set; }
         public required DataTypeEnum Type { get; set; }
-        public object? Value { get; set; }
+        public DataValue? Value { get; set; }
     }
 }

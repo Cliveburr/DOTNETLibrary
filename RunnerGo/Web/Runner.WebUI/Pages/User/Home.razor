@@ -48,8 +48,14 @@
             @foreach (var favorite in userHome.Favorite)
             {
                 <div class="column is-3">
-                    <div class="card homecard">
-                        <div class="card-content" @onclick=@(() => OnCard_Click(favorite))>
+                    <div class="card homecard"
+                        draggable="true"
+                        ondragover="event.preventDefault();"
+                        @ondragstart=@((e) => Card_OnDragStart(e, favorite))
+                        @ondrop=@(() => Card_OnDrop(favorite))
+                        @onclick=@(() => Card_OnClick(favorite))
+                        @onmouseup=@((e) => OnCard_OnMouseUp(e, favorite))>
+                        <div class="card-content">
                             <span class="icon">
                                 @if (favorite.NodeType is not null)
                                 {
@@ -71,12 +77,13 @@
 @code {
 
     private UserHome? userHome;
+    private UserHomeFavorite? dragItem;
 
     protected override async Task OnInitializedAsync()
     {
         if (UserHomeService.IdentityProvider.IsLogged)
         {
-            userHome = await UserHomeService.ReadOrCreate();
+            await IdentityProvider_OnSetUser();
         }
         else
         {
@@ -89,32 +96,116 @@
         UserHomeService.IdentityProvider.OnSetUser -= IdentityProvider_OnSetUser;
     }
 
-    private async void IdentityProvider_OnSetUser()
+    private async Task IdentityProvider_OnSetUser()
     {
-        userHome = await UserHomeService.ReadOrCreate();
-        StateHasChanged();
+        try
+        {
+            userHome = await UserHomeService.ReadOrCreate();
+            StateHasChanged();
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
     }
 
     public async Task OnLogoff_Click()
     {
-        await authenticationService.Logoff();
-        NavigateTo("/");
+        try
+        {
+            await authenticationService.Logoff();
+            NavigateTo("/");
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+
     }
 
-    private async Task OnCard_Click(UserHomeFavorite favorite)
+    private async Task OnCard_OnMouseUp(MouseEventArgs ev, UserHomeFavorite favorite)
     {
-        if (!string.IsNullOrEmpty(favorite.DirectPath))
+        try
         {
-            NavigateTo(favorite.DirectPath);
-        }
-        else if (favorite.NodeId.HasValue)
-        {
-            var nodePath = await nodeService
-                .BuildPath(favorite.NodeId.Value);
-            if (!string.IsNullOrEmpty(nodePath))
+            if (ev.Button == 1 && userHome is not null)
             {
-                NavigateTo(nodePath);
+                userHome.Favorite.Remove(favorite);
+
+                await UserHomeService.UpdateFavorite(userHome.Favorite);
             }
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+    }
+
+    private async Task Card_OnClick(UserHomeFavorite favorite)
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(favorite.DirectPath))
+            {
+                NavigateTo(favorite.DirectPath);
+            }
+            else if (favorite.NodeId.HasValue)
+            {
+                var nodePath = await nodeService
+                    .BuildPath(favorite.NodeId.Value);
+                if (!string.IsNullOrEmpty(nodePath))
+                {
+                    NavigateTo(nodePath);
+                }
+            }
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+    }
+
+    private void Card_OnDragStart(DragEventArgs e, UserHomeFavorite favorite)
+    {
+        e.DataTransfer.EffectAllowed = "move";
+        dragItem = favorite;
+    }
+
+    private async Task Card_OnDrop(UserHomeFavorite favorite)
+    {
+        if (dragItem is null || userHome is null)
+        {
+            return;
+        }
+
+        var fromIndex = userHome.Favorite.IndexOf(dragItem);
+        if (fromIndex < 0)
+        {
+            return;
+        }
+
+        var toIndex = userHome.Favorite.IndexOf(favorite);
+        if (toIndex < 0)
+        {
+            return;
+        }
+
+        if (fromIndex == toIndex)
+        {
+            return;
+        }
+
+        userHome.Favorite[fromIndex] = favorite;
+        userHome.Favorite[toIndex] = dragItem;
+
+        dragItem = null;
+
+        try
+        {
+            await UserHomeService.UpdateFavorite(userHome.Favorite);
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
         }
     }
 }
