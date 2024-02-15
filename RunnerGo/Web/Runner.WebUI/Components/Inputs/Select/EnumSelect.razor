@@ -17,34 +17,17 @@
 
 @code {
 
-    //private TEnum? _innerValue;
-
     [Parameter]
     public TEnum Value { get; set; }
-    // {
-    //     get
-    //     {
-    //         return _innerValue ?? default(TEnum);
-    //     }
-    //     set
-    //     {
-    //         if (_innerValue.HasValue)
-    //         {
-    //             if (!_innerValue.Value.Equals(value))
-    //             {
-    //                 _innerValue = value;
-    //                 ValueChanged.InvokeAsync(value);
-    //             }
-    //         }
-    //         else
-    //         {
-    //             _innerValue = value;
-    //         }
-    //     }
-    // }
 
     [Parameter]
     public EventCallback<TEnum> ValueChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<TEnum> ValueAfterChanged { get; set; }
+
+    [Parameter]
+    public TEnum[]? BlackList { get; set; }
 
     private string selected
     {
@@ -60,28 +43,27 @@
                 {
                     Value = result;
                     ValueChanged.InvokeAsync(Value);
+                    ValueAfterChanged.InvokeAsync(Value);
                 }
             }
         }
     }
-
-    // private class Item
-    // {
-    //     public required string Id { get; set; }
-    //     public TEnum Value { get; set; }
-    // }
 
     private List<string>? _items;
 
     protected override void OnInitialized()
     {
         _items = Enum.GetValues<TEnum>()
+            .Where(t =>
+            {
+                if (BlackList is not null && BlackList.Contains(t))
+                {
+                    return false;
+                }
+
+                return true;
+            })
             .Select(t => t.ToString())
             .ToList();
-        // .Select(t => new Item
-            // {
-            //     Id = t.ToString(),
-            //     Value = 
-            // })
     }
 }

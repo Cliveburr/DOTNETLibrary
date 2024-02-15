@@ -1,7 +1,7 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
 using Runner.Business.DataAccess.Attributes;
-using Runner.Business.Datas.Model;
+using Runner.Business.Datas2.Model;
 
 namespace Runner.Business.Entities.Nodes.Types
 {
@@ -22,7 +22,6 @@ namespace Runner.Business.Entities.Nodes.Types
         public ObjectId ScriptContentId { get; set; }
         public required string Assembly { get; set; }
         public required string FullTypeName { get; set; }
-        public required List<DataTypeProperty> InputTypes { get; set; }
-        public required List<DataTypeProperty> OutputTypes { get; set; }
+        public required List<DataProperty> Input { get; set; }
     }
 }

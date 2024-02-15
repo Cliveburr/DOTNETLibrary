@@ -1,0 +1,180 @@
+﻿@using Runner.Business.Datas2.Handler
+@using Runner.Business.Datas2.Model
+@inject NotificationService notification
+@inject DataExpandService dataExpandService
+
+<table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            @if (IsTypeMode)
+            {
+                <th>Required</th>
+                <th>Default</th>
+            }
+            <th class="w50px"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Value is not null)
+        @foreach (var prop in Value.Properties)
+        {
+            <tr>
+                <td>
+                    <p class="control has-icons-left">
+                        <input class="input" @bind=prop.Name type="text" placeholder="Name" readonly="@(!prop.AllowEdit)">
+                        <span class="icon is-small is-left">
+                            <i class="fa-solid fa-key"></i>
+                        </span>
+                    </p>
+                </td>
+                <td>
+                    @if (prop.AllowEdit)
+                    {
+                        <div class="control has-icons-left is-expanded">
+                            <div class="select is-fullwidth">
+                                <EnumSelect TEnum=DataTypeEnum @bind-Value=prop.Type ValueAfterChanged=@(() => OnTypeSelect_ValueAfterChanged(prop))
+                                    BlackList=@([DataTypeEnum.ScriptVersion]) />
+                            </div>
+                            <div class="icon is-small is-left">
+                                <i class="fa-solid fa-superscript"></i>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="control has-icons-left">
+                            <input class="input" value=@prop.Type type="text" readonly>
+                            <span class="icon is-small is-left">
+                                <i class="fa-solid fa-superscript"></i>
+                            </span>
+                        </div>
+                    }
+                </td>
+                @if (IsTypeMode)
+                {
+                    <td class="has-text-centered is-vcentered">
+                        <input type="checkbox" class="scale2" @bind=prop.IsRequired>
+                    </td>
+                    <td>
+                        <DataValueSelector Type=prop.Type @bind-Value=prop.Default ValueAfterChanged=@(() => OnDataSelect_ValueAfterChanged(prop)) />
+                    </td>
+                }
+                <td class="has-text-centered">
+                    @if (prop.AllowDelete)
+                    {
+                        <button class="button is-danger" @onclick=@(() => OnRemove_Click(prop))>
+                            <span class="icon is-small">
+                                <i class="fas fa-times"></i>
+                            </span>
+                        </button>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+@if (AllowCreate)
+{
+    <button type="button" class="button is-success" @onclick="OnCreate_Click">
+        <span class="icon is-small">
+            <i class="fa-solid fa-circle-plus"></i>
+        </span>
+        <span>Add</span>
+    </button>
+}
+
+@code {
+
+    [Parameter]
+    public DataObject? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<DataObject> ValueChanged { get; set; }
+
+    [Parameter]
+    public bool AllowInherit { get; set; } = true;
+
+    [Parameter]
+    public bool AllowCreate { get; set; } = true;
+
+    [Parameter]
+    public bool IsTypeMode { get; set; }
+
+    protected override Task OnInitializedAsync()
+    {
+        var dataHandler = new DataHandler(Value, dataExpandService);
+        return dataHandler.Expand();
+    }
+
+    private async Task OnCreate_Click()
+    {
+        if (Value is null)
+        {
+            return;
+        }
+
+        try
+        {
+            Value.Properties.Add(new DataProperty
+            {
+                Name = "NewProperty",
+                Type = DataTypeEnum.String
+            });
+        }
+        catch (Exception err)
+        {
+            await notification.AddError(err);
+        }
+    }
+
+    private async Task OnRemove_Click(DataProperty prop)
+    {
+        if (Value is null)
+        {
+            return;
+        }
+
+        try
+        {
+            if (Value.Properties.Contains(prop))
+            {
+                Value.Properties.Remove(prop);
+            }
+        }
+        catch (Exception err)
+        {
+            await notification.AddError(err);
+        }
+    }
+
+    private void OnTypeSelect_ValueAfterChanged(DataProperty prop)
+    {
+        prop.Default = null;
+        prop.Value = null;
+    }
+
+    private async Task OnDataSelect_ValueAfterChanged(DataProperty prop)
+    {
+        switch (prop.Type)
+        {
+            case DataTypeEnum.Node:
+                {
+                    if (prop.Default is not null && !string.IsNullOrEmpty(prop.Default.NodePath))
+                    {
+                        var node = await dataExpandService.ReadNodeLocation(prop.Default.NodePath);
+                        if (node is not null)
+                        {
+                            prop.Default.ObjectIdValue = node.NodeId;
+                        }
+                        else
+                        {
+                            await notification.AddInfo("Node not found!");
+                        }
+                    }
+                    break;
+                }
+        }
+    }
+}

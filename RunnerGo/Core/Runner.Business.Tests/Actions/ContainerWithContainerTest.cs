@@ -12,6 +12,7 @@ namespace Runner.Business.Tests.Actions
             var flow = new Flow
             {
                 NodeId = ObjectId.Empty,
+                Input = [],
                 Root = new FlowAction
                 {
                     Label = "Root",

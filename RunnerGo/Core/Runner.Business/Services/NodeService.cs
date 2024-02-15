@@ -182,7 +182,6 @@ namespace Runner.Business.Services
         {
             var names = new List<string>();
             await GetNodeNameRecursive(nodeId, names);
-            names.Add("app");
             names.Reverse();
             return string.Join('/', names);
         }

@@ -118,7 +118,7 @@
                 else
                 {
                     datas = new DataMerge()
-                        .ApplyDataTypeProperty(dataType.Properties)
+                        //.ApplyDataTypeProperty(dataType.Properties)
                         .ApplyDataProperty(dataNode.Properties)
                         .ToDataFullProperty();
                 }
@@ -187,7 +187,7 @@
             dataNode.DataTypeId = dataType.DataTypeId;
 
             datas = new DataMerge()
-                .ApplyDataTypeProperty(dataType.Properties)
+                //.ApplyDataTypeProperty(dataType.Properties)
                 .ApplyDataFullProperty(datas)
                 .ToDataFullProperty();
         }

@@ -1,0 +1,57 @@
+﻿@using Runner.Business.Datas2.Model
+
+<div class="field">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="label">@Label</label>
+    }
+    <div class="control has-icons-left">
+        <input class="input" @bind=innerValue type="text" readonly=@Readonly>
+        <span class="icon is-left">
+            <i class="fa-solid fa-suitcase"></i>
+        </span>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public DataValue? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<DataValue?> ValueChanged { get; set; }
+
+    [Parameter]
+    public bool Readonly { get; set; }
+
+    [Parameter]
+    public string? Label { get; set; }
+
+    private string innerValue
+    {
+        get
+        {
+            return Value?.StringValue?.ToString() ?? string.Empty;
+        }
+        set
+        {
+            if (Value is null)
+            {
+                Value = new DataValue
+                {
+                    StringValue = value
+                };
+                ValueChanged.InvokeAsync(Value);
+            }
+            else
+            {
+                Value.StringValue = value;
+                if (!(Value.StringValue?.Equals(value) ?? false))
+                {
+                    Value.StringValue = value;
+                    ValueChanged.InvokeAsync(Value);
+                }
+            }
+        }
+    }
+}

@@ -154,7 +154,7 @@
                     .BuildPath(favorite.NodeId.Value);
                 if (!string.IsNullOrEmpty(nodePath))
                 {
-                    NavigateTo(nodePath);
+                    NavigateTo("app/" + nodePath);
                 }
             }
         }

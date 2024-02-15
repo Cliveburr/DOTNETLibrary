@@ -1,0 +1,53 @@
+﻿@using Runner.Business.Datas2.Model
+
+@switch (Type)
+{
+    case DataTypeEnum.String:
+        {
+            <DataStringType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly Label=@Label />
+            break;
+        }
+    case DataTypeEnum.StringList:
+        {
+            <DataStringListType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly Label=@Label />
+            break;
+        }
+    case DataTypeEnum.Node:
+        {
+            <DataNodeType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly Label=@Label />
+            break;
+        }
+    @*case DataTypeEnum.Reference:
+        {
+            <ReferenceDataType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly Label=@Label />
+            break;
+        } *@
+}
+
+@code {
+
+    [Parameter]
+    public DataTypeEnum Type { get; set; }
+
+    [Parameter]
+    public DataValue? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<DataValue> ValueChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<DataValue> ValueAfterChanged { get; set; }
+
+    [Parameter]
+    public bool Readonly { get; set; }
+
+    [Parameter]
+    public string? Label { get; set; }
+
+    private async Task SetValue(DataValue? value)
+    {
+        Value = value;
+        await ValueChanged.InvokeAsync(Value);
+        await ValueAfterChanged.InvokeAsync(Value);
+    }
+}
