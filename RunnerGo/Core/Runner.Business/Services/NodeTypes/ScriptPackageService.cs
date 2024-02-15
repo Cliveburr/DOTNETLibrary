@@ -168,8 +168,7 @@ namespace Runner.Business.Services.NodeTypes
                                 ScriptContentId = scriptContentId,
                                 Assembly = scriptSet.Assembly.Trim('\\'),
                                 FullTypeName = scriptSet.FullTypeName,
-                                InputTypes = scriptSet.InputTypes,
-                                OutputTypes = scriptSet.OutputTypes
+                                Input = scriptSet.Input
                             }
                         }
                         };
@@ -198,8 +197,7 @@ namespace Runner.Business.Services.NodeTypes
                             ScriptContentId = scriptContentId,
                             Assembly = scriptSet.Assembly.Trim('\\'),
                             FullTypeName = scriptSet.FullTypeName,
-                            InputTypes = scriptSet.InputTypes,
-                            OutputTypes = scriptSet.OutputTypes
+                            Input = scriptSet.Input
                         });
 
                         await Script

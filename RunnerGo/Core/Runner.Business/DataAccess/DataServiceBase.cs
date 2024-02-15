@@ -45,7 +45,6 @@ namespace Runner.Business.DataAccess
         protected CollectionAdapter<Business.Entities.Nodes.Types.App> App { get => GetCollectionAdapter<Business.Entities.Nodes.Types.App>(); }
         protected CollectionAdapter<Business.Entities.Nodes.Types.Folder> Folder { get => GetCollectionAdapter<Business.Entities.Nodes.Types.Folder>(); }
         protected CollectionAdapter<Business.Entities.Nodes.Types.Data> Data { get => GetCollectionAdapter<Business.Entities.Nodes.Types.Data>(); }
-        protected CollectionAdapter<Business.Entities.Nodes.Types.DataType> DataType { get => GetCollectionAdapter<Business.Entities.Nodes.Types.DataType>(); }
         protected CollectionAdapter<Business.Entities.Nodes.Types.AgentPool> AgentPool { get => GetCollectionAdapter<Business.Entities.Nodes.Types.AgentPool>(); }
         protected CollectionAdapter<Business.Entities.Nodes.Types.Agent> Agent { get => GetCollectionAdapter<Business.Entities.Nodes.Types.Agent>(); }
         protected CollectionAdapter<Business.Entities.Nodes.Types.ScriptPackage> ScriptPackage { get => GetCollectionAdapter<Business.Entities.Nodes.Types.ScriptPackage>(); }

@@ -1,6 +1,6 @@
 ﻿using MongoDB.Bson;
-using Runner.Business.Datas2.Handler;
 using Runner.Business.Datas2.Model;
+using Runner.Business.Datas2.Object;
 using Test = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
 namespace Runner.Business.Tests.Data
@@ -10,44 +10,40 @@ namespace Runner.Business.Tests.Data
     {
         public class ObjectExpandService : IDataResolveService
         {
-            public Task<DataObject> ExpandDataObject(ObjectId objectId)
+            public Task<List<DataProperty>?> ResolveDataProperties(ObjectId objectId)
             {
-                return Task.FromResult(new DataObject
-                {
-                    Properties = [
-                        new DataItem { Name = "second", Type = DataTypeEnum.String,
-                            Value = new DataValue { StringValue = "this value" } }
-                    ]
-                });
+                return Task.FromResult<List<DataProperty>?>([
+                        new DataProperty
+                        {
+                            Name = "second",
+                            Type = DataTypeEnum.String,
+                            Value = new DataValue { StringValue = "this value" }
+                        }
+                    ]);
             }
 
-            public Task<string> ExpandNodePath(ObjectId objectId)
+            public Task<string?> ResolveNodePath(ObjectId objectId)
             {
                 throw new NotImplementedException();
             }
 
-            public Task<DataObject> ExpandScriptVersion(ObjectId scriptId, int vesion)
+            public Task<List<DataProperty>?> ResolveScriptVersionInputProperties(ObjectId scriptId, int vesion)
             {
                 throw new NotImplementedException();
             }
         }
 
         [TestMethod]
-        public async Task Expand()
+        public async Task Resolve()
         {
-            var obj = new DataObject
-            {
-                Properties = new List<DataItem>
-                {
-                    new DataItem { Name = "first", Type = DataTypeEnum.Object,
+            var obj = new DataObject([
+                    new DataProperty { Name = "first", Type = DataTypeEnum.Data,
                         Value = new DataValue { ObjectIdValue = ObjectId.GenerateNewId() } }
-                }
-            };
+                ], new ObjectExpandService());
 
-            var handler = new DataHandler(obj, new ObjectExpandService());
-            await handler.Expand();
+            await obj.Resolve();
 
-            var thisValue = handler.ReadString("first.second");
+            var thisValue = obj.ReadString("first.second");
             Test.AreEqual(thisValue, "this value");
         }
     }

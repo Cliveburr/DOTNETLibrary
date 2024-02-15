@@ -1,5 +1,4 @@
 ﻿using Runner.Business.Datas2.Model;
-using Runner.Business.Datas2.Validation;
 
 namespace Runner.Business.Datas2.PropertyHandler
 {

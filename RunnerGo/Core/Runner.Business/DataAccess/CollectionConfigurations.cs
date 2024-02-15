@@ -117,7 +117,6 @@ namespace Runner.Business.DataAccess
                 typeof(Business.Entities.Nodes.Types.App),
                 typeof(Business.Entities.Nodes.Types.Folder),
                 typeof(Business.Entities.Nodes.Types.Data),
-                typeof(Business.Entities.Nodes.Types.DataType),
                 typeof(Business.Entities.Nodes.Types.Agent),
                 typeof(Business.Entities.Nodes.Types.AgentPool),
                 typeof(Business.Entities.Nodes.Types.Script),
