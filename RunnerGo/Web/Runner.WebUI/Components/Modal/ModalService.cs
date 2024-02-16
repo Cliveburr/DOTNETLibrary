@@ -1,6 +1,4 @@
-﻿
-using Amazon.Runtime.Internal;
-using Runner.Business.Datas.Model;
+﻿using Runner.Business.Datas.Object;
 
 namespace Runner.WebUI.Components.Modal
 {
@@ -93,14 +91,9 @@ namespace Runner.WebUI.Components.Modal
             return Show<Inputs.InputFileRequest, Inputs.InputFileResponse?>(typeof(Inputs.InputFileModal), request);
         }
 
-        public Task<List<DataProperty>?> DataFullEditor(List<DataFullProperty> request)
+        public Task<DataObject?> DataEdit(DataObject request)
         {
-            return Show<List<DataFullProperty>, List<DataProperty>>(typeof(DataEditor.DataFullEditorModal), request);
-        }
-
-        public Task<List<DataTypeProperty>?> DataTypeEditor(List<DataTypeProperty> request)
-        {
-            return Show<List<DataTypeProperty>, List<DataTypeProperty>>(typeof(DataEditor.DataTypeEditorModal), request);
+            return Show<DataObject, DataObject>(typeof(DataEditor.DataEditorModal), request);
         }
 
         public Task ShowError(string error)
@@ -121,6 +114,11 @@ namespace Runner.WebUI.Components.Modal
         public Task<SelectNode.SelectNodeResponse?> SelectNode(SelectNode.SelectNodeRequest request)
         {
             return Show<SelectNode.SelectNodeRequest, SelectNode.SelectNodeResponse?>(typeof(SelectNode.SelectNodeModal), request);
+        }
+
+        public Task ShowData(DataObject dataObject)
+        {
+            return Show(typeof(ShowDataJson.ShowDataJsonModal), dataObject);
         }
     }
 }

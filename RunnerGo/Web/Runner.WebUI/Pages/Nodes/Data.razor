@@ -1,11 +1,10 @@
-﻿@using Runner.Business.Datas.Control
-@using Runner.Business.Datas.Model
-@using Runner.Business.Datas.Validator
+﻿@using Runner.Business.Datas.Model
+@using Runner.Business.Datas.Object
 @using Runner.Business.Entities.Nodes.Types
 @inherits NodeBasePage
 @inject DataService dataService
-@inject DataTypeService dataTypeService
 @inject NodeService nodeService
+@inject DataExpandService dataExpandService
 
 <div class="container">
 
@@ -20,23 +19,23 @@
                     <i class="fa-solid fa-square-caret-left"></i>
                 </span>
             </button>
-            <button type="button" class="button is-primary" @onclick="OnRename_Click">
-                <span class="icon is-small">
-                    <i class="fa-solid fa-signature"></i>
-                </span>
-                <span>Rename</span>
-            </button>
             <button type="button" class="button is-success" @onclick="OnSave_Click">
                 <span class="icon is-small">
                     <i class="fa-solid fa-floppy-disk"></i>
                 </span>
                 <span>Save</span>
             </button>
-            <button type="button" class="button is-danger" @onclick="OnDelete_Click">
+            <button type="button" class="button is-warning" @onclick="OnValidate_Click">
                 <span class="icon is-small">
-                    <i class="fa-solid fa-trash"></i>
+                    <i class="fa-solid fa-list-check"></i>
                 </span>
-                <span>Delete</span>
+                <span>Validate</span>
+            </button>
+            <button type="button" class="button is-primary" @onclick="OnView_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-scroll"></i>
+                </span>
+                <span>View</span>
             </button>
         </div>
         <Dropdown IsRight Icon="fa-solid fa-ellipsis">
@@ -69,34 +68,15 @@
          </Dropdown>
      </div>
 
-    @if (dataNode is not null)
-    {
-        <div class="box mt-3">
-            <div class="field has-addons">
-                <div class="control">
-                    <input class="input" type="text" @bind=dataNode.DataTypePath placeholder="Apply DataType">
-                </div>
-                <div class="control">
-                    <button class="button is-info" @onclick=OnApply_Click>
-                        Apply
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="box mt-3">
-            @if (datas is not null)
-            {
-                <DataFullEditor Properties=datas />
-            }
-        </div>
-    }
+    <div class="box mt-3">
+        <DatasEditor Value=data />
+    </div>
 </div>
 
-@code {
+ @code {
 
     private Runner.Business.Entities.Nodes.Types.Data? dataNode { get; set; }
-    private List<DataFullProperty>? datas;
+    private DataObject? data;
 
     protected override async Task OnInitializedAsync()
     {
@@ -108,27 +88,33 @@
         }
         else
         {
-            if (dataNode.DataTypeId.HasValue)
+            data = new DataObject(dataNode.Properties, dataExpandService);
+            await data.Resolve(false);
+        }
+    }
+
+    private async Task OnValidate_Click()
+    {
+        try
+        {
+            if (data is null)
             {
-                var dataType = await dataTypeService.ReadById(dataNode.DataTypeId.Value);
-                if (dataType is null)
-                {
-                    await Notification.AddError("DataType not found!");
-                }
-                else
-                {
-                    datas = new DataMerge()
-                        //.ApplyDataTypeProperty(dataType.Properties)
-                        .ApplyDataProperty(dataNode.Properties)
-                        .ToDataFullProperty();
-                }
+                return;
             }
-            else
+
+            var errors = data.Validate();
+            if (errors.Any())
             {
-                datas = new DataMerge()
-                    .ApplyDataProperty(dataNode.Properties)
-                    .ToDataFullProperty();
+                foreach (var error in errors)
+                {
+                    await Notification.AddWarning(error.Text, 10);
+                }
+                return;
             }
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
         }
     }
 
@@ -137,23 +123,9 @@
         try
         {
             Assert.MustNotNull(dataNode, "DataType load fail!");
+            Assert.MustNotNull(data, "Dat load fail!");
 
-            if (datas is not null)
-            {
-                var errors = DataValidator.Validate(datas);
-                if (errors.Any())
-                {
-                    foreach (var error in errors)
-                    {
-                        await Notification.AddInfo(error.Text, 0);
-                    }
-                    return;
-                }
-
-                dataNode.Properties = datas
-                    .Select(d => d.ToDataProperty())
-                    .ToList();
-            }
+            dataNode.Properties = data.ToDataProperty();
 
             await dataService.Update(dataNode);
             NodeBack();
@@ -164,38 +136,38 @@
         }
     }
 
-    private async Task OnApply_Click()
-    {
-        try
-        {
-            Assert.MustNotNull(dataNode, "DataType load fail!");
+    // private async Task OnApply_Click()
+    // {
+    //     try
+    //     {
+    //         Assert.MustNotNull(dataNode, "DataType load fail!");
 
-            var node = await nodeService.ReadLocation(dataNode.DataTypePath ?? string.Empty);
-            if (node is null)
-            {
-                await Notification.AddInfo("DataType not found!");
-                return;
-            }
+    //         var node = await nodeService.ReadLocation(dataNode.DataTypePath ?? string.Empty);
+    //         if (node is null)
+    //         {
+    //             await Notification.AddInfo("DataType not found!");
+    //             return;
+    //         }
 
-            var dataType = await dataTypeService.ReadByNodeId(node.NodeId);
-            if (dataType is null)
-            {
-                await Notification.AddInfo("DataType not found!");
-                return;
-            }
+    //         var dataType = await dataTypeService.ReadByNodeId(node.NodeId);
+    //         if (dataType is null)
+    //         {
+    //             await Notification.AddInfo("DataType not found!");
+    //             return;
+    //         }
 
-            dataNode.DataTypeId = dataType.DataTypeId;
+    //         dataNode.DataTypeId = dataType.DataTypeId;
 
-            datas = new DataMerge()
-                //.ApplyDataTypeProperty(dataType.Properties)
-                .ApplyDataFullProperty(datas)
-                .ToDataFullProperty();
-        }
-        catch (Exception err)
-        {
-            await Notification.AddError(err);
-        }
-    }
+    //         datas = new DataMerge()
+    //             //.ApplyDataTypeProperty(dataType.Properties)
+    //             .ApplyDataFullProperty(datas)
+    //             .ToDataFullProperty();
+    //     }
+    //     catch (Exception err)
+    //     {
+    //         await Notification.AddError(err);
+    //     }
+    // }
 
     private async Task OnDelete_Click()
     {
@@ -240,6 +212,15 @@
             {
                 await Notification.AddError(err);
             }
+        }
+    }
+
+    private async Task OnView_Click()
+    {
+        if (data is not null)
+        {
+            await data.Resolve();
+            await Modal.ShowData(data);
         }
     }
 }

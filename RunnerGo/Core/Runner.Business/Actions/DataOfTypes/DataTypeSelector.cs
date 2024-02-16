@@ -4,7 +4,7 @@ namespace Runner.Business.Actions.DataOfTypes
 {
     public static class DataTypeSelector
     {
-        public static List<DataTypeProperty> GetFor(ActionType actionType)
+        public static List<DataHandlerItem> GetFor(ActionType actionType)
         {
             return actionType switch
             {

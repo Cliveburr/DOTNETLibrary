@@ -1,4 +1,4 @@
-﻿@using Runner.Business.Datas.Control
+﻿@using Runner.Business.Datas.Object
 @using Runner.Business.Datas.Model
 @using Runner.Business.Entities.Nodes.Types
 @inherits FlowActionView
@@ -13,10 +13,9 @@
 
     protected override void OnInitialized()
     {
-        Node.Data = new DataMerge()
-            .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ScriptDataType.Get())
-            .ApplyDataProperty(Node.Data)
-            .ToDataProperty();
+        Node.Data = new DataObject(Business.Actions.DataOfTypes.ScriptDataType.Get())
+        .Merge(Node.Data)
+        .ToDataProperty();
     }
 
     private void OnRemove_Click()
@@ -77,46 +76,40 @@
     {
         ClosePanel();
 
-        var datas = new DataMerge()
-            .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ScriptDataType.Get())
-            .ApplyDataProperty(Node.Data)
-            .ToDataFullProperty();
+        var dataObject = new DataObject(Business.Actions.DataOfTypes.ScriptDataType.Get())
+            .Merge(Node.Data);
 
-        var scriptPathProperty = datas
-            .First(d => d.Name == "ScriptPath");
-        scriptPathProperty.Hidden = true;
-
-        var editedData = await Modal.DataFullEditor(datas);
+        var editedData = await Modal.DataEdit(dataObject);
         if (editedData is not null)
         {
-            Node.Data = editedData;
+            Node.Data = editedData.ToDataProperty();
             OnOpenEditor();
         }
     }
 
-    private async void OnScriptPath_Changed(object? value)
+    private void OnScriptPath_Changed(object? value)
     {
-        var scriptPath = value as string;
-        var scriptPathProperty = Node.Data!
-            .First(d => d.Name == "ScriptPath");
-        scriptPathProperty.Value = scriptPath;
+        // var scriptPath = value as string;
+        // var scriptPathProperty = Node.Data!
+        //     .First(d => d.Name == "ScriptPath");
+        // scriptPathProperty.Value = scriptPath;
 
-        if (!string.IsNullOrEmpty(scriptPath))
-        {
-            var sts = await scriptService.ReadVersionByScriptPath(scriptPath);
-            if (sts is null)
-            {
-                await Notification.AddInfo("ScriptPath invalid!");
-            }
-            else
-            {
-                Node.Data = new DataMerge()
-                    .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ScriptDataType.Get())
-                    .ApplyDataTypeProperty(sts.Value.ScriptVersion.InputTypes)
-                    .ApplyDataProperty(Node.Data)
-                    .ToDataProperty();
-            }
-        }
+        // if (!string.IsNullOrEmpty(scriptPath))
+        // {
+        //     var sts = await scriptService.ReadVersionByScriptPath(scriptPath);
+        //     if (sts is null)
+        //     {
+        //         await Notification.AddInfo("ScriptPath invalid!");
+        //     }
+        //     else
+        //     {
+        //         Node.Data = new DataMerge()
+        //             .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ScriptDataType.Get())
+        //             .ApplyDataTypeProperty(sts.Value.ScriptVersion.InputTypes)
+        //             .ApplyDataProperty(Node.Data)
+        //             .ToDataProperty();
+        //     }
+        // }
     }
 
     protected override RenderFragment EditorForm()

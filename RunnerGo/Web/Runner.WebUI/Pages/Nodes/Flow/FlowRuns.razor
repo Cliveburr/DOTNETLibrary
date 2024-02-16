@@ -1,11 +1,11 @@
-﻿@using Runner.Business.Datas.Control
-@using Runner.Business.Datas.Validator
+﻿@using Runner.Business.Datas.Object
 @using Runner.Business.Entities.Nodes.Types;
 @using Runner.Business.Model.Nodes.Types;
+@inherits BasePage
 @inject NodeService nodeService
 @inject RunService runService
-@inherits BasePage
 @inject FlowService flowService
+@inject DataExpandService dataExpandService
 
 <div class="buttons mt-3">
     <button type="button" class="button is-primary" @onclick="NodeBack">
@@ -96,15 +96,13 @@
         {
             if (FlowNode.Input is not null)
             {
-                var dataMerge = new DataMerge()
-                    .ApplyDataTypeProperty(FlowNode.Input);
+                var dataTypeInput = new DataObject(FlowNode.Input, dataExpandService);
+                await dataTypeInput.Resolve();
 
-                var dataProperties = await Modal.DataFullEditor(dataMerge.ToDataFullProperty());
-                if (dataProperties is not null)
+                var dataInput = await Modal.DataEdit(dataTypeInput);
+                if (dataInput is not null)
                 {
-                    dataMerge
-                        .ApplyDataProperty(dataProperties);
-                    var validation = dataMerge.Validate();
+                    var validation = dataInput.Validate();
                     if (validation.Any())
                     {
                         foreach (var validate in validation)
@@ -114,7 +112,7 @@
                     }
                     else
                     {
-                        await runService.CreateRun(FlowNode, dataProperties, setToRun);
+                        await runService.CreateRun(FlowNode, dataInput.ToDataProperty(), setToRun);
                         await OnRefresh_Click();
                     }
                 }

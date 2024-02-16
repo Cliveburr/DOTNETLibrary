@@ -91,22 +91,13 @@ namespace Runner.Agent.Version.Scripts
                                 Version = scriptAttr.Version,
                                 Assembly = assemblyPath.Substring(rootPathLen),
                                 FullTypeName = fullTypeName,
-                                InputTypes = scriptAttr.InputTypes?
-                                    .Select(i => new Business.Datas.Model.DataTypeProperty
+                                Input = scriptAttr.Input?
+                                    .Select(i => new Business.Datas.Model.DataProperty
                                     {
                                         Name = i.Name,
                                         Type = (Business.Datas.Model.DataTypeEnum)i.Type,
-                                        Default = i.Default,
                                         IsRequired = i.IsRequired
-                                    }).ToList() ?? new List<Business.Datas.Model.DataTypeProperty>(),
-                                OutputTypes = scriptAttr.OutputTypes?
-                                    .Select(i => new Business.Datas.Model.DataTypeProperty
-                                    {
-                                        Name = i.Name,
-                                        Type = (Business.Datas.Model.DataTypeEnum)i.Type,
-                                        Default = i.Default,
-                                        IsRequired = i.IsRequired
-                                    }).ToList() ?? new List<Business.Datas.Model.DataTypeProperty>()
+                                    }).ToList()
                             });
                         }
                         else

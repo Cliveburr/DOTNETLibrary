@@ -128,12 +128,6 @@
                         await agentPoolService.Create(reponse.Name, Node.NodeId);
                         break;
                     }
-                case NodeType.DataType:
-                    {
-                        var dataTypeService = serviceProvider.GetRequiredService<Business.Services.NodeTypes.DataTypeService>();
-                        await dataTypeService.Create(reponse.Name, Node.NodeId);
-                        break;
-                    }
                 case NodeType.Data:
                     {
                         var dataService = serviceProvider.GetRequiredService<Business.Services.NodeTypes.DataService>();

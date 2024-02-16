@@ -1,6 +1,6 @@
 ﻿@inherits BasePage
 @using Runner.Business.Actions
-@using Runner.Business.Datas.Control
+@using Runner.Business.Datas.Object
 
 <div class="runactionparallel" @onclick=OnOpenEditor @onclick:stopPropagation=true>
     <div class="runlabel">
@@ -111,19 +111,17 @@
     {
         CloseEditor();
 
-        var datas = new DataMerge()
-            .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ScriptDataType.Get())
-            .ApplyDataProperty(Action.Data)
-            .ToDataFullProperty();
+        var dataObject = new DataObject(Business.Actions.DataOfTypes.ScriptDataType.Get())
+            .Merge(Action.Data);
 
-        var scriptPathProperty = datas
-            .First(d => d.Name == "ScriptPath");
-        scriptPathProperty.Hidden = true;
+        // var scriptPathProperty = datas
+        //     .First(d => d.Name == "ScriptPath");
+        // scriptPathProperty.Hidden = true;
 
-        var editedData = await Modal.DataFullEditor(datas);
+        var editedData = await Modal.DataEdit(dataObject);
         if (editedData is not null)
         {
-            Action.Data = editedData;
+            Action.Data = editedData.ToDataProperty();
             await View.UpdateActionData(Action);
             OnOpenEditor();
         }

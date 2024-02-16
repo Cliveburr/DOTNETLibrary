@@ -1,0 +1,84 @@
+﻿@using Runner.Business.Datas.Model
+@inject ScriptService scriptService
+@inject NotificationService notification
+
+<div class="field">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="label">@Label</label>
+    }
+    <div class="control has-icons-left">
+        <input class="input" @bind-value:get=innerValue @bind-value:set=SetInputValue type="text" readonly=@Readonly>
+        <span class="icon is-left">
+            <i class="fa-solid fa-suitcase"></i>
+        </span>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public DataValue? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<DataValue?> ValueChanged { get; set; }
+
+    [Parameter]
+    public bool Readonly { get; set; }
+
+    [Parameter]
+    public string? Label { get; set; }
+
+    private string? innerValue;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Value?.ObjectIdValue is null)
+        {
+            return;
+        }
+
+        innerValue = await scriptService.NodeService.BuildPath(Value.ObjectIdValue.Value);
+    }
+
+    private async Task SetInputValue(string? value)
+    {
+        if (innerValue == value)
+        {
+            return;
+        }
+
+        innerValue = value;
+
+        var script = await scriptService.ReadVersionByScriptPath(value ?? "");
+        if (script is null)
+        {
+            if (Value?.ObjectIdValue is not null)
+            {
+                Value.ObjectIdValue = null;
+            }
+            if (Value?.IntValue is not null)
+            {
+                Value.IntValue = null;
+            }
+            await notification.AddInfo("Node path not found!");
+            return;
+        }
+
+        if (Value is null)
+        {
+            Value = new DataValue
+                {
+                    IntValue = script.Value.ScriptVersion.Version,
+                    ObjectIdValue = script.Value.Script.NodeId
+                };
+            await ValueChanged.InvokeAsync(Value);
+        }
+        else
+        {
+            Value.IntValue = script.Value.ScriptVersion.Version;
+            Value.ObjectIdValue = script.Value.Script.NodeId;
+            await ValueChanged.InvokeAsync(Value);
+        }
+    }
+}

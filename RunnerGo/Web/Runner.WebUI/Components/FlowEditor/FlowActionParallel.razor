@@ -1,4 +1,4 @@
-﻿@using Runner.Business.Datas.Control
+﻿@using Runner.Business.Datas.Object
 @using Runner.Business.Entities.Nodes.Types
 @inherits FlowActionView
 @inject ClipboardInterop clipboardInterop
@@ -23,9 +23,8 @@
 
     protected override void OnInitialized()
     {
-        Node.Data = new DataMerge()
-            .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ParallelDataType.Get())
-            .ApplyDataProperty(Node.Data)
+        Node.Data = new DataObject(Business.Actions.DataOfTypes.ParallelDataType.Get())
+            .Merge(Node.Data)
             .ToDataProperty();
     }
 
@@ -154,15 +153,13 @@
     {
         ClosePanel();
 
-        var datas = new DataMerge()
-            .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ParallelDataType.Get())
-            .ApplyDataProperty(Node.Data)
-            .ToDataFullProperty();
+        var dataObject = new DataObject(Business.Actions.DataOfTypes.ParallelDataType.Get())
+            .Merge(Node.Data);
 
-        var editedData = await Modal.DataFullEditor(datas);
+        var editedData = await Modal.DataEdit(dataObject);
         if (editedData is not null)
         {
-            Node.Data = editedData;
+            Node.Data = editedData.ToDataProperty();
             OnOpenEditor();
         }
     }

@@ -3,17 +3,13 @@ using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Runner.Business.Actions;
 using Runner.Business.DataAccess;
-using Runner.Business.Datas.Control;
 using Runner.Business.Datas.Model;
-using Runner.Business.Entities.AgentVersion;
-using Runner.Business.Entities.Nodes;
+using Runner.Business.Datas.Object;
 using Runner.Business.Entities.Nodes.Types;
 using Runner.Business.Model.Nodes.Types;
 using Runner.Business.Model.Table;
 using Runner.Business.Security;
 using Runner.Business.WatcherNotification;
-using System;
-using static System.Collections.Specialized.BitVector32;
 
 namespace Runner.Business.Services.NodeTypes
 {
@@ -381,9 +377,9 @@ namespace Runner.Business.Services.NodeTypes
                     .FirstOrDefault(e => e.Action.ActionId == actionId);
                 if (actionEffect is not null)
                 {
-                    var newData = new DataMerge()
-                        .ApplyDataProperty(actionEffect.Action.Data)
-                        .ApplyDataProperty(actionOutput)
+                    var newData = new DataObject()
+                        .Merge(actionEffect.Action.Data)
+                        .Merge(actionOutput)
                         .ToDataProperty();
                     actionEffect.Action.Data = newData;
                 }

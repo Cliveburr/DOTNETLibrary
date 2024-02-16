@@ -1,4 +1,4 @@
-﻿using Runner.Business.Datas2.Model;
+﻿using Runner.Business.Datas.Model;
 
 namespace Runner.Business.Model.Nodes.Types
 {
@@ -8,6 +8,6 @@ namespace Runner.Business.Model.Nodes.Types
         public int Version { get; set; }
         public required string Assembly { get; set; }
         public required string FullTypeName { get; set; }
-        public required List<DataProperty> Input { get; set; }
+        public List<DataProperty>? Input { get; set; }
     }
 }

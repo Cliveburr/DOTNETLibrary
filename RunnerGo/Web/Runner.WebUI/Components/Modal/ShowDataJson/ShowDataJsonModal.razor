@@ -1,0 +1,111 @@
+﻿@using System.Text.RegularExpressions
+@using Runner.Business.Datas.Model
+@using Runner.Business.Datas.Object
+@using System.Text.Json
+@inherits ModalBase
+@inject ClipboardInterop clipboard
+
+<div class="modal is-active">
+    <div class="modal-background" @onclick=Close></div>
+    <div class="modal-card w70">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Data</p>
+            <button class="delete" aria-label="close" @onclick=Close></button>
+        </header>
+        <section class="modal-card-body">
+            <div class="block">
+                <pre><code>
+                    @text
+                </code></pre>
+            </div>
+        </section>
+        <footer class="modal-card-foot is-justify-content-flex-end">
+            <button class="button is-primary" @onclick=Copy>
+                <span class="icon is-small">
+                    <i class="fa-regular fa-clipboard"></i>
+                </span>
+                <span>Copy</span>
+            </button>
+            <button class="button" @onclick=Close>Close</button>
+        </footer>
+    </div>
+    <button class="modal-close is-large" aria-label="close" @onclick=Close></button>
+</div>
+
+@code {
+
+    private string text = "";
+
+    protected override void OnInitialized()
+    {
+        var dataObject = Control.Request as DataObject;
+        if (dataObject is null)
+        {
+            throw new Exception("ShowDataJsonRequest invalid!");
+        }
+
+        var data = Map(dataObject.Properties);
+
+        text = JsonSerializer.Serialize(data, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+    }
+
+    private List<JsonProperty> Map(List<DataHandlerItem> datas)
+    {
+        return datas
+            .Select(d => d.Type switch
+            {
+                DataTypeEnum.String => new JsonProperty
+                    {
+                        Name = d.Name,
+                        Type = d.Type.ToString(),
+                        Value = d.Value?.StringValue
+                    },
+                DataTypeEnum.StringList => new JsonProperty
+                    {
+                        Name = d.Name,
+                        Type = d.Type.ToString(),
+                        Value = d.Value?.StringListValue
+                        // Value = d.Value?.StringListValue is null ?
+                        //     null :
+                        //     string.Join(", ", d.Value.StringListValue)
+                    },
+                DataTypeEnum.Node => new JsonProperty
+                    {
+                        Name = d.Name,
+                        Type = d.Type.ToString(),
+                        Value = d.Value?.NodePath
+                    },
+                // DataTypeEnum.Inherit => new JsonProperty
+                //     {
+                //         Name = d.Name,
+                //         Type = d.Type.ToString(),
+                //         Value = d.Value?.NodePath
+                //     },
+                DataTypeEnum.Data => new JsonProperty
+                    {
+                        Name = d.Name,
+                        Type = d.Type.ToString(),
+                        Value = d.Value?.DataExpand is null ?
+                            null :
+                            Map(d.Value.DataExpand)
+                    },
+                DataTypeEnum.ScriptVersion => new JsonProperty
+                    {
+                        Name = d.Name,
+                        Type = d.Type.ToString(),
+                        Value = d.Value?.NodePath
+                    },
+                _ => null
+            })
+            .Where(p => p is not null)
+            .ToList();
+    }
+
+    private Task Copy()
+    {
+        return clipboard.WriteTextAsync(text);
+    }
+}

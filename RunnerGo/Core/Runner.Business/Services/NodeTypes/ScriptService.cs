@@ -11,6 +11,8 @@ namespace Runner.Business.Services.NodeTypes
         private readonly IdentityProvider _identityProvider;
         private readonly NodeService _nodeService;
 
+        public NodeService NodeService { get { return _nodeService; } }
+
         public ScriptService(Database database, IdentityProvider identityProvider, NodeService nodeService)
             : base(database)
         {

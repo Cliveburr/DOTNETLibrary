@@ -1,18 +1,14 @@
-﻿@using Runner.Business.Datas2.Handler
-@using Runner.Business.Datas2.Model
+﻿@using Runner.Business.Datas.Object
+@using Runner.Business.Datas.Model
 @inject NotificationService notification
-@inject DataExpandService dataExpandService
 
 <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
     <thead>
         <tr>
             <th>Name</th>
             <th>Type</th>
-            @if (IsTypeMode)
-            {
-                <th>Required</th>
-                <th>Default</th>
-            }
+            <th>Required</th>
+            <th>Value</th>
             <th class="w50px"></th>
         </tr>
     </thead>
@@ -52,15 +48,12 @@
                         </div>
                     }
                 </td>
-                @if (IsTypeMode)
-                {
-                    <td class="has-text-centered is-vcentered">
-                        <input type="checkbox" class="scale2" @bind=prop.IsRequired>
-                    </td>
-                    <td>
-                        <DataValueSelector Type=prop.Type @bind-Value=prop.Default ValueAfterChanged=@(() => OnDataSelect_ValueAfterChanged(prop)) />
-                    </td>
-                }
+                <td class="has-text-centered is-vcentered">
+                    <input type="checkbox" class="scale2" @bind=prop.IsRequired>
+                </td>
+                <td>
+                    <DataValueSelector Type=prop.Type @bind-Value=prop.Value ValueAfterChanged=@(()=> OnDataSelect_ValueAfterChanged(prop)) />
+                </td>
                 <td class="has-text-centered">
                     @if (prop.AllowDelete)
                     {
@@ -91,9 +84,6 @@
     public DataObject? Value { get; set; }
 
     [Parameter]
-    public EventCallback<DataObject> ValueChanged { get; set; }
-
-    [Parameter]
     public bool AllowInherit { get; set; } = true;
 
     [Parameter]
@@ -102,10 +92,12 @@
     [Parameter]
     public bool IsTypeMode { get; set; }
 
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
-        var dataHandler = new DataHandler(Value, dataExpandService);
-        return dataHandler.Expand();
+        if (Value is not null)
+        {
+            await Value.Resolve(false);
+        }
     }
 
     private async Task OnCreate_Click()
@@ -117,7 +109,7 @@
 
         try
         {
-            Value.Properties.Add(new DataProperty
+            Value.Properties.Add(new DataHandlerItem
             {
                 Name = "NewProperty",
                 Type = DataTypeEnum.String
@@ -129,7 +121,7 @@
         }
     }
 
-    private async Task OnRemove_Click(DataProperty prop)
+    private async Task OnRemove_Click(DataHandlerItem prop)
     {
         if (Value is null)
         {
@@ -151,7 +143,6 @@
 
     private void OnTypeSelect_ValueAfterChanged(DataProperty prop)
     {
-        prop.Default = null;
         prop.Value = null;
     }
 
@@ -159,19 +150,11 @@
     {
         switch (prop.Type)
         {
-            case DataTypeEnum.Node:
+            case DataTypeEnum.Inherit:
                 {
-                    if (prop.Default is not null && !string.IsNullOrEmpty(prop.Default.NodePath))
+                    if (Value is not null)
                     {
-                        var node = await dataExpandService.ReadNodeLocation(prop.Default.NodePath);
-                        if (node is not null)
-                        {
-                            prop.Default.ObjectIdValue = node.NodeId;
-                        }
-                        else
-                        {
-                            await notification.AddInfo("Node not found!");
-                        }
+                        await Value.Resolve(false);
                     }
                     break;
                 }

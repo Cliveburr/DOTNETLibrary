@@ -1,4 +1,4 @@
-﻿@using Runner.Business.Datas2.Model
+﻿@using Runner.Business.Datas.Model
 
 <div class="field">
     @if (!string.IsNullOrEmpty(Label))
@@ -60,16 +60,16 @@
 
     protected override void OnInitialized()
     {
-        if (Value?.ListStringValue is null)
+        if (Value?.StringListValue is null)
         {
             Value = new DataValue
             {
-                ListStringValue = _tags
+                StringListValue = _tags
             };
         }
         else
         {
-            _tags = Value.ListStringValue;
+            _tags = Value.StringListValue;
         }
     }
 

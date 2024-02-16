@@ -19,7 +19,7 @@ namespace Runner.WebUI.Components.Notification
         {
             if (timeoutSeconds > 0)
             {
-                data.Timer = new Timer(Timeout, data, 0, timeoutSeconds * 1000);
+                data.Timer = new Timer(Timeout, data, timeoutSeconds * 1000, 0);
             }
             lock (Notifications)
             {
@@ -73,6 +73,16 @@ namespace Runner.WebUI.Components.Notification
             return Add(new NotificationData
             {
                 Class = "is-info",
+                Text = text
+            }, timeoutSeconds);
+        }
+
+        public Task AddWarning(string text, int timeoutSeconds = 0)
+        {
+            Assert.MustNotNull(Component, "Notification is not ready!");
+            return Add(new NotificationData
+            {
+                Class = "is-warning",
                 Text = text
             }, timeoutSeconds);
         }

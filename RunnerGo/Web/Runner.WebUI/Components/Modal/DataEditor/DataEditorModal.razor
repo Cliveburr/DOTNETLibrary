@@ -1,0 +1,59 @@
+﻿@using Runner.Business.Datas.Model
+@using Runner.Business.Datas.Object
+@inherits ModalBase
+@inject NotificationService notification
+
+<div class="modal is-active">
+    <div class="modal-background" @onclick=Close></div>
+    <div class="modal-card w70">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Edit Data</p>
+            <button class="delete" aria-label="close" @onclick=Close></button>
+        </header>
+        <section class="modal-card-body">
+            <DatasEditor Value=request />
+        </section>
+        <footer class="modal-card-foot is-justify-content-flex-end">
+            <button class="button is-success" @onclick=ResumeOk>Ok</button>
+            <button class="button" @onclick=Close>Cancel</button>
+        </footer>
+    </div>
+    <button class="modal-close is-large" aria-label="close" @onclick=Close></button>
+</div>
+
+@code {
+
+    private DataObject? request;
+    public required string inputValue;
+
+    protected override void OnInitialized()
+    {
+        var dataObject = Control.Request as DataObject;
+        if (dataObject == null)
+        {
+            throw new Exception("List<DataFullProperty> invalid!");
+        }
+        request = dataObject.Clone();
+    }
+
+    private async Task ResumeOk()
+    {
+        if (request is null)
+        {
+            return;
+        }
+
+        var errors = request.Validate();
+        if (errors.Any())
+        {
+            foreach (var error in errors)
+            {
+                await notification.AddInfo(error.Text, 0);
+            }
+        }
+        else
+        {
+            Resume(request);
+        }
+    }
+}

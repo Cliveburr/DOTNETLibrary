@@ -12,7 +12,7 @@
             <section class="modal-card-body">
                 <input class="input" type="text" @bind-value=inputValue placeholder="@request.PlaceHolder" autofocus>
             </section>
-            <footer class="modal-card-foot">
+            <footer class="modal-card-foot is-justify-content-flex-end">
                 <button class="button is-success" @onclick="() => Resume(inputValue)">Ok</button>
                 <button class="button" @onclick=Close>Cancel</button>
             </footer>

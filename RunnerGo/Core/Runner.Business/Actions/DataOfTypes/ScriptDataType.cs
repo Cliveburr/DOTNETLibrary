@@ -4,14 +4,13 @@ namespace Runner.Business.Actions.DataOfTypes
 {
     public static class ScriptDataType
     {
-        public static List<DataTypeProperty> Get()
+        public static List<DataHandlerItem> Get()
         {
-            return new List<DataTypeProperty>
-            {
-                new DataTypeProperty { Name = "ScriptPath", Type = DataTypeEnum.NodePath, IsRequired = true },
-                new DataTypeProperty { Name = "AgentPoolPath", Type = DataTypeEnum.NodePath },
-                new DataTypeProperty { Name = "Tags", Type = DataTypeEnum.StringList },
-            };
+            return [
+                new DataHandlerItem { Name = "Script", Type = DataTypeEnum.Node, IsRequired = true, AllowDelete = false },
+                new DataHandlerItem { Name = "AgentPool", Type = DataTypeEnum.Node, AllowDelete = false },
+                new DataHandlerItem { Name = "Tags", Type = DataTypeEnum.StringList, AllowDelete = false },
+            ];
         }
     }
 }

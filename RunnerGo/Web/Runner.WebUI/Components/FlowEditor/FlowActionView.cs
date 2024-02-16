@@ -53,37 +53,37 @@ namespace Runner.WebUI.Components.FlowEditor
 
         protected void AdjustValueKind(FlowAction? action)
         {
-            if (action is null)
-            {
-                return;
-            }
-            if (action.Data is not null)
-            {
-                foreach (var data in action.Data)
-                {
-                    if (data.Value is not null)
-                    {
-                        var value = (System.Text.Json.JsonElement)data.Value;
-                        data.Value = data.Type switch
-                        {
-                            Business.Datas.Model.DataTypeEnum.String => value.GetString(),
-                            Business.Datas.Model.DataTypeEnum.StringList => value.EnumerateArray()
-                                .Select(e => e.GetString())
-                                .ToList(),
-                            Business.Datas.Model.DataTypeEnum.NodePath => value.GetString(),
-                            Business.Datas.Model.DataTypeEnum.Reference => value.GetString(),
-                            _ => data.Value
-                        };
-                    }
-                }
-            }
-            if (action.Childs is not null)
-            {
-                foreach (var child in action.Childs)
-                {
-                    AdjustValueKind(child);
-                }
-            }
+            //if (action is null)
+            //{
+            //    return;
+            //}
+            //if (action.Data is not null)
+            //{
+            //    foreach (var data in action.Data)
+            //    {
+            //        if (data.Value is not null)
+            //        {
+            //            var value = (System.Text.Json.JsonElement)data.Value;
+            //            data.Value = data.Type switch
+            //            {
+            //                Business.Datas.Model.DataTypeEnum.String => value.GetString(),
+            //                Business.Datas.Model.DataTypeEnum.StringList => value.EnumerateArray()
+            //                    .Select(e => e.GetString())
+            //                    .ToList(),
+            //                Business.Datas.Model.DataTypeEnum.NodePath => value.GetString(),
+            //                Business.Datas.Model.DataTypeEnum.Reference => value.GetString(),
+            //                _ => data.Value
+            //            };
+            //        }
+            //    }
+            //}
+            //if (action.Childs is not null)
+            //{
+            //    foreach (var child in action.Childs)
+            //    {
+            //        AdjustValueKind(child);
+            //    }
+            //}
         }
 
         protected void UpdateState()

@@ -1,11 +1,11 @@
 ﻿using Runner.Business.Actions.Types;
-using Runner.Business.Datas.Control;
+using Runner.Business.Datas.Object;
 
 namespace Runner.Business.Actions
 {
     public partial class ActionControl
     {
-        public DataReader ComputeActionContextData(int actionId)
+        public DataObject ComputeActionContextData(int actionId, IDataResolveService service)
         {
             var parents = new List<ActionTypesBase>();
 
@@ -13,10 +13,10 @@ namespace Runner.Business.Actions
             actionType.BuildData(new DataContext(this, parents));
             parents.Reverse();
 
-            var reader = new DataReader();
+            var reader = new DataObject(service);
             if (EntityRun.Input is not null)
             {
-                reader.ApplyDataProperty(EntityRun.Input);
+                reader.Merge(EntityRun.Input);
             }
 
             foreach (var parent in parents)
@@ -24,8 +24,7 @@ namespace Runner.Business.Actions
                 var actionData = parent.Action.Data;
                 if (actionData is not null)
                 {
-                    reader
-                        .ApplyDataProperty(actionData);
+                    reader.Merge(actionData);
                 }
             }
 

@@ -1,7 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Runner.Business.DataAccess.Attributes;
-using Runner.Business.Datas2.Model;
+using Runner.Business.Datas.Model;
 
 namespace Runner.Business.Entities.Nodes.Types
 {

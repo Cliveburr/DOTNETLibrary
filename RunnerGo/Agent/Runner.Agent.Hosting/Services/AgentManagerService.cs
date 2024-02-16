@@ -321,8 +321,9 @@ namespace Runner.Agent.Hosting.Services
                     var run = await runService.ReadById(job.RunId.Value);
                     Assert.MustNotNull(run, "RunActionJob invalid RunId, JobId: " + job.JobId);
 
+                    var dataExpandService = scope.ServiceProvider.GetRequiredService<DataExpandService>();
                     var control = ActionControl.From(run);
-                    var contextData = control.ComputeActionContextData(job.ActionId.Value);
+                    var contextData = control.ComputeActionContextData(job.ActionId.Value, dataExpandService);
 
                     var scriptPath = contextData.ReadNodePath("ScriptPath");
                     Assert.MustNotNull(scriptPath, $"Run with invalid script path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value} }}");
@@ -399,7 +400,7 @@ namespace Runner.Agent.Hosting.Services
                                     ScriptContentId = sts.Value.ScriptVersion.ScriptContentId.ToString(),
                                     Assembly = sts.Value.ScriptVersion.Assembly,
                                     FullTypeName = sts.Value.ScriptVersion.FullTypeName,
-                                    InputData = BuildDataTransfer(contextData.ToDataProperty())
+                                    InputData = MapDataPropertyToAgent(contextData.ToDataProperty())
                                 };
 
                                 _ = _agentHub.Clients.Client(agentConnected.ConnectionId).SendAsync("RunScript", request);
@@ -440,50 +441,25 @@ namespace Runner.Agent.Hosting.Services
             }
         }
 
-        private AgentDataTransfer BuildDataTransfer(List<DataProperty> properties)
+        private List<AgentDataProperty>? MapDataPropertyToAgent(List<DataProperty>? properties)
         {
-            var transfer = new AgentDataTransfer();
-
-            var strings = properties
-                .Where(p => p.Type == DataTypeEnum.String)
-                .Select(p => new AgentDataPropertyString
+            return properties?
+                .Select(p => new AgentDataProperty
                 {
                     Name = p.Name,
-                    Value = p.Value as string
+                    Type = (AgentDataTypeEnum)p.Type,
+                    Value = p.Value is null ?
+                        null :
+                        new AgentDataValue
+                        {
+                            StringValue = p.Value.StringValue,
+                            IntValue = p.Value.IntValue,
+                            StringListValue = p.Value.StringListValue,
+                            NodePath = p.Value.NodePath,
+                            DataExpand = MapDataPropertyToAgent(p.Value.DataExpand?.Select(d => d.ToDataProperty()).ToList())
+                        }
                 })
-                .ToArray();
-            if (strings.Any())
-            {
-                transfer.Strings = strings;
-            }
-
-            var stringLists = properties
-                .Where(p => p.Type == DataTypeEnum.StringList)
-                .Select(p => new AgentDataPropertyStringList
-                {
-                    Name = p.Name,
-                    Value = p.Value as string[]
-                })
-                .ToArray();
-            if (stringLists.Any())
-            {
-                transfer.StringLists = stringLists;
-            }
-
-            var nodePaths = properties
-                .Where(p => p.Type == DataTypeEnum.NodePath)
-                .Select(p => new AgentDataPropertyNodePath
-                {
-                    Name = p.Name,
-                    Value = p.Value as string
-                })
-                .ToArray();
-            if (nodePaths.Any())
-            {
-                transfer.NodePaths = nodePaths;
-            }
-
-            return transfer;
+                .ToList();
         }
 
         private void OnJobStop(Job job)
@@ -522,51 +498,6 @@ namespace Runner.Agent.Hosting.Services
             }
         }
 
-        private List<DataProperty>? ReadDataTransfer(AgentDataTransfer? transfer)
-        {
-            if (transfer == null)
-            {
-                return null;
-            }
-
-            var properties = new List<DataProperty>();
-
-            if (transfer.Strings is not null && transfer.Strings.Length > 0)
-            {
-                properties.AddRange(transfer.Strings
-                    .Select(s => new DataProperty
-                    {
-                        Name = s.Name,
-                        Type = DataTypeEnum.String,
-                        Value = s.Value,
-                    }));
-            }
-
-            if (transfer.StringLists is not null && transfer.StringLists.Length > 0)
-            {
-                properties.AddRange(transfer.StringLists
-                    .Select(s => new DataProperty
-                    {
-                        Name = s.Name,
-                        Type = DataTypeEnum.StringList,
-                        Value = s.Value,
-                    }));
-            }
-
-            if (transfer.NodePaths is not null && transfer.NodePaths.Length > 0)
-            {
-                properties.AddRange(transfer.NodePaths
-                    .Select(s => new DataProperty
-                    {
-                        Name = s.Name,
-                        Type = DataTypeEnum.NodePath,
-                        Value = s.Value,
-                    }));
-            }
-
-            return properties;
-        }
-
         internal async Task ScriptFinish(string connectionId, RunScriptResponse request)
         {
             var agentConnect = FindByConnectionId(connectionId);
@@ -579,7 +510,7 @@ namespace Runner.Agent.Hosting.Services
             {
                 var runService = agentConnect.Scope.ServiceProvider.GetRequiredService<RunService>();
 
-                await runService.SetCompleted(agentConnect.ScriptJobRunning.RunId, agentConnect.ScriptJobRunning.ActionId, ReadDataTransfer(request.OutputData));
+                await runService.SetCompleted(agentConnect.ScriptJobRunning.RunId, agentConnect.ScriptJobRunning.ActionId, MapAgentToDataProperty(request.OutputData));
                 
                 await jobService.SetCompleted(agentConnect.ScriptJobRunning.JobId);
             }
@@ -592,6 +523,27 @@ namespace Runner.Agent.Hosting.Services
                 agentConnect.ScriptJobRunning = null;
                 _ = CheckJobsForAgent(agentConnect);
             }
+        }
+
+        private List<DataProperty>? MapAgentToDataProperty(List<AgentDataProperty>? properties)
+        {
+            return properties?
+                .Select(p => new DataProperty
+                {
+                    Name = p.Name,
+                    Type = (DataTypeEnum)p.Type,
+                    Value = p.Value is null ?
+                        null :
+                        new DataValue
+                        {
+                            StringValue = p.Value.StringValue,
+                            IntValue = p.Value.IntValue,
+                            StringListValue = p.Value.StringListValue,
+                            NodePath = p.Value.NodePath,
+                            DataExpand = MapAgentToDataProperty(p.Value.DataExpand)?.Select(d => new DataHandlerItem(d)).ToList()
+                        }
+                })
+                .ToList();
         }
 
         internal async Task ScriptLog(string connectionId, ScriptLogRequest request)

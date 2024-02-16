@@ -1,6 +1,5 @@
-﻿@using Runner.Business.Datas.Model
+﻿@using Runner.Business.Datas.Object
 @using Runner.Business.Entities.Nodes.Types
-@using Runner.Business.Datas.Control
 @inherits FlowActionView
 @inject ClipboardInterop clipboardInterop
 @inject NotificationService notificationService
@@ -24,9 +23,8 @@
 
     protected override void OnInitialized()
     {
-        Node.Data = new DataMerge()
-            .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ContainerDataType.Get())
-            .ApplyDataProperty(Node.Data)
+        Node.Data = new DataObject(Business.Actions.DataOfTypes.ContainerDataType.Get())
+            .Merge(Node.Data)
             .ToDataProperty();
     }
 
@@ -155,15 +153,13 @@
     {
         ClosePanel();
 
-        var datas = new DataMerge()
-            .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ContainerDataType.Get())
-            .ApplyDataProperty(Node.Data)
-            .ToDataFullProperty();
+        var dataObject = new DataObject(Business.Actions.DataOfTypes.ContainerDataType.Get())
+            .Merge(Node.Data);
 
-        var editedData = await Modal.DataFullEditor(datas);
+        var editedData = await Modal.DataEdit(dataObject);
         if (editedData is not null)
         {
-            Node.Data = editedData;
+            Node.Data = editedData.ToDataProperty();
             OnOpenEditor();
         }
     }
@@ -243,7 +239,7 @@
             @if (Node.Data is not null)
             @foreach (var data in Node.Data)
             {
-                <DataTypeSelector Type=@data.Type @bind-Value=@data.Value Label=@data.Name />
+                <DataValueSelector Type=@data.Type @bind-Value=@data.Value Label=@data.Name />
             }
         </div>;
     }

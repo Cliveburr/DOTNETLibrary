@@ -76,7 +76,6 @@
             case NodeType.Agent: return typeof(Nodes.Agent);
             case NodeType.Flow: return typeof(Nodes.Flow.FlowView);
             case NodeType.Data: return typeof(Nodes.Data);
-            case NodeType.DataType: return typeof(Nodes.DataType);
             case NodeType.ScriptPackage: return typeof(Nodes.ScriptPackage);
             case NodeType.Script: return typeof(Nodes.Script);
             default: throw new RunnerException($"Invalid NodeType: {type}");

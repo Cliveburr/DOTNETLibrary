@@ -6,7 +6,7 @@ namespace Runner.Business.Entities.Nodes
         App = 0,
         Folder = 1,
         Data = 2,
-        DataType = 3,
+        //DataType = 3,
         AgentPool = 4,
         Agent = 5,
         ScriptPackage = 6,

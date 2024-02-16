@@ -1,5 +1,5 @@
-﻿using Runner.Business.Datas2.Model;
-using Runner.Business.Datas2.Object;
+﻿using Runner.Business.Datas.Model;
+using Runner.Business.Datas.Object;
 using Test = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
 namespace Runner.Business.Tests.Data

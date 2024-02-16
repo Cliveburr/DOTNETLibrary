@@ -4,6 +4,6 @@ namespace Runner.Agent.Interface.Model
 {
     public class RunScriptResponse
     {
-        public AgentDataTransfer? OutputData { get; set; }
+        public List<AgentDataProperty>? OutputData { get; set; }
     }
 }

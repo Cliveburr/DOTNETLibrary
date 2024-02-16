@@ -4,6 +4,9 @@
     {
         String = 0,
         StringList = 1,
-        NodePath = 2
+        Node = 2,
+        Inherit = 3,
+        Data = 4,
+        ScriptVersion = 5
     }
 }

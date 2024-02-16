@@ -1,6 +1,6 @@
 ﻿using MongoDB.Bson;
 using Runner.Business.DataAccess;
-using Runner.Business.Datas2.Model;
+using Runner.Business.Datas.Model;
 using Runner.Business.Entities.Nodes;
 using Runner.Business.Entities.Nodes.Types;
 using Runner.Business.Security;

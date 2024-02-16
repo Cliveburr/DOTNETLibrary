@@ -1,4 +1,4 @@
-﻿@using Runner.Business.Datas2.Model
+﻿@using Runner.Business.Datas.Model
 
 @switch (Type)
 {
@@ -17,11 +17,21 @@
             <DataNodeType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly Label=@Label />
             break;
         }
-    @*case DataTypeEnum.Reference:
+    case DataTypeEnum.Inherit:
         {
-            <ReferenceDataType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly Label=@Label />
+            <InheritType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly Label=@Label />
             break;
-        } *@
+        }
+    case DataTypeEnum.Data:
+        {
+            <DataType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly Label=@Label />
+            break;
+        }
+    case DataTypeEnum.ScriptVersion:
+        {
+            <ScriptVersionDataType @bind-Value:get=Value @bind-Value:set=SetValue Readonly=@Readonly Label=@Label />
+            break;
+        }
 }
 
 @code {
