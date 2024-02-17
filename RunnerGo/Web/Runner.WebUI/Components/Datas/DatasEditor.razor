@@ -68,29 +68,17 @@
         }
     </tbody>
 </table>
-@if (AllowCreate)
-{
-    <button type="button" class="button is-success" @onclick="OnCreate_Click">
-        <span class="icon is-small">
-            <i class="fa-solid fa-circle-plus"></i>
-        </span>
-        <span>Add</span>
-    </button>
-}
+<button type="button" class="button is-success" @onclick="OnCreate_Click">
+    <span class="icon is-small">
+        <i class="fa-solid fa-circle-plus"></i>
+    </span>
+    <span>Add</span>
+</button>
 
 @code {
 
     [Parameter]
     public DataObject? Value { get; set; }
-
-    [Parameter]
-    public bool AllowInherit { get; set; } = true;
-
-    [Parameter]
-    public bool AllowCreate { get; set; } = true;
-
-    [Parameter]
-    public bool IsTypeMode { get; set; }
 
     protected override async Task OnInitializedAsync()
     {

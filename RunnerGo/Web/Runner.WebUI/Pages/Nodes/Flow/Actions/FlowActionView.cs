@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Runner.Business.Entities.Nodes.Types;
+using Runner.WebUI.Components.Panels;
 using Runner.WebUI.Pages;
 
-namespace Runner.WebUI.Components.FlowEditor
+namespace Runner.WebUI.Pages.Nodes.Flow.Actions
 {
     public abstract class FlowActionView : BasePage
     {
@@ -15,8 +16,8 @@ namespace Runner.WebUI.Components.FlowEditor
         [Parameter]
         public required Action UpdateParent { get; set; }
 
-        [CascadingParameter(Name = "GetPanel")]
-        public Func<RightPanel?>? GetPanel { get; set; }
+        [CascadingParameter(Name = "View")]
+        public required FlowView View { get; set; }
 
         protected abstract RenderFragment EditorForm();
 
@@ -29,25 +30,17 @@ namespace Runner.WebUI.Components.FlowEditor
 
         protected void OnOpenEditor()
         {
-            if (GetPanel != null)
+            if (View.Panel is not null)
             {
-                var panel = GetPanel();
-                if (panel != null)
-                {
-                    panel.SetOpen(EditorForm());
-                }
+                View.Panel.SetOpen(EditorForm());
             }
         }
 
         protected void ClosePanel()
         {
-            if (GetPanel != null)
+            if (View.Panel is not null)
             {
-                var panel = GetPanel();
-                if (panel != null)
-                {
-                    panel.CleanPanel();
-                }
+                View.Panel.CleanPanel();
             }
         }
 

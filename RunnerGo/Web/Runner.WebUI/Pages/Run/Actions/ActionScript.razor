@@ -187,19 +187,7 @@
                     <input class="input" type="text" value=@($"{Action.ActionId} - {Action.Label}") placeholder="Label" readonly>
                 </div>
             </div>
-            @if (Action.Data is not null)
-            @foreach (var data in Action.Data)
-            {
-                @if (data.Name != "ScriptPath")
-                {
-                    <div class="field">
-                        <label class="label">@data.Name</label>
-                        <div class="control">
-                            <DataTypeSelector Type=@data.Type @bind-Value=@data.Value Readonly />
-                        </div>
-                    </div>
-                }
-            }
+            <DataPropertyListEditor Properties=Action.Data />
         </div>;
     }
 }

@@ -1,6 +1,10 @@
 ﻿@using Business.Entities.Nodes.Types;
+@using Runner.Business.Datas.Model
+@using Runner.Business.Datas.Object
+@using Runner.WebUI.Pages.Nodes.Flow.Actions
 @inherits NodeBasePage
 @inject FlowService flowService
+@inject DataExpandService dataExpandService
 
 <div class="container">
 
@@ -8,65 +12,97 @@
         <h3 class="title is-3">Flow: @Node.Name <NodeTypeIcon Type="NodeType.Flow" /></h3>
     </div>
 
-    <div class="tabs is-centered is-medium">
-        <ul>
-            <li class="@GetTabActive(0)" @onclick="(() => OnTabClick(0))">
-                <a>
-                    <span class="icon is-small"><i class="fa-solid fa-person-running"></i></span>
-                    <span>Runs</span>
-                </a>
-            </li>
-            <li class="@GetTabActive(1)" @onclick="(() => OnTabClick(1))">
-                <a>
-                    <span class="icon is-small"><i class="fa-solid fa-wind"></i></span>
-                    <span>Flow</span>
-                </a>
-            </li>
-            <li class="@GetTabActive(2)" @onclick="(() => OnTabClick(2))">
-                <a>
-                    <span class="icon is-small"><i class="fa-solid fa-superscript"></i></span>
-                    <span>Input</span>
-                </a>
-            </li>
-            <li class="@GetTabActive(3)" @onclick="(() => OnTabClick(3))">
-                <a>
-                    <span class="icon is-small"><i class="fa-solid fa-calendar-days"></i></span>
-                    <span>Schedule</span>
-                </a>
-            </li>
-        </ul>
-    </div>
-    
-    @if (flowNode is not null)
-    @switch (tabId)
-    {
-        case 0:
-            <FlowRuns FlowNode=flowNode />
-            break;
-        case 1:
-            <FlowEdit FlowNode=flowNode Panel=panel />
-            break;
-        case 2:
-            <FlowInput FlowNode=flowNode Panel=panel />
-            break;
-        case 3:
-            <FlowSchedule />
-            break;
-    }
+    <CascadingValue Name="View" Value="this">
+        @if (showData is null)
+        {
+            <div class="tabs is-centered is-medium">
+                <ul>
+                    <li class="@GetTabActive(0)" @onclick="(() => OnTabClick(0))">
+                        <a>
+                            <span class="icon is-small"><i class="fa-solid fa-person-running"></i></span>
+                            <span>Runs</span>
+                        </a>
+                    </li>
+                    <li class="@GetTabActive(1)" @onclick="(() => OnTabClick(1))">
+                        <a>
+                            <span class="icon is-small"><i class="fa-solid fa-wind"></i></span>
+                            <span>Flow</span>
+                        </a>
+                    </li>
+                    <li class="@GetTabActive(2)" @onclick="(() => OnTabClick(2))">
+                        <a>
+                            <span class="icon is-small"><i class="fa-solid fa-calendar-days"></i></span>
+                            <span>Schedule</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            @switch (tabId)
+            {
+                case 0:
+                    <FlowRuns />
+                    break;
+                case 1:
+                    <FlowEdit />
+                    break;
+                case 2:
+                    <FlowSchedule />
+                    break;
+            }
+        }
+        else
+        {
+            <div class="buttons mt-3">
+                <button type="button" class="button is-primary" @onclick="OnShowDataCancel_Click">
+                    <span class="icon is-small">
+                        <i class="fa-solid fa-trash"></i>
+                    </span>
+                    <span>Cancel</span>
+                </button>
+                <button type="button" class="button is-success" @onclick="OnShowDataAccept_Click">
+                    <span class="icon is-small">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                    </span>
+                    <span>Accept</span>
+                </button>
+                <button type="button" class="button is-warning" @onclick="OnValidate_Click">
+                    <span class="icon is-small">
+                        <i class="fa-solid fa-list-check"></i>
+                    </span>
+                    <span>Validate</span>
+                </button>
+                <button type="button" class="button is-primary" @onclick="OnView_Click">
+                    <span class="icon is-small">
+                        <i class="fa-solid fa-scroll"></i>
+                    </span>
+                    <span>View</span>
+                </button>
+            </div>
+
+            <div class="box mt-3">
+                <DatasEditor Value=showData />
+            </div>
+        }
+    </CascadingValue>
 </div>
 
-<RightPanel @ref=panel />
+<RightPanel @ref=Panel />
 
 @code {
 
-    public Flow? flowNode;
+    public Flow? FlowNode { get; set; }
+    public RightPanel? Panel { get; set; }
 
-    private RightPanel? panel;
     private int tabId;
+
+    private DataObject? showData;
+    private ManualResetEvent? showDataResume;
+    private List<DataProperty>? showDataResult;
 
     protected override async Task OnInitializedAsync()
     {
-        flowNode = await flowService.ReadByNodeId(Node.NodeId);
+        FlowNode = await flowService.ReadByNodeId(Node.NodeId);
     }
 
     private string GetTabActive(int id)
@@ -79,10 +115,98 @@
         if (id != tabId)
         {
             tabId = id;
-            if (panel is not null)
+            if (Panel is not null)
             {
-                panel.Close(); 
+                Panel.Close(); 
             }
+        }
+    }
+
+    public Task<List<DataProperty>?> EditData(List<DataProperty>? data)
+    {
+        return EditData(new DataObject(data));
+    }
+
+    public Task<List<DataProperty>?> EditData(DataObject data)
+    {
+        if (Panel is not null)
+        {
+            Panel.Close();
+        }
+
+        data.Service = dataExpandService;
+
+        showDataResume = new ManualResetEvent(false);
+        showData = data;
+        showDataResult = null;
+        StateHasChanged();
+
+        return Task.Run(() =>
+        {
+            showDataResume.WaitOne();
+
+            return showDataResult;
+        });
+    }
+
+    private void OnShowDataAccept_Click()
+    {
+        showDataResult = showData?.ToDataProperty();
+        showDataResume?.Set();
+        showDataResume = null;
+        showData = null;
+    }
+
+    private void OnShowDataCancel_Click()
+    {
+        showDataResult = null;
+        showDataResume?.Set();
+        showDataResume = null;
+        showData = null;
+    }
+
+    private async Task OnValidate_Click()
+    {
+        try
+        {
+            if (showData is null)
+            {
+                return;
+            }
+
+            await showData.Resolve(false);
+
+            var errors = showData.Validate();
+            if (errors.Any())
+            {
+                foreach (var error in errors)
+                {
+                    await Notification.AddWarning(error.Text, 10);
+                }
+                return;
+            }
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+    }
+
+    private async Task OnView_Click()
+    {
+        try
+        {
+            if (showData is null)
+            {
+                return;
+            }
+
+            await showData.Resolve();
+            await Modal.ShowData(showData);
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
         }
     }
 }

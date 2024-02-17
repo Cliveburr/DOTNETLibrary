@@ -1,6 +1,6 @@
 ﻿@using Business.Entities.Nodes.Types;
 @using Runner.Business.Entities;
-@using Runner.WebUI.Components.FlowEditor;
+@using Runner.WebUI.Pages.Nodes.Flow.Actions;
 @inherits BasePage
 @inject FlowService flowService
 
@@ -16,6 +16,12 @@
         </span>
         <span>Save</span>
     </button>
+    <button type="button" class="button is-info" @onclick="OnInput_Click">
+        <span class="icon is-small">
+            <i class="fa-solid fa-superscript"></i>
+        </span>
+        <span>Input</span>
+    </button>
     <button type="button" class="button is-danger" @onclick="OnDelete_Click">
         <span class="icon is-small">
             <i class="fa-solid fa-trash"></i>
@@ -25,22 +31,22 @@
 </div>
 
 <div class="flowactionedit">
-    <CascadingValue Name="GetPanel" TValue="Func<RightPanel>" Value="new Func<RightPanel?>(() => Panel)">
-        <FlowActionSelector Node="FlowNode.Root" UpdateParent=UpdateState />
-    </CascadingValue>
+    <FlowActionSelector Node="View.FlowNode!.Root" UpdateParent=UpdateState />
 </div>
 
 @code {
 
-    [Parameter]
-    public required Flow FlowNode { get; set; }
-
-    [Parameter]
-    public RightPanel? Panel { get; set; }
+    [CascadingParameter(Name = "View")]
+    public required FlowView View { get; set; }
 
     private async Task OnSave_Click()
     {
-        await flowService.Update(FlowNode);
+        if (View.FlowNode is null)
+        {
+            return;
+        }
+
+        await flowService.Update(View.FlowNode);
         NodeBack();
     }
 
@@ -51,6 +57,11 @@
 
     private async Task OnDelete_Click()
     {
+        if (View.FlowNode is null)
+        {
+            return;
+        }
+
         if (await Modal.Question(new Components.Modal.Question.QuestionRequest
             {
                 Title = "Delete",
@@ -59,7 +70,7 @@
         {
             try
             {
-                await flowService.Delete(FlowNode);
+                await flowService.Delete(View.FlowNode);
             }
             catch (Exception err)
             {
@@ -68,6 +79,20 @@
             }
 
             NodeBack();
+        }
+    }
+
+    private async Task OnInput_Click()
+    {
+        if (View.FlowNode is null)
+        {
+            return;
+        }
+
+        var result = await View.EditData(View.FlowNode.Input);
+        if (result is not null)
+        {
+            View.FlowNode.Input = result;
         }
     }
 }

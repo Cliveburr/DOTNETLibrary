@@ -18,7 +18,7 @@ namespace Runner.Business.Datas.PropertyHandler
                 _cache[type] = type switch
                 {
                     DataTypeEnum.String => new StringHandler(),
-                    DataTypeEnum.StringList => new StringHandler(),
+                    DataTypeEnum.StringList => new StringListHandler(),
                     DataTypeEnum.Node => new NodeHandler(),
                     DataTypeEnum.Inherit => new InheritHandler(),
                     DataTypeEnum.Data => new DataHandler(),

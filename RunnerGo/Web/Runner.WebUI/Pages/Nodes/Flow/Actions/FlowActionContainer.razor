@@ -23,8 +23,8 @@
 
     protected override void OnInitialized()
     {
-        Node.Data = new DataObject(Business.Actions.DataOfTypes.ContainerDataType.Get())
-            .Merge(Node.Data)
+        Node.Data = new DataObject(Node.Data)
+            .Merge(Business.Actions.DataOfTypes.ContainerDataType.Get())
             .ToDataProperty();
     }
 
@@ -151,17 +151,23 @@
 
     private async Task OnEditData_Click()
     {
+        if (View is null)
+        {
+            return;
+        }
+
         ClosePanel();
 
         var dataObject = new DataObject(Business.Actions.DataOfTypes.ContainerDataType.Get())
             .Merge(Node.Data);
 
-        var editedData = await Modal.DataEdit(dataObject);
-        if (editedData is not null)
+        var result = await View.EditData(dataObject);
+        if (result is not null)
         {
-            Node.Data = editedData.ToDataProperty();
-            OnOpenEditor();
+            Node.Data = result;
         }
+
+        OnOpenEditor();
     }
 
     protected override RenderFragment EditorForm()
@@ -236,11 +242,7 @@
                     <input class="input" type="text" @bind=Node.Label placeholder="Label">
                 </div>
             </div>
-            @if (Node.Data is not null)
-            @foreach (var data in Node.Data)
-            {
-                <DataValueSelector Type=@data.Type @bind-Value=@data.Value Label=@data.Name />
-            }
+            <DataPropertyListEditor Properties=Node.Data />
         </div>;
     }
 }

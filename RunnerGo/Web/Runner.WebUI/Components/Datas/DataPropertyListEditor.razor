@@ -1,0 +1,38 @@
+﻿@using Runner.Business.Datas.Model
+
+@if (Properties is not null)
+@foreach (var data in Properties)
+{
+    <DataValueSelector Type=@data.Type @bind-Value=@data.Value Label=@data.Name />
+}
+
+@code {
+
+    [Parameter]
+    public List<DataProperty>? Properties { get; set; }
+    
+    private void OnScriptPath_Changed(object? value)
+    {
+        // var scriptPath = value as string;
+        // var scriptPathProperty = Node.Data!
+        //     .First(d => d.Name == "ScriptPath");
+        // scriptPathProperty.Value = scriptPath;
+
+        // if (!string.IsNullOrEmpty(scriptPath))
+        // {
+        //     var sts = await scriptService.ReadVersionByScriptPath(scriptPath);
+        //     if (sts is null)
+        //     {
+        //         await Notification.AddInfo("ScriptPath invalid!");
+        //     }
+        //     else
+        //     {
+        //         Node.Data = new DataMerge()
+        //             .ApplyDataTypeProperty(Business.Actions.DataOfTypes.ScriptDataType.Get())
+        //             .ApplyDataTypeProperty(sts.Value.ScriptVersion.InputTypes)
+        //             .ApplyDataProperty(Node.Data)
+        //             .ToDataProperty();
+        //     }
+        // }
+    }
+}

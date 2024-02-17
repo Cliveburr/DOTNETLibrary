@@ -34,34 +34,37 @@
 </div>
 
 <div class="box mt-3">
-    <DataTable @ref=table Func=@((request) => runService.ReadRunsTable(request, FlowNode))>
-        <Header>
-        <tr>
-            <th class="w50px">Type</th>
-            <th>RunId</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th>Completed</th>
-        </tr>
-        </Header>
-        <Body Context="Item">
-        <tr class="pointer" @onclick="@(_ => OnNavigateApp_Click(Item))">
-            <td class="has-text-centered">
-                <NodeTypeIcon Type="NodeType.Run" />
-            </td>
-            <td>@Item.RunId</td>
-            <td>@Item.Status</td>
-            <td>@Item.Created</td>
-            <td>@Item.Completed</td>
-        </tr>
-        </Body>
-    </DataTable>
+    @if (View.FlowNode is not null)
+    {
+        <DataTable @ref=table Func=@((request) => runService.ReadRunsTable(request, View.FlowNode))>
+            <Header>
+            <tr>
+                <th class="w50px">Type</th>
+                <th>RunId</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Completed</th>
+            </tr>
+            </Header>
+            <Body Context="Item">
+            <tr class="pointer" @onclick="@(_ => OnNavigateApp_Click(Item))">
+                <td class="has-text-centered">
+                    <NodeTypeIcon Type="NodeType.Run" />
+                </td>
+                <td>@Item.RunId</td>
+                <td>@Item.Status</td>
+                <td>@Item.Created</td>
+                <td>@Item.Completed</td>
+            </tr>
+            </Body>
+        </DataTable>
+    }
 </div>
 
 @code {
 
-    [Parameter]
-    public required Flow FlowNode { get; set; }
+    [CascadingParameter(Name = "View")]
+    public required FlowView View { get; set; }
 
     private DataTable<RunList>? table;
 
@@ -92,11 +95,16 @@
 
     public async Task CreateNewRun(bool setToRun)
     {
+        if (View.FlowNode is null)
+        {
+            return;
+        }
+
         try
         {
-            if (FlowNode.Input is not null)
+            if (View.FlowNode.Input is not null)
             {
-                var dataTypeInput = new DataObject(FlowNode.Input, dataExpandService);
+                var dataTypeInput = new DataObject(View.FlowNode.Input, dataExpandService);
                 await dataTypeInput.Resolve();
 
                 var dataInput = await Modal.DataEdit(dataTypeInput);
@@ -112,14 +120,14 @@
                     }
                     else
                     {
-                        await runService.CreateRun(FlowNode, dataInput.ToDataProperty(), setToRun);
+                        await runService.CreateRun(View.FlowNode, dataInput.ToDataProperty(), setToRun);
                         await OnRefresh_Click();
                     }
                 }
             }
             else
             {
-                await runService.CreateRun(FlowNode, null, setToRun);
+                await runService.CreateRun(View.FlowNode, null, setToRun);
                 await OnRefresh_Click();
             }
         }
