@@ -4,6 +4,7 @@
     {
         public required string Name { get; set; }
         public required ScriptDataTypeEnum Type { get; set; }
-        public object? Value { get; set; }
+        public bool IsRequired { get; set; }
+        public ScriptDataValue? Value { get; set; }
     }
 }

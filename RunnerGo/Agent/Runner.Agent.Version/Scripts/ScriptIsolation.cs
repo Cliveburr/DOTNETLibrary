@@ -33,20 +33,21 @@ namespace Runner.Agent.Version.Scripts
                 GC.WaitForPendingFinalizers();
             }
 
-            var timeout = DateTime.Now.AddMilliseconds(60000);
-            while (contextRef.IsAlive && DateTime.Now < timeout)
-            {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
+            // voltar depois dos testes
+            //var timeout = DateTime.Now.AddMilliseconds(60000);
+            //while (contextRef.IsAlive && DateTime.Now < timeout)
+            //{
+            //    GC.Collect();
+            //    GC.WaitForPendingFinalizers();
 
-                Task.Delay(100).Wait();
-            }
+            //    Task.Delay(100).Wait();
+            //}
 
-            if (contextRef.IsAlive)
-            {
-                //throw new Exception("AssemblyLoadContext not unloaded!");
-                _log("AssemblyLoadContext not unloaded!").Wait();
-            }
+            //if (contextRef.IsAlive)
+            //{
+            //    //throw new Exception("AssemblyLoadContext not unloaded!");
+            //    _log("AssemblyLoadContext not unloaded!").Wait();
+            //}
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -92,139 +93,83 @@ namespace Runner.Agent.Version.Scripts
                 return;
             }
 
-            //try
-            //{
-                var scriptRunContext = new ScriptRunContext
-                {
-                    Data = MapDataInput(_request.InputData),
-                    Log = _log,
-                    CancellationToken = cancellationToken
-                };
+            var scriptRunContext = new ScriptRunContext
+            {
+                Data = new ScriptData(MapDataInput(_request.InputData)),
+                Log = _log,
+                CancellationToken = cancellationToken
+            };
 
-                //instance.Run(scriptRunContext).Wait();
-                instance.Run(scriptRunContext)
-                    .ContinueWith(t =>
+            instance.Run(scriptRunContext)
+                .ContinueWith(t =>
+                {
+                    if (t.IsFaulted)
                     {
-                        //context.Unload();
-                        if (t.IsFaulted)
+                        Exception = t.Exception;
+                    }
+                    else
+                    {
+                        Result = new RunScriptResponse
                         {
-                            Exception = t.Exception;
-                        }
-                        else
-                        {
-                            Result = new RunScriptResponse
-                            {
-                                OutputData = MapDataOutput(scriptRunContext.Data)
-                            };
-                        }
-                    })
-                    .Wait();
-                    //.ConfigureAwait(true)
-                    //.GetAwaiter()
-                    //.GetResult();
-            //}
-            //catch (Exception ex)
-            //{
-            //    Exception = ex.InnerException ?? ex;
-            //}
-            //finally
-            //{
-                context.Unload();
-            //}
+                            OutputData = MapDataOutput(scriptRunContext.Data.GetOutput().ToList())
+                        };
+                    }
+                })
+                .Wait();
+                    
+            context.Unload();
         }
 
-        private ScriptData MapDataInput(AgentDataTransfer? transfer)
+        private List<ScriptDataProperty>? MapDataInput(List<AgentDataProperty>? properties)
         {
-            var properties = new List<ScriptDataProperty>();
-
-            if (transfer is not null)
+            if (properties is null)
             {
-                if (transfer.Strings is not null && transfer.Strings.Length > 0)
-                {
-                    properties.AddRange(transfer.Strings
-                        .Select(s => new ScriptDataProperty
-                        {
-                            Name = s.Name,
-                            Type = ScriptDataTypeEnum.String,
-                            Value = s.Value,
-                        }));
-                }
-
-                if (transfer.StringLists is not null && transfer.StringLists.Length > 0)
-                {
-                    properties.AddRange(transfer.StringLists
-                        .Select(s => new ScriptDataProperty
-                        {
-                            Name = s.Name,
-                            Type = ScriptDataTypeEnum.StringList,
-                            Value = s.Value,
-                        }));
-                }
-
-                if (transfer.NodePaths is not null && transfer.NodePaths.Length > 0)
-                {
-                    properties.AddRange(transfer.NodePaths
-                        .Select(s => new ScriptDataProperty
-                        {
-                            Name = s.Name,
-                            Type = ScriptDataTypeEnum.NodePath,
-                            Value = s.Value,
-                        }));
-                }
+                return null;
             }
 
-            return new ScriptData(properties);
-        }
-
-        private AgentDataTransfer? MapDataOutput(ScriptData data)
-        {
-            var properties = data.GetStates()
-                .Where(s => s.State != ScriptDataStateType.Pristine)
-                .Select(s => s.Property)
+            return properties
+                .Select(p => new ScriptDataProperty
+                {
+                    Name = p.Name,
+                    Type = (ScriptDataTypeEnum)p.Type,
+                    Value = p.Value is null ?
+                        null :
+                        new ScriptDataValue
+                        {
+                            StringValue = p.Value.StringValue,
+                            IntValue = p.Value.IntValue,
+                            StringListValue = p.Value.StringListValue,
+                            NodePath = p.Value.NodePath,
+                            DataExpand = MapDataInput(p.Value.DataExpand)
+                        }
+                })
                 .ToList();
+        }
 
-            var transfer = new AgentDataTransfer();
-
-            var strings = properties
-                .Where(p => p.Type == ScriptDataTypeEnum.String)
-                .Select(p => new AgentDataPropertyString
-                {
-                    Name = p.Name,
-                    Value = p.Value as string
-                })
-                .ToArray();
-            if (strings.Any())
+        private List<AgentDataProperty>? MapDataOutput(List<ScriptDataProperty>? properties)
+        {
+            if (properties is null || !properties.Any())
             {
-                transfer.Strings = strings;
+                return null;
             }
 
-            var stringLists = properties
-                .Where(p => p.Type == ScriptDataTypeEnum.StringList)
-                .Select(p => new AgentDataPropertyStringList
+            return properties
+                .Select(p => new AgentDataProperty
                 {
                     Name = p.Name,
-                    Value = p.Value as string[]
+                    Type = (AgentDataTypeEnum)p.Type,
+                    Value = p.Value is null ?
+                        null :
+                        new AgentDataValue
+                        {
+                            StringValue = p.Value.StringValue,
+                            IntValue = p.Value.IntValue,
+                            StringListValue = p.Value.StringListValue,
+                            NodePath = p.Value.NodePath,
+                            DataExpand = MapDataOutput(p.Value.DataExpand)
+                        }
                 })
-                .ToArray();
-            if (stringLists.Any())
-            {
-                transfer.StringLists = stringLists;
-            }
-
-            var nodePaths = properties
-                .Where(p => p.Type == ScriptDataTypeEnum.NodePath)
-                .Select(p => new AgentDataPropertyNodePath
-                {
-                    Name = p.Name,
-                    Value = p.Value as string
-                })
-                .ToArray();
-            if (nodePaths.Any())
-            {
-                transfer.NodePaths = nodePaths;
-            }
-
-            return transfer;
+                    .ToList();
         }
     }
 }

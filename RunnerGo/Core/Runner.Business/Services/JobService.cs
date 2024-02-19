@@ -23,10 +23,20 @@ namespace Runner.Business.Services
             _manualAgentWatcherNotification = agentWatcherNotification as ManualAgentWatcherNotification;
         }
 
-        public Task<List<Job>> ReadForAgent(ObjectId agentId)
+        public Task<List<Job>> ReadForAgent(TableRequest request, ObjectId agentId)
         {
-            return Job
-                .ToListAsync(j => j.AgentId == agentId);
+            var sort = Builders<Job>.Sort
+                .Descending(r => r.Queued);
+
+            var filter = Builders<Job>.Filter
+                .Eq(j => j.AgentId, agentId);
+
+            return Job.Collection
+                .Find(filter)
+                .Sort(sort)
+                .Skip(request.Skip)
+                .Limit(request.Take)
+                .ToListAsync();
         }
 
         public Task<List<Job>> ReadTable(TableRequest request)

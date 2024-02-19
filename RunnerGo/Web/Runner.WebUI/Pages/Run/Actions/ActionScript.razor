@@ -135,17 +135,14 @@
         var dataObject = new DataObject(Business.Actions.DataOfTypes.ScriptDataType.Get())
             .Merge(Action.Data);
 
-        // var scriptPathProperty = datas
-        //     .First(d => d.Name == "ScriptPath");
-        // scriptPathProperty.Hidden = true;
-
-        var editedData = await Modal.DataEdit(dataObject);
+        var editedData = await View.EditData(dataObject);
         if (editedData is not null)
         {
-            Action.Data = editedData.ToDataProperty();
+            Action.Data = editedData;
             await View.UpdateActionData(Action);
-            OnOpenEditor();
         }
+
+        OnOpenEditor();
     }
 
     private RenderFragment EditorForm()

@@ -4,20 +4,20 @@ namespace Runner.Business.Datas.Model
 {
     public class DataHandlerItem : DataProperty
     {
-        public bool AllowDelete { get; set; } = true;
-        public bool AllowEdit { get; set; } = true;
+        public bool AllowModify { get; set; } = true;
         
         public DataHandlerItem()
         {
         }
 
         [SetsRequiredMembers]
-        public DataHandlerItem(DataProperty dataProperty)
+        public DataHandlerItem(DataProperty dataProperty, bool allowModify = true)
         {
             Name = dataProperty.Name;
             Type = dataProperty.Type;
             IsRequired = dataProperty.IsRequired;
             Value = dataProperty.Value;
+            AllowModify = allowModify;
         }
 
         public DataHandlerItem Clone()
@@ -28,8 +28,7 @@ namespace Runner.Business.Datas.Model
                 Type = Type,
                 IsRequired = IsRequired,
                 Value = Value?.Clone(),
-                AllowDelete = AllowDelete,
-                AllowEdit = AllowEdit
+                AllowModify = AllowModify
             };
         }
 

@@ -12,25 +12,36 @@
         <h3 class="title is-3">Script: @Node.Name <NodeTypeIcon Type="NodeType.Script" /></h3>
     </div>
 
-    <div class="buttons mt-3">
-        <button type="button" class="button is-primary" @onclick="NodeBack">
-            <span class="icon is-small">
-                <i class="fa-solid fa-square-caret-left"></i>
-            </span>
-        </button>
-        <button type="button" class="button is-info" @onclick="OnRefresh_Click">
-            <span class="icon is-small">
-                <i class="fa-solid fa-rotate-right"></i>
-            </span>
-            <span>Refresh</span>
-        </button>
-        <button type="button" class="button is-danger" @onclick="OnDelete_Click">
-            <span class="icon is-small">
-                <i class="fa-solid fa-trash"></i>
-            </span>
-            <span>Delete</span>
-        </button>
-    </div>
+    <div class="is-flex is-justify-content-space-between">
+        <div class="is-flex is-gap">
+            <button type="button" class="button is-primary" @onclick="NodeBack">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-square-caret-left"></i>
+                </span>
+            </button>
+            <button type="button" class="button is-info" @onclick="OnRefresh_Click">
+                <span class="icon is-small">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </span>
+                <span>Refresh</span>
+            </button>
+        </div>
+        <Dropdown IsRight Icon="fa-solid fa-ellipsis">
+             <a class="dropdown-item" @onclick=FavoriteThisNode>
+                 <i class="fa-solid fa-star"></i>
+                 <span>Favorite</span>
+             </a>
+             <a class="dropdown-item" @onclick=CopyPathToClipboard>
+                 <i class="fa-brands fa-stackpath"></i>
+                 <span>Node Path</span>
+             </a>
+             <hr class="dropdown-divider">
+             <a class="dropdown-item" @onclick="OnDelete_Click">
+                 <i class="fa-solid fa-trash has-text-danger"></i>
+                 <span>Delete</span>
+             </a>
+         </Dropdown>
+     </div>
 
     <div class="box mt-3">
         @if (scriptNode != null)
@@ -74,14 +85,15 @@
 
     public async Task OnRefresh_Click()
     {
-        scriptNode = await scriptService.ReadByNodeId(Node.NodeId);
-        if (scriptNode == null)
+        try
         {
-            await Notification.AddError("Scrip not found!");
-            PageNotFound();
+            scriptNode = await scriptService.ReadByNodeId(Node.NodeId);
+            Assert.MustNotNull(scriptNode, "Scrip not found!");
         }
-        else
+        catch (Exception err)
         {
+            await Notification.AddError(err);
+            PageNotFound();
         }
     }
 

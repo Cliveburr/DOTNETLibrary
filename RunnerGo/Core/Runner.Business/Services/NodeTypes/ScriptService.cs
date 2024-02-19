@@ -3,6 +3,7 @@ using Runner.Business.DataAccess;
 using Runner.Business.Entities.Nodes;
 using Runner.Business.Entities.Nodes.Types;
 using Runner.Business.Security;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Runner.Business.Services.NodeTypes
 {
@@ -32,7 +33,7 @@ namespace Runner.Business.Services.NodeTypes
                 .FirstOrDefaultAsync(sp => sp.NodeId == nodeId);
         }
 
-        public async Task<(Script Script, ScriptVersion ScriptVersion)?> ReadVersionByScriptPath(string scriptPath)
+        public async Task<(ObjectId ScriptNodeId, string Version)?> ReadVersionByScriptPath(string scriptPath)
         {
             var parts = scriptPath.ToLower()
                 .Split("/", StringSplitOptions.RemoveEmptyEntries)
@@ -46,35 +47,41 @@ namespace Runner.Business.Services.NodeTypes
             {
                 return null;
             }
+
+            var script = await ReadByNodeId(scriptNode.NodeId);
+            Assert.MustNotNull(script, $"Internal - Script not found for NodeId: " + scriptNode.NodeId);
+
+            return (scriptNode.NodeId, version);
+        }
+        
+        public async Task<(Script Script, ScriptVersion ScriptVersion)?> ReadVersionByScriptPath(ObjectId scriptNodeId, string version)
+        {
+            var script = await ReadByNodeId(scriptNodeId);
+            Assert.MustNotNull(script, $"Script not found by NodeId: {scriptNodeId}");
+
+            if (!script.Versions.Any())
+            {
+                return null;
+            }
+
+            if (version == "*") //todo: improve this
+            {
+                var scriptVersion = script.Versions
+                    .OrderByDescending(v => v.Version)
+                    .First();
+                return (script, scriptVersion);
+            }
             else
             {
-                var script = await ReadByNodeId(scriptNode.NodeId);
-                Assert.MustNotNull(script, $"Internal - Script not found for NodeId: " + scriptNode.NodeId);
-
-                if (!script.Versions.Any())
-                {
-                    return null;
-                }
-
-                if (version == "*") //todo: improve this
+                if (int.TryParse(version, out var versionInt))
                 {
                     var scriptVersion = script.Versions
-                        .OrderByDescending(v => v.Version)
-                        .First();
-                    return (script, scriptVersion);
+                        .FirstOrDefault(v => v.Version == versionInt);
+                    return scriptVersion is null ? null : (script, scriptVersion);
                 }
                 else
                 {
-                    if (int.TryParse(version, out var versionInt))
-                    {
-                        var scriptVersion = script.Versions
-                            .FirstOrDefault(v => v.Version == versionInt);
-                        return scriptVersion is null ? null : (script, scriptVersion);
-                    }
-                    else
-                    {
-                        return null;
-                    }
+                    return null;
                 }
             }
         }

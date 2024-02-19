@@ -1,5 +1,4 @@
-﻿using Runner.Script.Interface.Model.Data;
-
+﻿
 namespace Runner.Script.Interface.Scripts
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
@@ -7,7 +6,7 @@ namespace Runner.Script.Interface.Scripts
     {
         public int Version { get; init; }
         public string Name { get; init; }
-        public List<ScriptDataTypeProperty>? Input { get; set; }
+        public Type? Input { get; set; }
 
         public ScriptAttribute(int version, string name)
         {
@@ -15,7 +14,7 @@ namespace Runner.Script.Interface.Scripts
             Name = name;
         }
 
-        public ScriptAttribute(int version, string name, List<ScriptDataTypeProperty>? input = null)
+        public ScriptAttribute(int version, string name, Type input)
         {
             Version = version;
             Name = name;

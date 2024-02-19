@@ -19,19 +19,18 @@
             <tr>
                 <td>
                     <p class="control has-icons-left">
-                        <input class="input" @bind=prop.Name type="text" placeholder="Name" readonly="@(!prop.AllowEdit)">
+                        <input class="input" @bind=prop.Name type="text" placeholder="Name" readonly="@(!prop.AllowModify)">
                         <span class="icon is-small is-left">
                             <i class="fa-solid fa-key"></i>
                         </span>
                     </p>
                 </td>
                 <td>
-                    @if (prop.AllowEdit)
+                    @if (prop.AllowModify)
                     {
                         <div class="control has-icons-left is-expanded">
                             <div class="select is-fullwidth">
-                                <EnumSelect TEnum=DataTypeEnum @bind-Value=prop.Type ValueAfterChanged=@(() => OnTypeSelect_ValueAfterChanged(prop))
-                                    BlackList=@([DataTypeEnum.ScriptVersion]) />
+                                <EnumSelect TEnum=DataTypeEnum @bind-Value=prop.Type ValueAfterChanged=@(() => OnTypeSelect_ValueAfterChanged(prop)) />
                             </div>
                             <div class="icon is-small is-left">
                                 <i class="fa-solid fa-superscript"></i>
@@ -49,13 +48,13 @@
                     }
                 </td>
                 <td class="has-text-centered is-vcentered">
-                    <input type="checkbox" class="scale2" @bind=prop.IsRequired>
+                    <input type="checkbox" class="scale2" @bind=prop.IsRequired disabled="@(!prop.AllowModify)">
                 </td>
                 <td>
                     <DataValueSelector Type=prop.Type @bind-Value=prop.Value ValueAfterChanged=@(()=> OnDataSelect_ValueAfterChanged(prop)) />
                 </td>
                 <td class="has-text-centered">
-                    @if (prop.AllowDelete)
+                    @if (prop.AllowModify)
                     {
                         <button class="button is-danger" @onclick=@(() => OnRemove_Click(prop))>
                             <span class="icon is-small">
@@ -82,9 +81,16 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (Value is not null)
+        try
         {
-            await Value.Resolve(false);
+            if (Value is not null)
+            {
+                await Value.Resolve(false);
+            }
+        }
+        catch (Exception err)
+        {
+            await notification.AddError(err);
         }
     }
 

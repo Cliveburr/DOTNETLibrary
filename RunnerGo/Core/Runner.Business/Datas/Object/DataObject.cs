@@ -28,6 +28,7 @@ namespace Runner.Business.Datas.Object
         public DataObject(List<DataHandlerItem>? datas = null, IDataResolveService? service = null)
         {
             Properties = datas?.ToList() ?? [];
+            Service = service;
         }
 
         public IEnumerable<ValidationError> Validate()

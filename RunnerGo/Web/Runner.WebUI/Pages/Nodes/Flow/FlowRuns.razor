@@ -1,4 +1,5 @@
-﻿@using Runner.Business.Datas.Object
+﻿@using Runner.Business.Datas.Model
+@using Runner.Business.Datas.Object
 @using Runner.Business.Entities.Nodes.Types;
 @using Runner.Business.Model.Nodes.Types;
 @inherits BasePage
@@ -104,7 +105,11 @@
         {
             if (View.FlowNode.Input is not null)
             {
-                var dataTypeInput = new DataObject(View.FlowNode.Input, dataExpandService);
+                var input = View.FlowNode.Input
+                    .Select(d => new DataHandlerItem(d, false))
+                    .ToList();
+
+                var dataTypeInput = new DataObject(input, dataExpandService);
                 await dataTypeInput.Resolve();
 
                 var dataInput = await Modal.DataEdit(dataTypeInput);

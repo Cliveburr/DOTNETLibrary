@@ -131,24 +131,21 @@
         var dataObject = new DataObject(Business.Actions.DataOfTypes.ScriptDataType.Get())
             .Merge(Action.Data);
 
-        // var scriptPathProperty = datas
-        //     .First(d => d.Name == "ScriptPath");
-        // scriptPathProperty.Hidden = true;
-
-        var editedData = await Modal.DataEdit(dataObject);
+        var editedData = await View.EditData(dataObject);
         if (editedData is not null)
         {
-            Action.Data = editedData.ToDataProperty();
+            Action.Data = editedData;
             await View.UpdateActionData(Action);
-            OnOpenEditor();
         }
+
+        OnOpenEditor();
     }
 
     private RenderFragment EditorForm()
     {
         return
         @<div class="is-flex is-flex-direction-column m-4">
-            <h3 class="title is-3">Script</h3>
+            <h3 class="title is-3">Container</h3>
             <div class="buttons">
                 <button type="button" class="button is-primary is-small" @onclick="OnEditData_Click">
                     <span class="icon is-small">

@@ -7,18 +7,25 @@ namespace Runner.Business.Datas.PropertyHandler
     {
         public async Task Resolve(DataObject dataObject, DataHandlerItem item, IDataResolveService service, bool isRecursive)
         {
-            if (item.Value?.ObjectIdValue is null || item.Value?.IntValue is null)
+            if (item.Value?.ObjectIdValue is null || item.Value?.StringValue is null)
             {
                 return;
             }
 
-            var propResolved = await service.ResolveScriptVersionInputProperties(item.Value.ObjectIdValue.Value, item.Value.IntValue.Value);
+            var propResolved = await service.ResolveScriptVersionInputProperties(item.Value.ObjectIdValue.Value, item.Value.StringValue);
             if (propResolved is null)
             {
                 return;
             }
 
-            var dataResolved = propResolved.Select(p => new DataHandlerItem(p)).ToList();
+            var dataResolved = propResolved
+                .Select(p => new DataHandlerItem(p))
+                .ToList();
+
+            dataResolved.ForEach(p =>
+            {
+                p.AllowModify = false;
+            });
 
             var cleanDataobjectDatas = new DataObject(service);
             foreach (var data in dataResolved)
@@ -38,6 +45,10 @@ namespace Runner.Business.Datas.PropertyHandler
             {
                 to.IsRequired = from.IsRequired;
             }
+            if (to.AllowModify)
+            {
+                to.AllowModify = from.AllowModify;
+            }
 
             switch (to.Type)
             {
@@ -49,7 +60,7 @@ namespace Runner.Business.Datas.PropertyHandler
                             {
                                 NodePath = from.Value.NodePath,
                                 ObjectIdValue = from.Value.ObjectIdValue,
-                                IntValue = from.Value.IntValue
+                                StringValue = from.Value.StringValue
                             };
                         }
                         break;

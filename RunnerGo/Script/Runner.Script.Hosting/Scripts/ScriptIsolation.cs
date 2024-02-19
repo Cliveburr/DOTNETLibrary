@@ -1,6 +1,10 @@
-﻿using Runner.Business.Model.Nodes.Types;
+﻿using Runner.Business.Datas.Model;
+using Runner.Business.Model.Nodes.Types;
+using Runner.Script.Hosting.Scripts;
 using Runner.Script.Interface.Model.Data;
 using Runner.Script.Interface.Scripts;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
@@ -91,13 +95,7 @@ namespace Runner.Agent.Version.Scripts
                                 Version = scriptAttr.Version,
                                 Assembly = assemblyPath.Substring(rootPathLen),
                                 FullTypeName = fullTypeName,
-                                Input = scriptAttr.Input?
-                                    .Select(i => new Business.Datas.Model.DataProperty
-                                    {
-                                        Name = i.Name,
-                                        Type = (Business.Datas.Model.DataTypeEnum)i.Type,
-                                        IsRequired = i.IsRequired
-                                    }).ToList()
+                                Input = MapTypeToProperties.Map(scriptAttr.Input)
                             });
                         }
                         else

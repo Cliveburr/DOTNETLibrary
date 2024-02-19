@@ -39,6 +39,11 @@
         }
 
         innerValue = await scriptService.NodeService.BuildPath(Value.ObjectIdValue.Value);
+
+        if (Value.StringValue is not null)
+        {
+            innerValue += "/" + Value.StringValue;
+        }
     }
 
     private async Task SetInputValue(string? value)
@@ -57,9 +62,9 @@
             {
                 Value.ObjectIdValue = null;
             }
-            if (Value?.IntValue is not null)
+            if (Value?.StringValue is not null)
             {
-                Value.IntValue = null;
+                Value.StringValue = null;
             }
             await notification.AddInfo("Node path not found!");
             return;
@@ -69,15 +74,15 @@
         {
             Value = new DataValue
                 {
-                    IntValue = script.Value.ScriptVersion.Version,
-                    ObjectIdValue = script.Value.Script.NodeId
+                    StringValue = script.Value.Version,
+                    ObjectIdValue = script.Value.ScriptNodeId
                 };
             await ValueChanged.InvokeAsync(Value);
         }
         else
         {
-            Value.IntValue = script.Value.ScriptVersion.Version;
-            Value.ObjectIdValue = script.Value.Script.NodeId;
+            Value.StringValue = script.Value.Version;
+            Value.ObjectIdValue = script.Value.ScriptNodeId;
             await ValueChanged.InvokeAsync(Value);
         }
     }

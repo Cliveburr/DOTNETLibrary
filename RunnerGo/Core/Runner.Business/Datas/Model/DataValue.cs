@@ -20,8 +20,11 @@ namespace Runner.Business.Datas.Model
             return new DataValue
             {
                 StringValue = StringValue,
+                IntValue = IntValue,
                 StringListValue = StringListValue,
-                ObjectIdValue = ObjectIdValue
+                ObjectIdValue = ObjectIdValue,
+                NodePath = NodePath,
+                DataExpand = DataExpand?.Select(de => de.Clone()).ToList()
             };
         }
     }

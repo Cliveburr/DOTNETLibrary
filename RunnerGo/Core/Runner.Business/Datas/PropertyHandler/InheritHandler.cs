@@ -22,10 +22,15 @@ namespace Runner.Business.Datas.PropertyHandler
                 .Select(p => new DataHandlerItem(p))
                 .ToList();
 
+            dataResolved.ForEach(p =>
+            {
+                p.AllowModify = false;
+            });
+
             var cleanDataobjectDatas = new DataObject(service);
             foreach (var data in dataResolved)
             {
-                data.AllowDelete = false;
+                data.AllowModify = false;
 
                 var handler = PropertyHandlerSelector.Get(data.Type);
                 await handler.Resolve(cleanDataobjectDatas, data, service, isRecursive);
@@ -41,6 +46,10 @@ namespace Runner.Business.Datas.PropertyHandler
             if (!to.IsRequired)
             {
                 to.IsRequired = from.IsRequired;
+            }
+            if (to.AllowModify)
+            {
+                to.AllowModify = from.AllowModify;
             }
 
             switch (to.Type)

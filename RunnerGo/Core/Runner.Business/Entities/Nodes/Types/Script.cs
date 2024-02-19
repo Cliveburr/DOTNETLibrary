@@ -22,6 +22,6 @@ namespace Runner.Business.Entities.Nodes.Types
         public ObjectId ScriptContentId { get; set; }
         public required string Assembly { get; set; }
         public required string FullTypeName { get; set; }
-        public required List<DataProperty> Input { get; set; }
+        public List<DataProperty>? Input { get; set; }
     }
 }

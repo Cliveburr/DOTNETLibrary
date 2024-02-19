@@ -1,4 +1,5 @@
-﻿using Runner.Business.Datas.Model;
+﻿using MongoDB.Bson;
+using Runner.Business.Datas.Model;
 
 namespace Runner.Business.Datas.Object
 {
@@ -51,12 +52,12 @@ namespace Runner.Business.Datas.Object
             return null;
         }
 
-        public string? ReadNodePath(string dataName)
+        public ObjectId? ReadNodePath(string dataName)
         {
             var prop = ResolveName(dataName);
             if (prop?.Value is not null && prop.Type == DataTypeEnum.Node)
             {
-                return prop.Value.StringValue;
+                return prop.Value.ObjectIdValue;
             }
             return null;
         }
@@ -67,6 +68,18 @@ namespace Runner.Business.Datas.Object
             if (prop?.Value is not null && prop.Type == DataTypeEnum.StringList)
             {
                 return prop.Value.StringListValue;
+            }
+            return null;
+        }
+
+        public (string Version, ObjectId ScriptNodeId)? ReadScriptVersion(string dataName)
+        {
+            var prop = ResolveName(dataName);
+            if (prop?.Value is not null && prop.Type == DataTypeEnum.ScriptVersion)
+            {
+                return prop.Value.ObjectIdValue is not null && prop.Value.StringValue is not null ?
+                    (prop.Value.StringValue, prop.Value.ObjectIdValue.Value) :
+                    null;
             }
             return null;
         }

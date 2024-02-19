@@ -2,10 +2,10 @@
 
 
 done - edição da DataReference escolher um node DataType
-- fazer a checagem da InputType de scripts no momento do run no AgentManagerService
+done - fazer a checagem da InputType de scripts no momento do run no AgentManagerService
 done - cria o data transfer do DataReference
 done - resolver todos DataReference antes de rodar o DataMerge
-- testar um script com input, e receber property de DataReference
+done - testar um script com input, e receber property de DataReference
 
 - criar ActionType do tipo Run
 - criar o job do tipo ActionOfRun

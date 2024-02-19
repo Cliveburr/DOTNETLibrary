@@ -5,8 +5,7 @@ namespace Runner.Business.Datas.Object
 {
     public interface IDataResolveService
     {
-        Task<List<DataProperty>?> ResolveScriptVersionInputProperties(ObjectId scriptId, int vesion);
+        Task<List<DataProperty>?> ResolveScriptVersionInputProperties(ObjectId scriptId, string vesion);
         Task<List<DataProperty>?> ResolveDataProperties(ObjectId objectId);
-        //Task<string?> ResolveNodePath(ObjectId objectId);
     }
 }

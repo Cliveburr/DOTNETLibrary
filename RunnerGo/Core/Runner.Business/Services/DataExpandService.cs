@@ -26,11 +26,10 @@ namespace Runner.Business.Services
             return _nodeService.ReadLocation(path);
         }
 
-        public async Task<List<DataProperty>?> ResolveScriptVersionInputProperties(ObjectId scriptId, int version)
+        public async Task<List<DataProperty>?> ResolveScriptVersionInputProperties(ObjectId scriptId, string version)
         {
-            var script = await _scriptService.ReadByNodeId(scriptId);
-            return script?.Versions
-                .FirstOrDefault(v => v.Version == version)?.Input;
+            var sts = await _scriptService.ReadVersionByScriptPath(scriptId, version);
+            return sts?.ScriptVersion.Input;
         }
 
         public async Task<List<DataProperty>?> ResolveDataProperties(ObjectId objectId)

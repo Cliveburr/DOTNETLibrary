@@ -54,54 +54,65 @@
 
     private List<JsonProperty> Map(List<DataHandlerItem> datas)
     {
-        return datas
-            .Select(d => d.Type switch
+        var ret = new List<JsonProperty>();
+        foreach (var data in datas)
+        {
+            switch (data.Type)
             {
-                DataTypeEnum.String => new JsonProperty
-                    {
-                        Name = d.Name,
-                        Type = d.Type.ToString(),
-                        Value = d.Value?.StringValue
-                    },
-                DataTypeEnum.StringList => new JsonProperty
-                    {
-                        Name = d.Name,
-                        Type = d.Type.ToString(),
-                        Value = d.Value?.StringListValue
-                        // Value = d.Value?.StringListValue is null ?
-                        //     null :
-                        //     string.Join(", ", d.Value.StringListValue)
-                    },
-                DataTypeEnum.Node => new JsonProperty
-                    {
-                        Name = d.Name,
-                        Type = d.Type.ToString(),
-                        Value = d.Value?.NodePath
-                    },
-                // DataTypeEnum.Inherit => new JsonProperty
-                //     {
-                //         Name = d.Name,
-                //         Type = d.Type.ToString(),
-                //         Value = d.Value?.NodePath
-                //     },
-                DataTypeEnum.Data => new JsonProperty
-                    {
-                        Name = d.Name,
-                        Type = d.Type.ToString(),
-                        Value = d.Value?.DataExpand is null ?
-                            null :
-                            Map(d.Value.DataExpand)
-                    },
-                DataTypeEnum.ScriptVersion => new JsonProperty
-                    {
-                        Name = d.Name,
-                        Type = d.Type.ToString(),
-                        Value = d.Value?.NodePath
-                    },
-                _ => null
-            })
-            .Where(p => p is not null)
-            .ToList();
+                case DataTypeEnum.String:
+                    ret.Add(new JsonProperty
+                        {
+                            Name = data.Name,
+                            Type = data.Type.ToString(),
+                            Value = data.Value?.StringValue
+                        });
+                    break;
+                case DataTypeEnum.StringList:
+                    ret.Add(new JsonProperty
+                        {
+                            Name = data.Name,
+                            Type = data.Type.ToString(),
+                            Value = data.Value?.StringListValue
+                        });
+                    break;
+                case DataTypeEnum.Node:
+                    ret.Add(new JsonProperty
+                        {
+                            Name = data.Name,
+                            Type = data.Type.ToString(),
+                            Value = data.Value?.NodePath
+                        });
+                    break;
+                case DataTypeEnum.Inherit:
+                    ret.Add(new JsonProperty
+                        {
+                            Name = data.Name,
+                            Type = data.Type.ToString(),
+                            Value = data.Value?.NodePath
+                        });
+                    break;
+                case DataTypeEnum.Data:
+                    ret.Add(new JsonProperty
+                        {
+                            Name = data.Name,
+                            Type = data.Type.ToString(),
+                            Value = data.Value?.DataExpand is null ?
+                                null :
+                                Map(data.Value.DataExpand)
+                        });
+                    break;
+                case DataTypeEnum.ScriptVersion:
+                    ret.Add(new JsonProperty
+                        {
+                            Name = data.Name,
+                            Type = data.Type.ToString(),
+                            Value = data.Value?.NodePath
+                        });
+                        break;
+            }
+        }
+
+        return ret;
     }
 
     private Task Copy()

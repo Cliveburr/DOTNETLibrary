@@ -27,34 +27,26 @@ namespace Runner.Business.Services.NodeTypes
                 .FirstOrDefaultAsync(a => a.NodeId == nodeId);
         }
 
-        public async Task<List<Agent>?> ReadAgentsByAgentPoolPath(string agentPoolPath)
+        public async Task<List<Agent>?> ReadAgentsByAgentPoolPath(ObjectId agentPoolModeId)
         {
-            var scriptNode = await _nodeService.ReadLocation(agentPoolPath);
-            if (scriptNode is null)
+            var agentPool = await AgentPool
+                .FirstOrDefaultAsync(ap => ap.NodeId == agentPoolModeId);
+            if (agentPool is not null && agentPool.Enabled)
             {
-                return null;
+                var query = from n in Node.AsQueryable()
+                            join a in Agent.AsQueryable() on n.NodeId equals a.NodeId
+                            where
+                                n.ParentId == agentPoolModeId &&
+                                a.Enabled == true &&
+                                a.Status == AgentStatus.Idle
+                            select a;
+
+                return await query
+                    .ToListAsync();
             }
             else
             {
-                var agentPool = await AgentPool
-                    .FirstOrDefaultAsync(ap => ap.NodeId == scriptNode.NodeId);
-                if (agentPool is not null && agentPool.Enabled)
-                {
-                    var query = from n in Node.AsQueryable()
-                                join a in Agent.AsQueryable() on n.NodeId equals a.NodeId
-                                where
-                                    n.ParentId == scriptNode.NodeId &&
-                                    a.Enabled == true &&
-                                    a.Status == AgentStatus.Idle
-                                select a;
-
-                    return await query
-                        .ToListAsync();
-                }
-                else
-                {
-                    return null;
-                }
+                return null;
             }
         }
 

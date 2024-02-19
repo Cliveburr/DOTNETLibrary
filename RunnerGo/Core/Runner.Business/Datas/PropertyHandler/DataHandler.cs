@@ -29,6 +29,10 @@ namespace Runner.Business.Datas.PropertyHandler
             {
                 to.IsRequired = from.IsRequired;
             }
+            if (to.AllowModify)
+            {
+                to.AllowModify = from.AllowModify;
+            }
 
             switch (to.Type)
             {

@@ -110,8 +110,9 @@ namespace Runner.Business.Actions.Types
         {
             Assert.Enum.In(Action.Status, new[] {
                 ActionStatus.Running,
+                ActionStatus.ToRun,
                 ActionStatus.ToRun
-            }, $"ActionScript in wrong status to Completed! {Action.ActionId}-{Action.Label}");
+            }, $"ActionScript in wrong status to Error! {Action.ActionId}-{Action.Label}");
 
             Action.Status = ActionStatus.Error;
             ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, Action));

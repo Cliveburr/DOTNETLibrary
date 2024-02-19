@@ -325,23 +325,34 @@ namespace Runner.Agent.Hosting.Services
                     var control = ActionControl.From(run);
                     var contextData = control.ComputeActionContextData(job.ActionId.Value, dataExpandService);
 
-                    var scriptPath = contextData.ReadNodePath("ScriptPath");
+                    var scriptPath = contextData.ReadScriptVersion("Script");
                     Assert.MustNotNull(scriptPath, $"Run with invalid script path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value} }}");
-                    var agentPoolPath = contextData.ReadNodePath("AgentPoolPath");
-                    Assert.MustNotNull(agentPoolPath, $"Run with invalid agent pool path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value} }}");
+                    var agentPoolModeId = contextData.ReadNodePath("AgentPool");
+                    Assert.MustNotNull(agentPoolModeId, $"Run with invalid agent pool path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value} }}");
 
                     var scriptService = scope.ServiceProvider.GetRequiredService<ScriptService>();
-                    var sts = await scriptService.ReadVersionByScriptPath(scriptPath);
+                    var sts = await scriptService.ReadVersionByScriptPath(scriptPath.Value.ScriptNodeId, scriptPath.Value.Version);
                     Assert.MustNotNull(sts, $"Run with invalid script path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value}, ScriptPath: {scriptPath} }}");
 
-                    //if (sts.Value.ScriptVersion.InputTypes.Count > 0)
-                    //{
-                        //TODO: checar
-                    //}
+                    if (sts.Value.ScriptVersion.Input?.Any() ?? false)
+                    {
+                        contextData.Merge(sts.Value.ScriptVersion.Input);
+                        await contextData.Resolve();
+                        var validation = contextData.Validate();
+                        if (validation.Any())
+                        {
+                            var fullMsg = string.Join(Environment.NewLine, validation.Select(v => v.Text));
+                            throw new RunnerException(fullMsg);
+                        }
+                    }
+                    else
+                    {
+                        await contextData.Resolve();
+                    }
 
                     var agentService = scope.ServiceProvider.GetRequiredService<AgentService>();
-                    var agents = await agentService.ReadAgentsByAgentPoolPath(agentPoolPath);
-                    Assert.MustNotNull(agents, $"Run with invalid agent pool path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value}, AgentPoolPath: {agentPoolPath} }}");
+                    var agents = await agentService.ReadAgentsByAgentPoolPath(agentPoolModeId.Value);
+                    Assert.MustNotNull(agents, $"Run with invalid agent pool path! {{ RunId: {job.RunId.Value}, ActionId: {job.ActionId.Value}, AgentPoolPath: {agentPoolModeId} }}");
 
                     var actionTags = contextData.ReadStringList("Tags")
                         ?? new List<string>();

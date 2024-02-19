@@ -1,11 +1,14 @@
 ﻿@using Runner.Business.Entities;
 @using Runner.Business.Entities.Nodes.Types;
 @using Runner.Business.WatcherNotification;
+@using Runner.Business.Datas.Model;
+@using Runner.Business.Datas.Object;
 @inherits BasePage
 @implements IDisposable;
 @inject NodeService nodeService
 @inject RunService runService
 @inject IAgentWatcherNotification agentWatcherNotification
+@inject DataExpandService dataExpandService
 
 <div class="container">
 
@@ -33,20 +36,56 @@
         </button>
     </div>
 
-    @if (ThisRun is not null)
-    {
-        <div class="actionview">
-            <CascadingValue Name="RunView" TValue="RunView" Value="this">
-                <Runner.WebUI.Pages.Run.Actions.RunViewSelector @ref=actionView Action="GetRootAction()" />
-            </CascadingValue>
-        </div>
-    }
+    <CascadingValue Name="RunView" Value="this">
+        @if (showData is null)
+        {
+            <div class="actionview">
+                @if (ThisRun is not null)
+                {
+                    <Runner.WebUI.Pages.Run.Actions.RunViewSelector Action="GetRootAction()" />
+                }
+            </div>
+        }
+        else
+        {
+            <div class="buttons mt-3">
+                <button type="button" class="button is-primary" @onclick="OnShowDataCancel_Click">
+                    <span class="icon is-small">
+                        <i class="fa-solid fa-trash"></i>
+                    </span>
+                    <span>Cancel</span>
+                </button>
+                <button type="button" class="button is-success" @onclick="OnShowDataAccept_Click">
+                    <span class="icon is-small">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                    </span>
+                    <span>Accept</span>
+                </button>
+                <button type="button" class="button is-warning" @onclick="OnValidate_Click">
+                    <span class="icon is-small">
+                        <i class="fa-solid fa-list-check"></i>
+                    </span>
+                    <span>Validate</span>
+                </button>
+                <button type="button" class="button is-primary" @onclick="OnView_Click">
+                    <span class="icon is-small">
+                        <i class="fa-solid fa-scroll"></i>
+                    </span>
+                    <span>View</span>
+                </button>
+            </div>
+
+            <div class="box mt-3">
+                <DatasEditor Value=showData />
+            </div>
+        }
+    </CascadingValue>
 
 </div>
 
 <RightPanel @ref=Panel />
 
-<div class="runlogview">
+<div class="@GetRunLogViewClass()">
     <div class="textarea is-link" placeholder="Log">
         @if (logs is not null)
         @foreach (var log in logs)
@@ -75,24 +114,18 @@
 
     public Runner.Business.Entities.Nodes.Types.Run? ThisRun { get; private set; }
     public RightPanel? Panel { get; private set; }
-    private Runner.WebUI.Pages.Run.Actions.RunViewSelector? actionView;
     private List<Runner.Business.Entities.Nodes.Types.RunLog>? logs;
     private int logSkip = 0;
 
+    private DataObject? showData;
+    private ManualResetEvent? showDataResume;
+    private List<DataProperty>? showDataResult;
+
     protected override async Task OnInitializedAsync()
     {
-        var gotRun = await runService.ReadByIdStr(RunIdStr);
-        if (gotRun == null)
-        {
-            await Notification.AddError("Run not found!");
-            PageNotFound();
-        }
-        else
-        {
-            SetRun(gotRun);
-        }
-
         agentWatcherNotification.OnRunUpdated += WatcherNotification_OnRunUpdated;
+
+        await OnRefresh_Click();
     }
 
     public void Dispose()
@@ -111,16 +144,17 @@
 
     private async Task OnRefresh_Click()
     {
-        var gotRun = await runService.ReadByIdStr(RunIdStr);
-        if (gotRun == null)
+        try
         {
-            await Notification.AddError("Run not found!");
-            PageNotFound();
-        }
-        else
-        {
+            var gotRun = await runService.ReadByIdStr(RunIdStr);
+            Assert.MustNotNull(gotRun, "Run not found!");
             SetRun(gotRun);
-            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await Notification.AddError(ex);
+            PageNotFound();
+
         }
     }
 
@@ -134,15 +168,12 @@
         ThisRun = run;
     }
 
-    // private string GetLog()
-    // {
-    //     return ThisRun is null ?
-    //         string.Empty :
-    //         string.Join(Environment.NewLine, ThisRun.Log
-    //         .OrderByDescending(l => l.Created)
-    //         .Take(100)
-    //         .Select(l => $"{l.Created.ToString("dd/MM/yyyy HH:mm:ss")} - {l.Text}"));
-    // }
+    private string GetRunLogViewClass()
+    {
+        return showData is null ?
+            "runlogview"
+            : "runlogview hidden";
+    }
 
     private Runner.Business.Actions.Action GetRootAction()
     {
@@ -207,5 +238,93 @@
     private Task ShowError(Runner.Business.Entities.Nodes.Types.RunLog log)
     {
         return Modal.ShowError(log.Text, log.FullError!);
+    }
+
+    public Task<List<DataProperty>?> EditData(List<DataProperty>? data)
+    {
+        return EditData(new DataObject(data));
+    }
+
+    public Task<List<DataProperty>?> EditData(DataObject data)
+    {
+        if (Panel is not null)
+        {
+            Panel.Close();
+        }
+
+        data.Service = dataExpandService;
+
+        showDataResume = new ManualResetEvent(false);
+        showData = data;
+        showDataResult = null;
+        StateHasChanged();
+
+        return Task.Run(() =>
+        {
+            showDataResume.WaitOne();
+
+            return showDataResult;
+        });
+    }
+
+    private void OnShowDataAccept_Click()
+    {
+        showDataResult = showData?.ToDataProperty();
+        showDataResume?.Set();
+        showDataResume = null;
+        showData = null;
+    }
+
+    private void OnShowDataCancel_Click()
+    {
+        showDataResult = null;
+        showDataResume?.Set();
+        showDataResume = null;
+        showData = null;
+    }
+
+    private async Task OnValidate_Click()
+    {
+        try
+        {
+            if (showData is null)
+            {
+                return;
+            }
+
+            await showData.Resolve(false);
+
+            var errors = showData.Validate();
+            if (errors.Any())
+            {
+                foreach (var error in errors)
+                {
+                    await Notification.AddWarning(error.Text, 10);
+                }
+                return;
+            }
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+    }
+
+    private async Task OnView_Click()
+    {
+        try
+        {
+            if (showData is null)
+            {
+                return;
+            }
+
+            await showData.Resolve();
+            await Modal.ShowData(showData);
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
     }
 }
