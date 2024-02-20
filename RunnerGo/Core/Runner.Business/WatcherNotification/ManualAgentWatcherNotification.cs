@@ -8,6 +8,8 @@ namespace Runner.Business.WatcherNotification
         public event OnJobEventDelegate? OnJobQueued;
         public event OnJobEventDelegate? OnJobStop;
         public event OnRunEventDelegate? OnRunUpdated;
+        public event OnScheduleEventDelegate? OnScheduleAddOrUpdated;
+
         //public event OnActionEventDelegate? OnActionUpdated;
 
         public void InvokeJobQueued(Job job)
@@ -29,5 +31,10 @@ namespace Runner.Business.WatcherNotification
         //{
         //    OnActionUpdated?.Invoke(action);
         //}
+
+        public void InvokeScheduleAddOrUpdated(JobSchedule jobSchedule)
+        {
+            OnScheduleAddOrUpdated?.Invoke(jobSchedule);
+        }
     }
 }

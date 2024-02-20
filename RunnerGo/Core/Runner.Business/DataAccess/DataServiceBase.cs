@@ -41,6 +41,8 @@ namespace Runner.Business.DataAccess
 
         protected CollectionAdapter<Business.Entities.Job.Job> Job { get => GetCollectionAdapter<Business.Entities.Job.Job>(); }
         protected CollectionAdapter<Business.Entities.AgentVersion.AgentVersion> AgentVersion { get => GetCollectionAdapter<Business.Entities.AgentVersion.AgentVersion>(); }
+        protected CollectionAdapter<Business.Entities.Job.JobSchedule> JobSchedule { get => GetCollectionAdapter<Business.Entities.Job.JobSchedule>(); }
+        protected CollectionAdapter<Business.Entities.Job.JobTicker> JobTicker { get => GetCollectionAdapter<Business.Entities.Job.JobTicker>(); }
 
         protected CollectionAdapter<Business.Entities.Nodes.Types.App> App { get => GetCollectionAdapter<Business.Entities.Nodes.Types.App>(); }
         protected CollectionAdapter<Business.Entities.Nodes.Types.Folder> Folder { get => GetCollectionAdapter<Business.Entities.Nodes.Types.Folder>(); }
@@ -52,5 +54,6 @@ namespace Runner.Business.DataAccess
         protected CollectionAdapter<Business.Entities.Nodes.Types.ScriptContent> ScriptContent { get => GetCollectionAdapter<Business.Entities.Nodes.Types.ScriptContent>(); }
         protected CollectionAdapter<Business.Entities.Nodes.Types.Flow> Flow { get => GetCollectionAdapter<Business.Entities.Nodes.Types.Flow>(); }
         protected CollectionAdapter<Business.Entities.Nodes.Types.Run> Run { get => GetCollectionAdapter<Business.Entities.Nodes.Types.Run>(); }
+        protected CollectionAdapter<Business.Entities.Nodes.Types.FlowSchedule> FlowSchedule { get => GetCollectionAdapter<Business.Entities.Nodes.Types.FlowSchedule>(); }
     }
 }

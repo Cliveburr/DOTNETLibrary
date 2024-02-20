@@ -27,7 +27,7 @@ namespace Runner.Business.Tests.Data
                 throw new NotImplementedException();
             }
 
-            public Task<List<DataProperty>?> ResolveScriptVersionInputProperties(ObjectId scriptId, int vesion)
+            public Task<List<DataProperty>?> ResolveScriptVersionInputProperties(ObjectId scriptId, string vesion)
             {
                 throw new NotImplementedException();
             }

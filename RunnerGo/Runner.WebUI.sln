@@ -32,6 +32,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runner.Common", "Common\Run
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runner.Script.Interface", "Script\Runner.Script.Interface\Runner.Script.Interface.csproj", "{D966CCA1-93AA-4EC9-9375-D32B81BE67B8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runner.Schedule.Hosting", "Core\Runner.Schedule.Hosting\Runner.Schedule.Hosting.csproj", "{334AEADB-3A20-41D7-9B3A-2070FDB44395}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -66,6 +68,10 @@ Global
 		{D966CCA1-93AA-4EC9-9375-D32B81BE67B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D966CCA1-93AA-4EC9-9375-D32B81BE67B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D966CCA1-93AA-4EC9-9375-D32B81BE67B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{334AEADB-3A20-41D7-9B3A-2070FDB44395}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{334AEADB-3A20-41D7-9B3A-2070FDB44395}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{334AEADB-3A20-41D7-9B3A-2070FDB44395}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{334AEADB-3A20-41D7-9B3A-2070FDB44395}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -78,6 +84,7 @@ Global
 		{98A7947B-698A-46A5-84CF-6145AE5F25C0} = {D9D47D22-3ADC-429C-8726-364DEB2C4F8F}
 		{3C73D0DA-273C-465A-B44F-9EB116BE4B00} = {029B1FA7-6990-4004-AA2C-2793673915B5}
 		{D966CCA1-93AA-4EC9-9375-D32B81BE67B8} = {D9D47D22-3ADC-429C-8726-364DEB2C4F8F}
+		{334AEADB-3A20-41D7-9B3A-2070FDB44395} = {93EF3353-458B-4286-80AD-5D6D18398A56}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C69C53A6-6FFE-4800-A192-AAC430A9C06E}

@@ -12,6 +12,7 @@ namespace Runner.Business.Entities.Nodes
         ScriptPackage = 6,
         Script = 7,
         Flow = 8,
-        Run = 9
+        Run = 9,
+        FlowSchedule = 10
     }
 }
