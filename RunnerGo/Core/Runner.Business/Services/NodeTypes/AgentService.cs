@@ -27,7 +27,7 @@ namespace Runner.Business.Services.NodeTypes
                 .FirstOrDefaultAsync(a => a.NodeId == nodeId);
         }
 
-        public async Task<List<Agent>?> ReadAgentsByAgentPoolPath(ObjectId agentPoolModeId)
+        public async Task<List<Agent>?> ReadAgentsByAgentPoolNodeId(ObjectId agentPoolModeId)
         {
             var agentPool = await AgentPool
                 .FirstOrDefaultAsync(ap => ap.NodeId == agentPoolModeId);

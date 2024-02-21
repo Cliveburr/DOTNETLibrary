@@ -6,7 +6,7 @@ namespace Runner.Schedule.Hosting.DependecyInjection
 {
     public static class ScheduleServicesExtension
     {
-        public static IServiceCollection AddScriptHosting(this IServiceCollection services)
+        public static IServiceCollection AddScheduleHosting(this IServiceCollection services)
         {
             services
                 .AddSingleton<ScheduleManagerService>();
@@ -14,12 +14,12 @@ namespace Runner.Schedule.Hosting.DependecyInjection
             return services;
         }
 
-        public static void InitializeScriptManager(this WebApplication app)
+        public static void InitializeScheduleManager(this WebApplication app)
         {
             using (var scope = app.Services.CreateScope())
             {
-                var scriptManagerService = scope.ServiceProvider.GetRequiredService<ScheduleManagerService>();
-                _ = scriptManagerService.CheckScheduleTickers();
+                var scheduleManagerService = scope.ServiceProvider.GetRequiredService<ScheduleManagerService>();
+                _ = scheduleManagerService.Initialize();
             }
         }
     }

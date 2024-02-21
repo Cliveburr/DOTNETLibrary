@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Runner.Script.Hosting.Services;
+using Runner.Business.Entities.Job;
+using Runner.Business.Jobs;
+using Runner.Script.Hosting.Jobs;
 
 namespace Runner.Script.Hosting.DependecyInjection
 {
@@ -9,7 +11,7 @@ namespace Runner.Script.Hosting.DependecyInjection
         public static IServiceCollection AddScriptHosting(this IServiceCollection services)
         {
             services
-                .AddSingleton<ScriptManagerService>();
+                .AddScoped<ExtractScriptPackageJobHandler>();
 
             return services;
         }
@@ -18,8 +20,9 @@ namespace Runner.Script.Hosting.DependecyInjection
         {
             using (var scope = app.Services.CreateScope())
             {
-                var scriptManagerService = scope.ServiceProvider.GetRequiredService<ScriptManagerService>();
-                _ = scriptManagerService.CheckJobsForExtractScript();
+                var jobMediator = scope.ServiceProvider.GetRequiredService<JobMediator>();
+                jobMediator
+                    .AddJobHandler<ExtractScriptPackageJobHandler>(JobType.ExtractScriptPackage);
             }
         }
     }

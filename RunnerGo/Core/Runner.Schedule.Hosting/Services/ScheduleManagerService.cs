@@ -33,12 +33,12 @@ namespace Runner.Schedule.Hosting.Services
             _timer.Elapsed += CheckTickersExpired_Elpased;
             _timer.Stop();
 
-            _agentWatcherNotification.OnScheduleAddOrUpdated += OnScheduleAddOrUpdated; ;
+            _agentWatcherNotification.OnJobScheduleAddOrUpdated += OnScheduleAddOrUpdated;
         }
 
         public void Dispose()
         {
-            _agentWatcherNotification.OnScheduleAddOrUpdated -= OnScheduleAddOrUpdated;
+            _agentWatcherNotification.OnJobScheduleAddOrUpdated -= OnScheduleAddOrUpdated;
         }
 
         private async void OnScheduleAddOrUpdated(JobSchedule schedule)
@@ -51,12 +51,19 @@ namespace Runner.Schedule.Hosting.Services
             _ = CheckTickersExpired();
         }
 
-        public async Task CheckScheduleTickers()
+        public async Task Initialize()
         {
-            var jobMissingTickerQuery = _jobScheduleService.FindActiveMissingTickers();
-            foreach (var schedule in jobMissingTickerQuery)
+            try
             {
-                await CreateNextTicker(schedule, DateTime.UtcNow);
+                var jobMissingTickerQuery = _jobScheduleService.FindActiveMissingTickers();
+                foreach (var schedule in jobMissingTickerQuery)
+                {
+                    await CreateNextTicker(schedule, DateTime.UtcNow);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, null);
             }
 
             await CheckTickersExpired();
@@ -70,29 +77,36 @@ namespace Runner.Schedule.Hosting.Services
 
         private async Task CheckTickersExpired()
         {
-            var now = DateTime.UtcNow;
-
-            var expiredTickers = _jobScheduleService.FindExpiredTickers(now);
-            foreach (var expired in expiredTickers)
+            try
             {
-                await _jobScheduleService.DeleteTicker(expired.Ticker.JobTickerId);
+                var now = DateTime.UtcNow;
 
-                if (expired.Schedule is null || !expired.Schedule.Active)
+                var expiredTickers = _jobScheduleService.FindExpiredTickers(now);
+                foreach (var expired in expiredTickers)
                 {
-                    continue;
+                    await _jobScheduleService.DeleteTicker(expired.Ticker.JobTickerId);
+
+                    if (expired.Schedule is null || !expired.Schedule.Active)
+                    {
+                        continue;
+                    }
+
+                    await _jobScheduleService.CreateJob(expired.Schedule);
+
+                    await CreateNextTicker(expired.Schedule, now);
                 }
 
-                await _jobScheduleService.CreateJob(expired.Schedule);
-
-                await CreateNextTicker(expired.Schedule, now);
+                var closestTicker = await _jobScheduleService.FindClosestTickerToExpire();
+                if (closestTicker is not null)
+                {
+                    var interval = Math.Min((closestTicker.TargetUtc - now).TotalMilliseconds, 0);
+                    _timer.Interval = interval;
+                    _timer.Start();
+                }
             }
-
-            var closestTicker = await _jobScheduleService.FindClosestTickerToExpire();
-            if (closestTicker is not null)
+            catch (Exception ex)
             {
-                var interval = Math.Min((closestTicker.TargetUtc - now).TotalMilliseconds, 0);
-                _timer.Interval = interval;
-                _timer.Start();
+                _logger.LogError(ex, null);
             }
         }
 

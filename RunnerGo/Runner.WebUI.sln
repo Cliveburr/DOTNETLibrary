@@ -32,7 +32,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runner.Common", "Common\Run
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runner.Script.Interface", "Script\Runner.Script.Interface\Runner.Script.Interface.csproj", "{D966CCA1-93AA-4EC9-9375-D32B81BE67B8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runner.Schedule.Hosting", "Core\Runner.Schedule.Hosting\Runner.Schedule.Hosting.csproj", "{334AEADB-3A20-41D7-9B3A-2070FDB44395}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runner.Schedule.Hosting", "Core\Runner.Schedule.Hosting\Runner.Schedule.Hosting.csproj", "{334AEADB-3A20-41D7-9B3A-2070FDB44395}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

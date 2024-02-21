@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Runner.Business.DataAccess;
 using Runner.Business.Helpers;
+using Runner.Business.Jobs;
 using Runner.Business.Security;
 using Runner.Business.WatcherNotification;
 
@@ -16,7 +17,8 @@ namespace Runner.Business.DependecyInjection
                 .AddScoped<IdentityProvider>()
                 .AddScoped<AuthenticationService>()
                 .AddSingleton<IAgentWatcherNotification, ManualAgentWatcherNotification>()
-                .AddSingleton(serviceProvider => new Database(configuration.GetConnectionString("Main")));
+                .AddSingleton(serviceProvider => new Database(configuration.GetConnectionString("Main")))
+                .AddSingleton<JobMediator>();
 
             var allServices = typeof(DataServiceBase)
                 .GetAllAssignableFrom();
@@ -36,6 +38,15 @@ namespace Runner.Business.DependecyInjection
                 var database = scope.ServiceProvider.GetRequiredService<Database>();
                 var configurations = new CollectionConfigurations(database);
                 configurations.Configure();
+            }
+        }
+
+        public static void FlagToCheckJobsWaiting(this WebApplication app)
+        {
+            using (var scope = app.Services.CreateScope())
+            {
+                var jobMediator = scope.ServiceProvider.GetRequiredService<JobMediator>();
+                jobMediator.FlagToCheckJobsWaiting();
             }
         }
     }

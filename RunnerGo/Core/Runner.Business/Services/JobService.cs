@@ -77,11 +77,29 @@ namespace Runner.Business.Services
             _manualAgentWatcherNotification?.InvokeJobQueued(job);
         }
 
-        public async Task QueueRunAction(int actionId, ObjectId runId)
+        public async Task QueueRunScript(int actionId, ObjectId runId)
         {
             var job = new Job
             {
-                Type = JobType.RunAction,
+                Type = JobType.RunScript,
+                Status = JobStatus.Queued,
+                Queued = DateTime.Now,
+
+                ActionId = actionId,
+                RunId = runId,
+            };
+
+            await Job
+                .InsertAsync(job);
+
+            _manualAgentWatcherNotification?.InvokeJobQueued(job);
+        }
+
+        public async Task QueueStopScript(int actionId, ObjectId runId)
+        {
+            var job = new Job
+            {
+                Type = JobType.StopScript,
                 Status = JobStatus.Queued,
                 Queued = DateTime.Now,
 
@@ -115,7 +133,7 @@ namespace Runner.Business.Services
             return job;
         }
 
-        public Task<Job?> GetWaitingAndQueueOfTypes(JobType[] types)
+        public Task<Job?> GetWaiting()
         {
             var sort = Builders<Job>.Sort
                 .Ascending(j => j.Queued);
@@ -130,28 +148,48 @@ namespace Runner.Business.Services
             };
 
             return Job.Collection.FindOneAndUpdateAsync<Job, Job?>(j =>
-                    j.Status == JobStatus.Waiting &&
-                    types.Contains(j.Type),
+                    j.Status == JobStatus.Waiting,
                     update,
                     options);
         }
 
-        public Task<Job?> GetWaitingAndQueueExtractScript()
-        {
-            var update = Builders<Job>.Update
-                .Set(j => j.Status, JobStatus.Queued);
+        //public Task<Job?> GetWaitingAndQueueOfTypes(JobType[] types)
+        //{
+        //    var sort = Builders<Job>.Sort
+        //        .Ascending(j => j.Queued);
 
-            var options = new FindOneAndUpdateOptions<Job, Job?>
-            {
-                ReturnDocument = ReturnDocument.After
-            };
+        //    var update = Builders<Job>.Update
+        //        .Set(j => j.Status, JobStatus.Queued);
 
-            return Job.Collection.FindOneAndUpdateAsync<Job, Job?>(j =>
-                    j.Status == JobStatus.Waiting &&
-                    j.Type == JobType.ExtractScriptPackage,
-                    update,
-                    options);
-        }
+        //    var options = new FindOneAndUpdateOptions<Job, Job?>
+        //    {
+        //        ReturnDocument = ReturnDocument.After,
+        //        Sort = sort
+        //    };
+
+        //    return Job.Collection.FindOneAndUpdateAsync<Job, Job?>(j =>
+        //            j.Status == JobStatus.Waiting &&
+        //            types.Contains(j.Type),
+        //            update,
+        //            options);
+        //}
+
+        //public Task<Job?> GetWaitingAndQueueExtractScript()
+        //{
+        //    var update = Builders<Job>.Update
+        //        .Set(j => j.Status, JobStatus.Queued);
+
+        //    var options = new FindOneAndUpdateOptions<Job, Job?>
+        //    {
+        //        ReturnDocument = ReturnDocument.After
+        //    };
+
+        //    return Job.Collection.FindOneAndUpdateAsync<Job, Job?>(j =>
+        //            j.Status == JobStatus.Waiting &&
+        //            j.Type == JobType.ExtractScriptPackage,
+        //            update,
+        //            options);
+        //}
 
         public Task SetWaiting(ObjectId jobId)
         {
@@ -198,29 +236,29 @@ namespace Runner.Business.Services
             return Job.UpdateAsync(j => j.JobId == jobId, update);
         }
 
-        public async Task StopJob(Run run, Actions.Action action)
-        {
-            var job = await Job.FirstOrDefaultAsync(j =>
-                j.RunId == run.RunId
-                && j.ActionId == action.ActionId
-                && (j.Status == JobStatus.Waiting || j.Status == JobStatus.Running));
-            if (job is not null)
-            {
-                if (job.Status == JobStatus.Waiting)
-                {
-                    var update = Builders<Job>.Update
-                        .Set(j => j.Status, JobStatus.Completed)
-                        .Set(j => j.Started, DateTime.Now)
-                        .Set(j => j.End, DateTime.Now);
+        //public async Task StopJob(Run run, Actions.Action action)
+        //{
+        //    var job = await Job.FirstOrDefaultAsync(j =>
+        //        j.RunId == run.RunId
+        //        && j.ActionId == action.ActionId
+        //        && (j.Status == JobStatus.Waiting || j.Status == JobStatus.Running));
+        //    if (job is not null)
+        //    {
+        //        if (job.Status == JobStatus.Waiting)
+        //        {
+        //            var update = Builders<Job>.Update
+        //                .Set(j => j.Status, JobStatus.Completed)
+        //                .Set(j => j.Started, DateTime.Now)
+        //                .Set(j => j.End, DateTime.Now);
 
-                    await Job
-                        .UpdateAsync(j => j.JobId == job.JobId, update);
-                }
-                else
-                {
-                    _manualAgentWatcherNotification?.InvokeJobStop(job);
-                }
-            }
-        }
+        //            await Job
+        //                .UpdateAsync(j => j.JobId == job.JobId, update);
+        //        }
+        //        else
+        //        {
+        //            _manualAgentWatcherNotification?.InvokeJobStop(job);
+        //        }
+        //    }
+        //}
     }
 }

@@ -1,5 +1,5 @@
 ﻿
-namespace Runner.Agent.Hosting.Helpers
+namespace Runner.Common.Helpers
 {
     public class OneExecutionAtTime
     {

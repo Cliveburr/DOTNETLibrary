@@ -5,6 +5,10 @@ namespace Runner.Business.Entities.Job
     {
         AgentUpdate = 0,
         ExtractScriptPackage = 1,
-        RunAction = 2
+        RunScript = 2,
+        StopScript = 3,
+        CreateRun = 4,
+        CleanRunRetain = 5,  //TODO
+        CleanJobs = 6        //TODO
     }
 }

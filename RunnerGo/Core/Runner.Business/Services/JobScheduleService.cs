@@ -2,6 +2,7 @@
 using MongoDB.Driver;
 using Runner.Business.DataAccess;
 using Runner.Business.Entities.Job;
+using Runner.Business.Model;
 using Runner.Business.Security;
 using Runner.Business.WatcherNotification;
 
@@ -29,12 +30,6 @@ namespace Runner.Business.Services
                         select js;
 
             return query;
-        }
-
-        public class JobTickerAndSchedule
-        {
-            public required JobTicker Ticker { get; set; }
-            public JobSchedule? Schedule { get; set; }
         }
 
         public IQueryable<JobTickerAndSchedule> FindExpiredTickers(DateTime now)
@@ -75,9 +70,23 @@ namespace Runner.Business.Services
                 .DeleteAsync(jt => jt.JobScheduleId == jobScheduleId);
         }
 
-        public Task CreateJob(JobSchedule schedule)
+        public async Task CreateJob(JobSchedule schedule)
         {
-            throw new NotImplementedException();
+            switch (schedule.JobType)
+            {
+                default:
+                    await DeactiveJobSchedule(schedule);
+                    break;
+            }
+        }
+
+        private Task DeactiveJobSchedule(JobSchedule schedule)
+        {
+            var update = Builders<JobSchedule>.Update
+                .Set(js => js.Active, false);
+
+            return JobSchedule
+                .UpdateAsync(js => js.JobScheduleId == schedule.JobScheduleId, update);
         }
 
         public Task CreateTicker(ObjectId jobScheduleId, DateTime targetUtc)

@@ -3,6 +3,7 @@ using Runner.WebUI.Pages.Main;
 using Runner.WebUI.DependecyInjection;
 using Runner.Business.DependecyInjection;
 using Runner.Script.Hosting.DependecyInjection;
+using Runner.Schedule.Hosting.DependecyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +14,8 @@ builder.Services
     .AddWebUIServices()
     .AddBusinessServices(builder.Configuration)
     .AddAgentHosting()
-    .AddScriptHosting();
+    .AddScriptHosting()
+    .AddScheduleHosting();
 
 
 
@@ -39,7 +41,9 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.InitializeBusiness();
-app.MapAgentHub();
+app.InitializeAgentHosting();
 app.InitializeScriptManager();
+app.InitializeScheduleManager();
+app.FlagToCheckJobsWaiting();
 
 app.Run();

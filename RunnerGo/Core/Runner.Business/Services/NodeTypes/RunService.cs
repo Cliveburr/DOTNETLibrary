@@ -79,6 +79,15 @@ namespace Runner.Business.Services.NodeTypes
                 .DeleteAsync(r => r.RunId == runId);
         }
 
+        public async Task CreateRun(ObjectId flowId, List<DataProperty>? input, bool setToRun)
+        {
+            var flow = await Flow
+                .FirstOrDefaultAsync(f => f.FlowId == flowId);
+            Assert.MustNotNull(flow, $"Flow not found! FlowId: {flowId}");
+
+            await CreateRun(flow, input, setToRun);
+        }
+
         public async Task CreateRun(Flow flow, List<DataProperty>? input, bool setToRun)
         {
             Assert.MustNotNull(_identityProvider.User, "Need to be logged to create app!");
@@ -164,14 +173,14 @@ namespace Runner.Business.Services.NodeTypes
                     case ComandEffectType.ActionUpdateStatus: break;
                     case ComandEffectType.ActionUpdateToRun:
                         {
-                            await _jobService.QueueRunAction(effect.Action.ActionId, run.RunId);
+                            await _jobService.QueueRunScript(effect.Action.ActionId, run.RunId);
                             break;
                         }
                     case ComandEffectType.ActionUpdateWithCursor: break;
                     case ComandEffectType.ActionUpdateBreakPoint: break;
                     case ComandEffectType.ActionUpdateToStop:
                         {
-                            await _jobService.StopJob(run, effect.Action);
+                            await _jobService.QueueStopScript(effect.Action.ActionId, run.RunId);
                             break;
                         }
                     default:
