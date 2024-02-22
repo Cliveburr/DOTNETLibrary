@@ -1,6 +1,6 @@
 ﻿using Runner.Business.Entities.Job;
 
-namespace Runner.Business.Model
+namespace Runner.Business.Model.Schedule
 {
     public class JobTickerAndSchedule
     {

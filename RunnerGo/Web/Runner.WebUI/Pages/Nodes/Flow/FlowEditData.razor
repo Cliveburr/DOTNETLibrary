@@ -1,0 +1,87 @@
+﻿@using Runner.Business.Datas.Object
+@inherits BasePage
+
+<div class="buttons mt-3">
+    <button type="button" class="button is-primary" @onclick="View.EditDataCancel">
+        <span class="icon is-small">
+            <i class="fa-solid fa-trash"></i>
+        </span>
+        <span>Cancel</span>
+    </button>
+    <button type="button" class="button is-success" @onclick="View.EditDataAccept">
+        <span class="icon is-small">
+            <i class="fa-solid fa-floppy-disk"></i>
+        </span>
+        <span>Accept</span>
+    </button>
+    <button type="button" class="button is-warning" @onclick="OnValidate_Click">
+        <span class="icon is-small">
+            <i class="fa-solid fa-list-check"></i>
+        </span>
+        <span>Validate</span>
+    </button>
+    <button type="button" class="button is-primary" @onclick="OnView_Click">
+        <span class="icon is-small">
+            <i class="fa-solid fa-scroll"></i>
+        </span>
+        <span>View</span>
+    </button>
+</div>
+
+<div class="box mt-3">
+    <DatasEditor Value=showData />
+</div>
+
+@code {
+
+    [CascadingParameter(Name = "View")]
+    public required FlowView View { get; set; }
+
+    [Parameter]
+    public DataObject? showData { get; set; }
+
+    private async Task OnValidate_Click()
+    {
+        try
+        {
+            if (showData is null)
+            {
+                return;
+            }
+
+            await showData.Resolve(false);
+
+            var errors = showData.Validate();
+            if (errors.Any())
+            {
+                foreach (var error in errors)
+                {
+                    await Notification.AddWarning(error.Text, 10);
+                }
+                return;
+            }
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+    }
+
+    private async Task OnView_Click()
+    {
+        try
+        {
+            if (showData is null)
+            {
+                return;
+            }
+
+            await showData.Resolve();
+            await Modal.ShowData(showData);
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+    }
+}

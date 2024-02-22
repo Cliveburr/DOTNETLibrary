@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Runner.Business.Services;
 using Runner.Schedule.Hosting.Services;
 
 namespace Runner.Schedule.Hosting.DependecyInjection
@@ -19,7 +20,8 @@ namespace Runner.Schedule.Hosting.DependecyInjection
             using (var scope = app.Services.CreateScope())
             {
                 var scheduleManagerService = scope.ServiceProvider.GetRequiredService<ScheduleManagerService>();
-                _ = scheduleManagerService.Initialize();
+                var jobScheduleService = scope.ServiceProvider.GetRequiredService<JobScheduleService>();
+                _ = scheduleManagerService.Initialize(jobScheduleService);
             }
         }
     }

@@ -17,7 +17,5 @@ namespace Runner.Business.Entities.Job
         public int? IntervalSecond { get; set; }
         public TimeSpan? DailyTime { get; set; }
         public List<string>? DailyDayNames { get; set; }
-
-
     }
 }

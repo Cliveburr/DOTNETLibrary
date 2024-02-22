@@ -1,4 +1,5 @@
-﻿@if (openValue && FormFragment != null)
+﻿@using Runner.Business.Entities.Nodes.Types
+@if (openValue && FormFragment != null)
 {
     <div class="rightpanel">
         <div class="rightpanelclose" @onclick=Close>
@@ -20,8 +21,11 @@ else
 
     [Parameter]
     public RenderFragment? FormFragment { get; set; }
+    public FlowAction? Node { get; private set; }
+    public Runner.Business.Actions.Action? Action { get; private set; }
 
     private bool openValue { get; set; }
+    public bool IsOpened { get => openValue; }
 
     public void Open()
     {
@@ -35,9 +39,20 @@ else
         StateHasChanged();
     }
 
-    public void SetOpen(RenderFragment formFragment)
+    public void SetOpen(RenderFragment formFragment, Runner.Business.Actions.Action action)
     {
         openValue = true;
+        Node = null;
+        Action = action;
+        FormFragment = formFragment;
+        StateHasChanged();
+    }
+
+    public void SetOpen(RenderFragment formFragment, FlowAction node)
+    {
+        openValue = true;
+        Node = node;
+        Action = null;
         FormFragment = formFragment;
         StateHasChanged();
     }
@@ -45,6 +60,8 @@ else
     public void CleanPanel()
     {
         openValue = false;
+        Node = null;
+        Action = null;
         FormFragment = null;
         StateHasChanged();
     }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using MongoDB.Driver.Core.Operations;
 using MongoDB.Driver.Linq;
 using Runner.Business.Entities.Job;
@@ -20,15 +21,13 @@ namespace Runner.Schedule.Hosting.Services
         private readonly ILogger<ScheduleManagerService> _logger;
         private readonly IAgentWatcherNotification _agentWatcherNotification;
         private readonly IServiceProvider _serviceProvider;
-        private readonly JobScheduleService _jobScheduleService;
         private System.Timers.Timer _timer;
 
-        public ScheduleManagerService(ILogger<ScheduleManagerService> logger, IAgentWatcherNotification agentWatcherNotification, IServiceProvider serviceProvider, JobScheduleService jobScheduleService)
+        public ScheduleManagerService(ILogger<ScheduleManagerService> logger, IAgentWatcherNotification agentWatcherNotification, IServiceProvider serviceProvider)
         {
             _logger = logger;
             _agentWatcherNotification = agentWatcherNotification;
             _serviceProvider = serviceProvider;
-            _jobScheduleService = jobScheduleService;
             _timer = new System.Timers.Timer();
             _timer.Elapsed += CheckTickersExpired_Elpased;
             _timer.Stop();
@@ -43,22 +42,27 @@ namespace Runner.Schedule.Hosting.Services
 
         private async void OnScheduleAddOrUpdated(JobSchedule schedule)
         {
-            await _jobScheduleService.DeleteTickerByJobScheduleId(schedule.JobScheduleId);
-
-            await CreateNextTicker(schedule, DateTime.UtcNow);
-
             _timer.Stop();
-            _ = CheckTickersExpired();
+
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var jobScheduleService = scope.ServiceProvider.GetRequiredService<JobScheduleService>();
+                await jobScheduleService.DeleteTickerByJobScheduleId(schedule.JobScheduleId);
+
+                await CreateNextTicker(jobScheduleService, schedule, DateTime.UtcNow);
+
+                _ = CheckTickersExpired(jobScheduleService);
+            }
         }
 
-        public async Task Initialize()
+        public async Task Initialize(JobScheduleService jobScheduleService)
         {
             try
             {
-                var jobMissingTickerQuery = _jobScheduleService.FindActiveMissingTickers();
+                var jobMissingTickerQuery = jobScheduleService.FindActiveMissingTickers();
                 foreach (var schedule in jobMissingTickerQuery)
                 {
-                    await CreateNextTicker(schedule, DateTime.UtcNow);
+                    await CreateNextTicker(jobScheduleService, schedule, DateTime.UtcNow);
                 }
             }
             catch (Exception ex)
@@ -66,37 +70,43 @@ namespace Runner.Schedule.Hosting.Services
                 _logger.LogError(ex, null);
             }
 
-            await CheckTickersExpired();
+            await CheckTickersExpired(jobScheduleService);
         }
 
         private void CheckTickersExpired_Elpased(object? sender, ElapsedEventArgs e)
         {
             _timer.Stop();
-            _ = CheckTickersExpired();
+
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var jobScheduleService = scope.ServiceProvider.GetRequiredService<JobScheduleService>();
+                CheckTickersExpired(jobScheduleService)
+                    .Wait(); ;
+            }
         }
 
-        private async Task CheckTickersExpired()
+        private async Task CheckTickersExpired(JobScheduleService jobScheduleService)
         {
             try
             {
                 var now = DateTime.UtcNow;
 
-                var expiredTickers = _jobScheduleService.FindExpiredTickers(now);
+                var expiredTickers = jobScheduleService.FindExpiredTickers(now);
                 foreach (var expired in expiredTickers)
                 {
-                    await _jobScheduleService.DeleteTicker(expired.Ticker.JobTickerId);
+                    await jobScheduleService.DeleteTicker(expired.Ticker.JobTickerId);
 
                     if (expired.Schedule is null || !expired.Schedule.Active)
                     {
                         continue;
                     }
 
-                    await _jobScheduleService.CreateJob(expired.Schedule);
+                    await jobScheduleService.CreateJob(expired.Schedule);
 
-                    await CreateNextTicker(expired.Schedule, now);
+                    await CreateNextTicker(jobScheduleService, expired.Schedule, now);
                 }
 
-                var closestTicker = await _jobScheduleService.FindClosestTickerToExpire();
+                var closestTicker = await jobScheduleService.FindClosestTickerToExpire();
                 if (closestTicker is not null)
                 {
                     var interval = Math.Min((closestTicker.TargetUtc - now).TotalMilliseconds, 0);
@@ -110,7 +120,7 @@ namespace Runner.Schedule.Hosting.Services
             }
         }
 
-        private async Task CreateNextTicker(JobSchedule schedule, DateTime from)
+        private async Task CreateNextTicker(JobScheduleService jobScheduleService, JobSchedule schedule, DateTime from)
         {
             if (!schedule.Active)
             {
@@ -123,7 +133,7 @@ namespace Runner.Schedule.Hosting.Services
                 return;
             }
 
-            await _jobScheduleService.CreateTicker(schedule.JobScheduleId, targetUtc.Value);
+            await jobScheduleService.CreateTicker(schedule.JobScheduleId, targetUtc.Value);
         }
 
         private DateTime? DefineNextTickerTimer(JobSchedule schedule, DateTime from)

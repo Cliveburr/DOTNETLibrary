@@ -1,8 +1,9 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using Runner.Business.DataAccess;
 using Runner.Business.Entities.Job;
-using Runner.Business.Model;
+using Runner.Business.Model.Schedule;
 using Runner.Business.Security;
 using Runner.Business.WatcherNotification;
 
@@ -20,6 +21,22 @@ namespace Runner.Business.Services
             _identityProvider = identityProvider;
             _nodeService = nodeService;
             _manualAgentWatcherNotification = agentWatcherNotification as ManualAgentWatcherNotification;
+        }
+
+        public Task<List<FlowScheduleList>> ReadFlowScheduleList(ObjectId flowNodeId)
+        {
+            var query = from n in Node.AsQueryable()
+                        join fs in FlowSchedule.AsQueryable() on n.NodeId equals fs.NodeId
+                        join js in JobSchedule.AsQueryable() on fs.JobScheduleId equals js.JobScheduleId
+                        where n.ParentId == flowNodeId
+                        select new FlowScheduleList
+                        {
+                            FlowScheduleId = fs.FlowScheduleId,
+                            JobSchedule = js
+                        };
+
+            return query
+                .ToListAsync();
         }
 
         public IQueryable<JobSchedule> FindActiveMissingTickers()

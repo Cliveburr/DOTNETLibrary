@@ -13,7 +13,22 @@
     </div>
 
     <CascadingValue Name="View" Value="this">
-        @if (showData is null)
+        @switch (state)
+        {
+            case 0:
+                <FlowRuns />
+                break;
+            case 1:
+                <FlowEdit />
+                break;
+            case 2:
+                <FlowSchedule />
+                break;
+            case 3:
+                <FlowEditData showData=showData />
+                break;
+        }
+        @* @if (showData is null)
         {
             <div class="tabs is-centered is-medium">
                 <ul>
@@ -83,7 +98,7 @@
             <div class="box mt-3">
                 <DatasEditor Value=showData />
             </div>
-        }
+        } *@
     </CascadingValue>
 </div>
 
@@ -95,14 +110,33 @@
     public RightPanel? Panel { get; set; }
 
     private int tabId;
+    private int state;
 
     private DataObject? showData;
+    private int? showStateBack;
     private ManualResetEvent? showDataResume;
     private List<DataProperty>? showDataResult;
 
     protected override async Task OnInitializedAsync()
     {
         FlowNode = await flowService.ReadByNodeId(Node.NodeId);
+    }
+
+    public void BackToView()
+    {
+        state = 0;
+        Panel?.Close();
+        StateHasChanged();
+    }
+
+    public void EditView()
+    {
+        state = 1;
+    }
+
+    public void EditSchedule()
+    {
+        state = 2;
     }
 
     private string GetTabActive(int id)
@@ -139,6 +173,8 @@
         showDataResume = new ManualResetEvent(false);
         showData = data;
         showDataResult = null;
+        showStateBack = state;
+        state = 3;
         StateHasChanged();
 
         return Task.Run(() =>
@@ -149,64 +185,25 @@
         });
     }
 
-    private void OnShowDataAccept_Click()
+    public void EditDataAccept()
     {
         showDataResult = showData?.ToDataProperty();
         showDataResume?.Set();
         showDataResume = null;
         showData = null;
+
+        state = showStateBack ?? 0;
+        showStateBack = null;
     }
 
-    private void OnShowDataCancel_Click()
+    public void EditDataCancel()
     {
         showDataResult = null;
         showDataResume?.Set();
         showDataResume = null;
         showData = null;
-    }
-
-    private async Task OnValidate_Click()
-    {
-        try
-        {
-            if (showData is null)
-            {
-                return;
-            }
-
-            await showData.Resolve(false);
-
-            var errors = showData.Validate();
-            if (errors.Any())
-            {
-                foreach (var error in errors)
-                {
-                    await Notification.AddWarning(error.Text, 10);
-                }
-                return;
-            }
-        }
-        catch (Exception err)
-        {
-            await Notification.AddError(err);
-        }
-    }
-
-    private async Task OnView_Click()
-    {
-        try
-        {
-            if (showData is null)
-            {
-                return;
-            }
-
-            await showData.Resolve();
-            await Modal.ShowData(showData);
-        }
-        catch (Exception err)
-        {
-            await Notification.AddError(err);
-        }
+        
+        state = showStateBack ?? 0;
+        showStateBack = null;
     }
 }

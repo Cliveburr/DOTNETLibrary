@@ -8,30 +8,43 @@
 @inject FlowService flowService
 @inject DataExpandService dataExpandService
 
-<div class="buttons mt-3">
-    <button type="button" class="button is-primary" @onclick="NodeBack">
-        <span class="icon is-small">
-            <i class="fa-solid fa-square-caret-left"></i>
-        </span>
-    </button>
-    <button type="button" class="button is-info" @onclick="OnRefresh_Click">
-        <span class="icon is-small">
-            <i class="fa-solid fa-rotate-right"></i>
-        </span>
-        <span>Refresh</span>
-    </button>
-    <button type="button" class="button is-success" @onclick="OnNew_Click">
-        <span class="icon is-small">
-            <i class="fa-solid fa-person"></i>
-        </span>
-        <span>New</span>
-    </button>
-    <button type="button" class="button is-success" @onclick="OnRun_Click">
-        <span class="icon is-small">
-            <i class="fa-solid fa-person-running"></i>
-        </span>
-        <span>Run</span>
-    </button>
+<div class="is-flex is-justify-content-space-between">
+    <div class="is-flex is-gap">
+        <button type="button" class="button is-primary" @onclick="NodeBack">
+            <span class="icon is-small">
+                <i class="fa-solid fa-square-caret-left"></i>
+            </span>
+        </button>
+        <button type="button" class="button is-info" @onclick="OnRefresh_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-rotate-right"></i>
+            </span>
+            <span>Refresh</span>
+        </button>
+        <button type="button" class="button is-success" @onclick="OnNew_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-person"></i>
+            </span>
+            <span>New</span>
+        </button>
+        <button type="button" class="button is-success" @onclick="OnRun_Click">
+            <span class="icon is-small">
+                <i class="fa-solid fa-person-running"></i>
+            </span>
+            <span>Run</span>
+        </button>
+    </div>
+    <Dropdown IsRight Icon="fa-solid fa-ellipsis">
+         <a class="dropdown-item" @onclick=View.EditView>
+            <i class="fa-solid fa-wind"></i>
+            <span>Edit</span>
+        </a>
+        <hr class="dropdown-divider">
+         <a class="dropdown-item" @onclick=View.EditSchedule>
+             <i class="fa-regular fa-calendar-days"></i>
+             <span>Schedule</span>
+         </a>
+    </Dropdown>
 </div>
 
 <div class="box mt-3">
@@ -39,24 +52,24 @@
     {
         <DataTable @ref=table Func=@((request) => runService.ReadRunsTable(request, View.FlowNode))>
             <Header>
-            <tr>
-                <th class="w50px">Type</th>
-                <th>RunId</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Completed</th>
-            </tr>
+                <tr>
+                    <th class="w50px">Type</th>
+                    <th>RunId</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Completed</th>
+                </tr>
             </Header>
             <Body Context="Item">
-            <tr class="pointer" @onclick="@(_ => OnNavigateApp_Click(Item))">
-                <td class="has-text-centered">
-                    <NodeTypeIcon Type="NodeType.Run" />
-                </td>
-                <td>@Item.RunId</td>
-                <td>@Item.Status</td>
-                <td>@Item.Created</td>
-                <td>@Item.Completed</td>
-            </tr>
+                <tr class="pointer" @onclick="@(_ => OnNavigateApp_Click(Item))">
+                    <td class="has-text-centered">
+                        <NodeTypeIcon Type="NodeType.Run" />
+                    </td>
+                    <td>@Item.RunId</td>
+                    <td>@Item.Status</td>
+                    <td>@Item.Created</td>
+                    <td>@Item.Completed</td>
+                </tr>
             </Body>
         </DataTable>
     }
@@ -84,14 +97,28 @@
         }
     }
 
-    public Task OnNew_Click()
+    public async Task OnNew_Click()
     {
-        return CreateNewRun(false);
+        try
+        {
+            await CreateNewRun(false);
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
     }
 
-    public Task OnRun_Click()
+    public async Task OnRun_Click()
     {
-        return CreateNewRun(true);
+        try
+        {
+            await CreateNewRun(true);
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
     }
 
     public async Task CreateNewRun(bool setToRun)
@@ -101,44 +128,37 @@
             return;
         }
 
-        try
+        if (View.FlowNode.Input is not null)
         {
-            if (View.FlowNode.Input is not null)
+            var input = View.FlowNode.Input
+                .Select(d => new DataHandlerItem(d, false))
+                .ToList();
+
+            var dataTypeInput = new DataObject(input, dataExpandService);
+            await dataTypeInput.Resolve();
+
+            var dataInput = await Modal.DataEdit(dataTypeInput);
+            if (dataInput is not null)
             {
-                var input = View.FlowNode.Input
-                    .Select(d => new DataHandlerItem(d, false))
-                    .ToList();
-
-                var dataTypeInput = new DataObject(input, dataExpandService);
-                await dataTypeInput.Resolve();
-
-                var dataInput = await Modal.DataEdit(dataTypeInput);
-                if (dataInput is not null)
+                var validation = dataInput.Validate();
+                if (validation.Any())
                 {
-                    var validation = dataInput.Validate();
-                    if (validation.Any())
+                    foreach (var validate in validation)
                     {
-                        foreach (var validate in validation)
-                        {
-                            await Notification.AddInfo(validate.Text);
-                        }
-                    }
-                    else
-                    {
-                        await runService.CreateRun(View.FlowNode, dataInput.ToDataProperty(), setToRun);
-                        await OnRefresh_Click();
+                        await Notification.AddInfo(validate.Text);
                     }
                 }
-            }
-            else
-            {
-                await runService.CreateRun(View.FlowNode, null, setToRun);
-                await OnRefresh_Click();
+                else
+                {
+                    await runService.CreateRun(View.FlowNode, dataInput.ToDataProperty(), setToRun);
+                    await OnRefresh_Click();
+                }
             }
         }
-        catch (Exception err)
+        else
         {
-            await Notification.AddError(err);
+            await runService.CreateRun(View.FlowNode, null, setToRun);
+            await OnRefresh_Click();
         }
     }
 

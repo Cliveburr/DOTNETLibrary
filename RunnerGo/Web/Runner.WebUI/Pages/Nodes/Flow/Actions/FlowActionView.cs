@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Runner.Business.Entities.Nodes.Types;
-using Runner.WebUI.Components.Panels;
-using Runner.WebUI.Pages;
 
 namespace Runner.WebUI.Pages.Nodes.Flow.Actions
 {
@@ -30,9 +28,21 @@ namespace Runner.WebUI.Pages.Nodes.Flow.Actions
 
         protected void OnOpenEditor()
         {
+            View.Panel?.SetOpen(EditorForm(), Node);
+        }
+
+        protected void OnFlipEditor()
+        {
             if (View.Panel is not null)
             {
-                View.Panel.SetOpen(EditorForm());
+                if (View.Panel.IsOpened && View.Panel.Node == Node)
+                {
+                    View.Panel.Close();
+                }
+                else
+                {
+                    View.Panel.SetOpen(EditorForm(), Node);
+                }
             }
         }
 

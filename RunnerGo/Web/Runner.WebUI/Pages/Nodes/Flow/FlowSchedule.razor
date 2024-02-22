@@ -1,5 +1,120 @@
-﻿<h3>FlowSchedule</h3>
+﻿@using Runner.Business.Model.Schedule
+@inherits BasePage
+@inject JobScheduleService jobScheduleService
+
+<div class="buttons mt-3">
+    <button type="button" class="button is-primary" @onclick="View.BackToView">
+        <span class="icon is-small">
+            <i class="fa-solid fa-square-caret-left"></i>
+        </span>
+    </button>
+    <button type="button" class="button is-success" @onclick="OnSave_Click">
+        <span class="icon is-small">
+            <i class="fa-solid fa-floppy-disk"></i>
+        </span>
+        <span>Save</span>
+    </button>
+</div>
+
+<div class="box mt-3">
+    <div class="columns">
+        <div class="column is-half">
+            @if (items != null)
+            {
+                <aside class="menu">
+                    <p class="menu-label">
+                        Schedule
+                    </p>
+                    <ul class="menu-list">
+                        @foreach (var item in items)
+                        {
+                            <li @onclick=@(() => OnSelect_Click(item))>
+                                <a>@item.Display()</a>
+                            </li>
+                        }
+                    </ul>
+                </aside>
+                <div class="mt-3">
+                    <button type="button" class="button is-success" @onclick="OnCreate_Click">
+                        <span class="icon is-small">
+                            <i class="fa-solid fa-calendar-plus"></i>
+                        </span>
+                        <span>Add</span>
+                    </button>
+                </div>
+            }
+        </div>
+        <div class="column is-half">
+            <Runner.WebUI.Pages.Nodes.Flow.Schedule.FlowScheduleEditSelector View=this />
+        </div>
+    </div>
+</div>
 
 @code {
 
+    [CascadingParameter(Name = "View")]
+    public required FlowView View { get; set; }
+    public FlowScheduleList? Selected { get; private set; }
+
+    private List<FlowScheduleList>? items;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await OnRefresh_Click();
+    }
+
+    public async Task OnRefresh_Click()
+    {
+        try
+        {
+            if (View.FlowNode is null)
+            {
+                return;
+            }
+
+            items = await jobScheduleService.ReadFlowScheduleList(View.FlowNode.NodeId);
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+    }
+
+    private void OnSelect_Click(FlowScheduleList item)
+    {
+        Selected = item;
+    }
+
+    private void OnCreate_Click()
+    {
+        if (items is null)
+        {
+            return;
+        }
+
+        var item = new FlowScheduleList
+            {
+                FlowScheduleId = MongoDB.Bson.ObjectId.Empty,
+                JobSchedule = new Business.Entities.Job.JobSchedule
+                {
+                    Active = true,
+                    ScheduleType = Business.Entities.Job.JobScheduleType.Single,
+                    JobType = Business.Entities.Job.JobType.CreateRun,
+                    SingleDateTimeUtc = DateTime.UtcNow
+                }
+            };
+
+        items.Add(item);
+        Selected = item;
+    }
+
+    public void OnSave_Click()
+    {
+        Selected = null;
+    }
+
+    public void OnDelete_Click()
+    {
+        Selected = null;
+    }
 }

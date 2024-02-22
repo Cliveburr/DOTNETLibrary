@@ -1,4 +1,7 @@
-﻿using Microsoft.JSInterop;
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.JSInterop;
+using Runner.WebUI.Components.Inputs;
 
 namespace Runner.WebUI.JSInterop
 {
@@ -29,6 +32,18 @@ namespace Runner.WebUI.JSInterop
         public ValueTask HistoryBack()
         {
             return _js.InvokeVoidAsync("history.back");
+        }
+
+        // type = date|time|datetime
+        // displayMode = default|dialog|inline
+        public Task AttachCalendar(ElementReference el, DotNetObjectReference<DateTimeInput>? elRef, string requestStr, string type, string displayMode)
+        {
+            return _js.InvokeVoidAsync("globalJS.attachCalendar", el, elRef, requestStr, type, displayMode).AsTask();
+        }
+
+        public Task UpdateCalendar(ElementReference el, string requestStr)
+        {
+            return _js.InvokeVoidAsync("globalJS.attachCalendar", el, requestStr).AsTask();
         }
     }
 }
