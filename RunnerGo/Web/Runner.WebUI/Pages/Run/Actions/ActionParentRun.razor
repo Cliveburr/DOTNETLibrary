@@ -1,0 +1,190 @@
+﻿@inherits BasePage
+@implements IDisposable
+@using Runner.Business.Actions
+@using Runner.Business.Datas.Object
+
+<div class="runaction" @onclick=OnOpenEditor @onclick:stopPropagation=true>
+    <div class="runlabel">
+        <div>
+            <ActionStatusView Status=Action.Status></ActionStatusView>
+            @if (Action.BreakPoint)
+            {
+                <i class="fa-solid fa-circle-stop" style="color: #cc3030; margin-left: 3px; font-size: 16px;"></i>
+            }
+            <p>@ValidLabel()</p>
+        </div>
+        <div>
+            @if (Action.WithCursor)
+            {
+                switch (Action.Status)
+                {
+                    case ActionStatus.ToRun:
+                    case ActionStatus.Running:
+                        {
+                            <span class="icon" @onclick=OnStop_Click @onclick:stopPropagation=true>
+                                <i class="fa-solid fa-stop fa-xl" style="color: #cc3030"></i>
+                            </span>
+                            break;
+                        }
+                    case ActionStatus.Waiting:
+                    case ActionStatus.Error:
+                    case ActionStatus.Stopped:
+                        {
+                            <span class="icon" @onclick=OnRun_Click @onclick:stopPropagation=true>
+                                <i class="fa-solid fa-play fa-lg" style="color: #398d22"></i>
+                            </span>
+                            break;
+                        }
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public required Runner.Business.Actions.Action Action { get; set; }
+
+    [CascadingParameter(Name = "RunView")]
+    public required RunView View { get; set; }
+
+    protected override void OnInitialized()
+    {
+        //View.OnRunUpdated += View_OnRunUpdated;
+    }
+
+    public void Dispose()
+    {
+        //View.OnRunUpdated -= View_OnRunUpdated;
+    }
+
+    private string ValidLabel()
+    {
+        return string.IsNullOrEmpty(Action.Label) ?
+            " " :
+            Action.Label;
+    }
+
+    private void OnOpenEditor()
+    {
+        if (View.Panel is not null)
+        {
+            View.Panel.SetOpen(EditorForm(), Action);
+        }
+    }
+
+    private void CloseEditor()
+    {
+        if (View.Panel is not null)
+        {
+            View.Panel.Close();
+        }
+    }
+
+    private async Task OnStop_Click()
+    {
+        CloseEditor();
+        try
+        {
+            await View.StopAction(Action);
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+    }
+
+    private async Task OnRun_Click()
+    {
+        CloseEditor();
+        try
+        {
+            await View.RunAction(Action);
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+    }
+
+    private async Task OnBreakpoint_Click()
+    {
+        CloseEditor();
+        try
+        {
+            if (Action.BreakPoint)
+            {
+                await View.CleanBreakPoint(Action);
+            }
+            else
+            {
+                await View.SetBreakPoint(Action);
+            }
+        }
+        catch (Exception err)
+        {
+            await Notification.AddError(err);
+        }
+    }
+
+    private async Task OnEditData_Click()
+    {
+        CloseEditor();
+
+        var dataObject = new DataObject(Business.Actions.DataOfTypes.ScriptDataType.Get())
+            .Merge(Action.Data);
+
+        var editedData = await View.EditData(dataObject);
+        if (editedData is not null)
+        {
+            Action.Data = editedData;
+            await View.UpdateActionData(Action);
+        }
+
+        OnOpenEditor();
+    }
+
+    private RenderFragment EditorForm()
+    {
+        return
+        @<div class="is-flex is-flex-direction-column m-4">
+            <h3 class="title is-3">Parent Run</h3>
+            <div class="buttons">
+                @if (Action.BreakPoint)
+                {
+                    <button type="button" class="button is-danger is-outline is-small" @onclick="OnBreakpoint_Click">
+                        <span class="icon is-small">
+                            <i class="fa-solid fa-xmark"></i>
+                        </span>
+                        <span>Disable BreakPoint</span>
+                    </button>
+                }
+                else
+                {
+                    <button type="button" class="button is-danger is-small" @onclick="OnBreakpoint_Click">
+                        <span class="icon is-small">
+                            <i class="fa-solid fa-xmark"></i>
+                        </span>
+                        <span>Enable BreakPoint</span>
+                    </button>
+                }
+            </div>
+            <div class="buttons">
+                <button type="button" class="button is-primary is-small" @onclick="OnEditData_Click">
+                    <span class="icon is-small">
+                        <NodeTypeIcon Type=NodeType.Data />
+                    </span>
+                    <span>Edita Data</span>
+                </button>
+            </div>
+            <div class="field">
+                <label class="label">Label</label>
+                <div class="control">
+                    <input class="input" type="text" value=@($"{Action.ActionId} - {Action.Label}") placeholder="Label" readonly>
+                </div>
+            </div>
+            <DataPropertyListEditor Properties=Action.Data />
+        </div>;
+    }
+}

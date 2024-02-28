@@ -35,6 +35,15 @@
         </button>
     </div>
     <Dropdown IsRight Icon="fa-solid fa-ellipsis">
+         <a class="dropdown-item" @onclick=FavoriteThisNode>
+             <i class="fa-solid fa-star"></i>
+             <span>Favorite</span>
+         </a>
+         <a class="dropdown-item" @onclick=CopyPathToClipboard>
+             <i class="fa-brands fa-stackpath"></i>
+             <span>Node Path</span>
+         </a>
+         <hr class="dropdown-divider">
          <a class="dropdown-item" @onclick=View.EditView>
             <i class="fa-solid fa-wind"></i>
             <span>Edit</span>
@@ -128,7 +137,7 @@
             return;
         }
 
-        if (View.FlowNode.Input is not null)
+        if (View.FlowNode.Input is not null && View.FlowNode.Input.Any())
         {
             var input = View.FlowNode.Input
                 .Select(d => new DataHandlerItem(d, false))
@@ -165,5 +174,10 @@
     public void OnNavigateApp_Click(RunList node)
     {
         FowardNode(node.RunId.ToString());
+    }
+
+    public Task FavoriteThisNode()
+    {
+        return UserHomeService.CheckAndAddNodeFavorite(View.Node.Name, View.Node.Type.ToString(), View.Node.Type, View.Node.NodeId);
     }
 }

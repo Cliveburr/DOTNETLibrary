@@ -15,7 +15,7 @@
     protected override void OnInitialized()
     {
         Node.Data = new DataObject(Node.Data)
-            .Merge(Business.Actions.DataOfTypes.ScriptDataType.Get())
+            .Merge(Business.Actions.DataOfTypes.ParentRunDataType.Get())
             .ToDataProperty();
     }
 
@@ -63,7 +63,7 @@
     {
         ClosePanel();
 
-        var dataObject = new DataObject(Business.Actions.DataOfTypes.ScriptDataType.Get())
+        var dataObject = new DataObject(Business.Actions.DataOfTypes.ParentRunDataType.Get())
             .Merge(Node.Data);
 
         var result = await View.EditData(dataObject);
@@ -79,7 +79,7 @@
     {
         return
         @<div class="is-flex is-flex-direction-column m-4">
-            <h3 class="title is-3">Script</h3>
+            <h3 class="title is-3">Parent Run</h3>
             <div class="buttons">
                 <button type="button" class="button is-info is-small" @onclick="OnMoveUp_Click">
                     <span class="icon is-small">
@@ -109,7 +109,7 @@
                     <div class="select is-small">
                         <select @onchange=OnSelectType_Change>
                             <option selected>Change type</option>
-                            <option value="@(ActionType.ParentRun)">To ParentRun</option>
+                            <option value="@(ActionType.Script)">To Script</option>
                             <option value="@(ActionType.Container)">To Container</option>
                             <option value="@(ActionType.Parallel)">To Parallel</option>
                         </select>

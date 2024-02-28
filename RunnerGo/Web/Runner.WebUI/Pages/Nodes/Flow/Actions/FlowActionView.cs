@@ -105,5 +105,14 @@ namespace Runner.WebUI.Pages.Nodes.Flow.Actions
         public virtual void MoveDown(FlowAction node)
         {
         }
+
+        protected void OnSelectType_Change(ChangeEventArgs e)
+        {
+            var value = e.Value as string;
+            var type = Enum.Parse<Business.Actions.ActionType>(value ?? "");
+            Node.Type = type;
+            ClosePanel();
+            UpdateParent();
+        }
     }
 }

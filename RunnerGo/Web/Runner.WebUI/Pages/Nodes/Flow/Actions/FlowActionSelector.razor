@@ -11,6 +11,9 @@
     case Business.Actions.ActionType.Parallel:
         <FlowActionParallel Node=Node Parent=Parent UpdateParent=UpdateParent />
         break;
+    case Business.Actions.ActionType.ParentRun:
+        <FlowActionParentRun Node=Node Parent=Parent UpdateParent=UpdateParent />
+        break;
 }
 
 @code {

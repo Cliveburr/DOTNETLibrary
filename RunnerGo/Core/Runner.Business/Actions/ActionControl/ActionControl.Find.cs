@@ -13,11 +13,11 @@ namespace Runner.Business.Actions
             return action;
         }
 
-        public Action? FindAction(string actionLabel)
-        {
-            return EntityRun.Actions
-                .FirstOrDefault(a => a.Label == actionLabel);
-        }
+        //public Action? FindAction(string actionLabel)
+        //{
+        //    return EntityRun.Actions
+        //        .FirstOrDefault(a => a.Label == actionLabel);
+        //}
 
         public ActionTypesBase FindActionType(Action action)
         {
@@ -26,6 +26,7 @@ namespace Runner.Business.Actions
                 case ActionType.Script: return new ActionScript(action);
                 case ActionType.Container: return new ActionContainer(action);
                 case ActionType.Parallel: return new ActionParallel(action);
+                case ActionType.ParentRun: return new ActionParentRun(action);
                 default: throw new RunnerException($"Invalid ActionType: {action.Type}! Action: {action.ActionId}");
             }
         }
@@ -35,6 +36,29 @@ namespace Runner.Business.Actions
             var action = FindAction(actionId);
             var actionType = FindActionType(action);
             return (action, actionType);
+        }
+
+        public IEnumerable<Action> FindActionsAbleToRun(Action action)
+        {
+            if (action.WithCursor && !action.BreakPoint && (
+                action.Status == ActionStatus.Waiting ||
+                action.Status == ActionStatus.Stopped ||
+                action.Status == ActionStatus.Error))
+            {
+                yield return action;
+            }
+
+            if (action.Childs is not null)
+            {
+                foreach (var childId in action.Childs)
+                {
+                    var childAction = FindAction(childId);
+                    foreach (var ret in FindActionsAbleToRun(childAction))
+                    {
+                        yield return ret;
+                    }
+                }
+            }
         }
     }
 }

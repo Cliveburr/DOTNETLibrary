@@ -79,16 +79,26 @@ namespace Runner.Business.Services.NodeTypes
                 .DeleteAsync(r => r.RunId == runId);
         }
 
-        public async Task CreateRun(ObjectId flowId, List<DataProperty>? input, bool setToRun)
+        public Task<Run> CreateRun(ObjectId flowId, List<DataProperty>? input, bool setToRun)
+        {
+            return CreateRun(flowId, input, setToRun, null);
+        }
+
+        private async Task<Run> CreateRun(ObjectId flowId, List<DataProperty>? input, bool setToRun, FromParentRun? fromParentRun)
         {
             var flow = await Flow
                 .FirstOrDefaultAsync(f => f.FlowId == flowId);
             Assert.MustNotNull(flow, $"Flow not found! FlowId: {flowId}");
 
-            await CreateRun(flow, input, setToRun);
+            return await CreateRun(flow, input, setToRun, fromParentRun);
         }
 
-        public async Task CreateRun(Flow flow, List<DataProperty>? input, bool setToRun)
+        public Task<Run> CreateRun(Flow flow, List<DataProperty>? input, bool setToRun)
+        {
+            return CreateRun(flow, input, setToRun, null);
+        }
+
+        private async Task<Run> CreateRun(Flow flow, List<DataProperty>? input, bool setToRun, FromParentRun? fromParentRun)
         {
             Assert.MustNotNull(_identityProvider.User, "Need to be logged to create app!");
 
@@ -99,6 +109,7 @@ namespace Runner.Business.Services.NodeTypes
             run.Status = RunStatus.Waiting;
             run.Created = DateTime.Now;
             run.Input = input;
+            run.FromParentRun = fromParentRun;
             if (setToRun)
             {
                 run.Log.Add(new RunLog
@@ -127,6 +138,8 @@ namespace Runner.Business.Services.NodeTypes
 
                 await ProcessEffects(run, effects);
             }
+
+            return run;
         }
 
         private async Task ProcessEffects(Run run, List<CommandEffect> effects)
@@ -137,13 +150,12 @@ namespace Runner.Business.Services.NodeTypes
                 switch (effect.Type)
                 {
                     case ComandEffectType.ActionUpdateStatus:
+                    case ComandEffectType.ActionUpdateToRun:
+                    case ComandEffectType.ActionUpdateParentRunToRun:
+                    case ComandEffectType.ActionUpdateToStop:
+                    case ComandEffectType.ActionUpdateParentRunToStop:
                         {
                             await ExecuteActionUpdateStatus(run, effect.Action);
-                            break;
-                        }
-                    case ComandEffectType.ActionUpdateToRun:
-                        {
-                            await ExecuteActionUpdateToRun(run, effect.Action);
                             break;
                         }
                     case ComandEffectType.ActionUpdateWithCursor:
@@ -156,11 +168,6 @@ namespace Runner.Business.Services.NodeTypes
                             await ExecuteActionUpdateBreakPoint(run, effect.Action);
                             break;
                         }
-                    case ComandEffectType.ActionUpdateToStop:
-                        {
-                            await ExecuteActionUpdateToStop(run, effect.Action);
-                            break;
-                        }
                     default:
                         throw new Exception("Invalid CommandEffect Type: " + effect.Type);
                 }
@@ -171,16 +178,21 @@ namespace Runner.Business.Services.NodeTypes
                 switch (effect.Type)
                 {
                     case ComandEffectType.ActionUpdateStatus: break;
+                    case ComandEffectType.ActionUpdateWithCursor: break;
+                    case ComandEffectType.ActionUpdateBreakPoint: break;
                     case ComandEffectType.ActionUpdateToRun:
                         {
                             await _jobService.QueueRunScript(effect.Action.ActionId, run.RunId);
                             break;
                         }
-                    case ComandEffectType.ActionUpdateWithCursor: break;
-                    case ComandEffectType.ActionUpdateBreakPoint: break;
                     case ComandEffectType.ActionUpdateToStop:
                         {
                             await _jobService.QueueStopScript(effect.Action.ActionId, run.RunId);
+                            break;
+                        }
+                    case ComandEffectType.ActionUpdateParentRunToRun:
+                        {
+                            await ExecuteActionUpdateParentRunToRun(run, effect.Action);
                             break;
                         }
                     default:
@@ -191,25 +203,54 @@ namespace Runner.Business.Services.NodeTypes
             await CheckRunState(run.RunId);
         }
 
-
-        private async Task ExecuteActionUpdateToRun(Run run, Actions.Action action)
+        public async Task ExecuteActionUpdateParentRunToRun(Run run, Actions.Action action)
         {
-            await ExecuteActionUpdateStatus(run, action);
+            try
+            {
+                if (action.ParentRunId is null)
+                {
+                    var data = new DataObject(action.Data);
+                    var flowNodeId = data.ReadNodePath("Flow");
+                    Assert.MustNotNull(flowNodeId, $"Missing Flow data in action: {action.Label}");
+
+                    var flow = await Flow
+                        .FirstOrDefaultAsync(f => f.NodeId == flowNodeId);
+                    Assert.MustNotNull(flow, $"Flow not found! FlowId: {flowNodeId}");
+
+                    var fromParentRun = new FromParentRun
+                    {
+                        RunId = run.RunId,
+                        ActionId = action.ActionId
+                    };
+                    var parentRun = await CreateRun(flow, action.Data, true, fromParentRun);
+
+                    action.ParentRunId = parentRun.RunId;
+
+                    var update = Builders<Run>.Update
+                        .Set(r => r.Actions.FirstMatchingElement().ParentRunId, action.ParentRunId);
+
+                    await Run
+                        .UpdateAsync(r => r.RunId == run.RunId && r.Actions.Any(a => a.ActionId == action.ActionId), update);
+                }
+                else
+                {
+                    await SetRun(action.ParentRunId.Value);
+                }
+            }
+            catch (Exception ex)
+            {
+                await SetError(run.RunId, action.ActionId, ex.Message, ex.ToString());
+            }
         }
 
         private async Task ExecuteActionUpdateStatus(Run run, Actions.Action action)
         {
-            //var filter = Builders<Run>.Filter
-            //    .Where(r => r.Id == run.Id && r.Actions.Any(a => a.ActionId == action.ActionId));
-
             var update = Builders<Run>.Update
                 .Set(r => r.Actions.FirstMatchingElement().Status, action.Status)
                 .Set(r => r.Actions.FirstMatchingElement().Data, action.Data);
 
             await Run
                 .UpdateAsync(r => r.RunId == run.RunId && r.Actions.Any(a => a.ActionId == action.ActionId), update);
-
-            //_manualAgentWatcherNotification?.InvokeActionUpdated(action);
         }
 
         private async Task ExecuteActionUpdateWithCursor(Run run, Actions.Action action)
@@ -219,8 +260,6 @@ namespace Runner.Business.Services.NodeTypes
 
             await Run
                 .UpdateAsync(r => r.RunId == run.RunId && r.Actions.Any(a => a.ActionId == action.ActionId), update);
-
-            //_manualAgentWatcherNotification?.InvokeActionUpdated(action);
         }
 
         private async Task ExecuteActionUpdateBreakPoint(Run run, Actions.Action action)
@@ -230,13 +269,6 @@ namespace Runner.Business.Services.NodeTypes
 
             await Run
                 .UpdateAsync(r => r.RunId == run.RunId && r.Actions.Any(a => a.ActionId == action.ActionId), update);
-
-            //manualAgentWatcherNotification?.InvokeActionUpdated(action);
-        }
-
-        private async Task ExecuteActionUpdateToStop(Run run, Actions.Action action)
-        {
-            await ExecuteActionUpdateStatus(run, action);
         }
 
         private async Task CheckRunState(ObjectId runId)
@@ -278,45 +310,50 @@ namespace Runner.Business.Services.NodeTypes
                 }
             }
 
-
             if (run.Status != actualStatus)
             {
-                //var logText = string.Empty;
-                DateTime? completedDatetime = null; //TODO: fazer update condicional
-
                 run.Status = actualStatus;
-                //switch (run.Status)
-                //{
-                //    case RunStatus.Waiting:
-                //        logText = "Run is waiting!";
-                //        break;
-                //    case RunStatus.Running:
-                //        logText = "Run started";
-                //        break;
-                //    case RunStatus.Completed:
-                //        logText = "Run completed";
-                //        completedDatetime = DateTime.Now;
-                //        break;
-                //    case RunStatus.Error:
-                //        logText = "Run stopped with error";
-                //        break;
-                //}
-
-                run.Completed = completedDatetime;
-                //var newLog = new RunLog
-                //{
-                //    Created = DateTime.Now,
-                //    Text = logText
-                //};
-                //run.Log.Add(newLog);
 
                 var update = Builders<Run>.Update
-                    .Set(r => r.Status, run.Status)
-                    .Set(r => r.Completed, run.Completed);
-                    //.Push(r => r.Log, newLog);
+                    .Set(r => r.Status, run.Status);
+
+                if (run.Status == RunStatus.Completed)
+                {
+                    run.Completed = DateTime.Now;
+
+                    update = update
+                        .Set(r => r.Completed, run.Completed);
+                }
 
                 await Run
                     .UpdateAsync(r => r.RunId == run.RunId, update);
+
+                if (run.FromParentRun is not null)
+                {
+                    await UpdateFromParentRun(run.Status, run.FromParentRun);
+                }
+            }
+        }
+
+        private async Task UpdateFromParentRun(RunStatus status, FromParentRun fromParentRun)
+        {
+            switch (status)
+            {
+                case RunStatus.Running:
+                    {
+                        await SetRunning(fromParentRun.RunId, fromParentRun.ActionId);
+                        break;
+                    }
+                case RunStatus.Error:
+                    {
+                        await SetError(fromParentRun.RunId, fromParentRun.ActionId, "ParentRun with error!", "ParentRun with error!");
+                        break;
+                    }
+                case RunStatus.Completed:
+                    {
+                        await SetCompleted(fromParentRun.RunId, fromParentRun.ActionId, null); //TODO: montar outputData
+                        break;
+                    }
             }
         }
 
@@ -447,6 +484,24 @@ namespace Runner.Business.Services.NodeTypes
 
             var control = ActionControl.From(run);
             var effects = control.Run(actionId);
+            await ProcessEffects(run, effects);
+
+            var actualRun = await ReadById(run.RunId);
+            _manualAgentWatcherNotification?.InvokeRunUpdated(actualRun!);
+        }
+
+        public async Task SetRun(ObjectId runId)
+        {
+            Assert.MustNotNull(_identityProvider.User, "Need to be logged to run script!");
+
+            // checar se ter permissão
+
+            var run = await Run
+                .FirstOrDefaultAsync(r => r.RunId == runId);
+            Assert.MustNotNull(run, "Run not found! " + runId);
+
+            var control = ActionControl.From(run);
+            var effects = control.Run();
             await ProcessEffects(run, effects);
 
             var actualRun = await ReadById(run.RunId);

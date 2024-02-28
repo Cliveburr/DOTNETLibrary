@@ -3,6 +3,18 @@ namespace Runner.Business.Actions
 {
     public partial class ActionControl
     {
+        public List<CommandEffect> Run()
+        {
+            var rootAction = FindAction(EntityRun.RootActionId);
+            var ctx = new CommandContext(this, new List<CommandEffect>());
+            foreach (var action in FindActionsAbleToRun(rootAction))
+            {
+                var actionType = FindActionType(action);
+                actionType.Run(ctx);
+            }
+            return ctx.Effects;
+        }
+
         public List<CommandEffect> Run(int actionId)
         {
             var action = FindAction(actionId);

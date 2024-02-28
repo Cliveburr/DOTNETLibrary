@@ -21,6 +21,7 @@ namespace Runner.Business.Entities.Nodes.Types
         public DateTime? Completed { get; set; }
         public required List<RunLog> Log { get; set; }
         public List<DataProperty>? Input { get; set; }
+        public FromParentRun? FromParentRun { get; set; }
     }
 
     public enum RunStatus
@@ -36,5 +37,11 @@ namespace Runner.Business.Entities.Nodes.Types
         public DateTime Created { get; set; }
         public required string Text { get; set; }
         public string? FullError { get; set; }
+    }
+
+    public class FromParentRun
+    {
+        public required ObjectId RunId { get; set; }
+        public required int ActionId { get; set; }
     }
 }

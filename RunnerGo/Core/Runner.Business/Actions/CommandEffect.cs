@@ -24,6 +24,8 @@ namespace Runner.Business.Actions
         ActionUpdateToRun = 1,
         ActionUpdateWithCursor = 2,
         ActionUpdateBreakPoint = 3,
-        ActionUpdateToStop = 4
+        ActionUpdateToStop = 4,
+        ActionUpdateParentRunToRun = 5,
+        ActionUpdateParentRunToStop = 6
     }
 }

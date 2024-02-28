@@ -5,6 +5,7 @@ namespace Runner.Business.Actions
     {
         Script = 0,
         Container = 1,
-        Parallel = 2
+        Parallel = 2,
+        ParentRun = 3
     }
 }

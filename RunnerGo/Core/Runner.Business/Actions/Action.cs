@@ -1,4 +1,5 @@
-﻿using Runner.Business.Datas.Model;
+﻿using MongoDB.Bson;
+using Runner.Business.Datas.Model;
 
 namespace Runner.Business.Actions
 {
@@ -13,5 +14,6 @@ namespace Runner.Business.Actions
         public List<int>? Childs { get; set; }
         public int? Parent { get; set; }
         public List<DataProperty>? Data { get; set; }
+        public ObjectId? ParentRunId { get; set; }
     }
 }
