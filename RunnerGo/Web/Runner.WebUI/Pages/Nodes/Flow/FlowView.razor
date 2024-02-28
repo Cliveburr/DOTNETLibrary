@@ -13,47 +13,8 @@
     </div>
 
     <CascadingValue Name="View" Value="this">
-        @switch (state)
-        {
-            case 0:
-                <FlowRuns />
-                break;
-            case 1:
-                <FlowEdit />
-                break;
-            case 2:
-                <FlowSchedule />
-                break;
-            case 3:
-                <FlowEditData showData=showData />
-                break;
-        }
-        @* @if (showData is null)
-        {
-            <div class="tabs is-centered is-medium">
-                <ul>
-                    <li class="@GetTabActive(0)" @onclick="(() => OnTabClick(0))">
-                        <a>
-                            <span class="icon is-small"><i class="fa-solid fa-person-running"></i></span>
-                            <span>Runs</span>
-                        </a>
-                    </li>
-                    <li class="@GetTabActive(1)" @onclick="(() => OnTabClick(1))">
-                        <a>
-                            <span class="icon is-small"><i class="fa-solid fa-wind"></i></span>
-                            <span>Flow</span>
-                        </a>
-                    </li>
-                    <li class="@GetTabActive(2)" @onclick="(() => OnTabClick(2))">
-                        <a>
-                            <span class="icon is-small"><i class="fa-solid fa-calendar-days"></i></span>
-                            <span>Schedule</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            @switch (tabId)
+        <div class=@HiddenFlows()>
+            @switch (state)
             {
                 case 0:
                     <FlowRuns />
@@ -65,40 +26,11 @@
                     <FlowSchedule />
                     break;
             }
-        }
-        else
+        </div>
+        @if (showData is not null)
         {
-            <div class="buttons mt-3">
-                <button type="button" class="button is-primary" @onclick="OnShowDataCancel_Click">
-                    <span class="icon is-small">
-                        <i class="fa-solid fa-trash"></i>
-                    </span>
-                    <span>Cancel</span>
-                </button>
-                <button type="button" class="button is-success" @onclick="OnShowDataAccept_Click">
-                    <span class="icon is-small">
-                        <i class="fa-solid fa-floppy-disk"></i>
-                    </span>
-                    <span>Accept</span>
-                </button>
-                <button type="button" class="button is-warning" @onclick="OnValidate_Click">
-                    <span class="icon is-small">
-                        <i class="fa-solid fa-list-check"></i>
-                    </span>
-                    <span>Validate</span>
-                </button>
-                <button type="button" class="button is-primary" @onclick="OnView_Click">
-                    <span class="icon is-small">
-                        <i class="fa-solid fa-scroll"></i>
-                    </span>
-                    <span>View</span>
-                </button>
-            </div>
-
-            <div class="box mt-3">
-                <DatasEditor Value=showData />
-            </div>
-        } *@
+            <FlowEditData showData=showData />
+        }
     </CascadingValue>
 </div>
 
@@ -113,13 +45,18 @@
     private int state;
 
     private DataObject? showData;
-    private int? showStateBack;
+    //private int? showStateBack;
     private ManualResetEvent? showDataResume;
     private List<DataProperty>? showDataResult;
 
     protected override async Task OnInitializedAsync()
     {
         FlowNode = await flowService.ReadByNodeId(Node.NodeId);
+    }
+
+    private string HiddenFlows()
+    {
+        return showData is null ? "" : "hidden";
     }
 
     public void BackToView()
@@ -173,8 +110,8 @@
         showDataResume = new ManualResetEvent(false);
         showData = data;
         showDataResult = null;
-        showStateBack = state;
-        state = 3;
+        //showStateBack = state;
+        //state = 3;
         StateHasChanged();
 
         return Task.Run(() =>
@@ -192,8 +129,8 @@
         showDataResume = null;
         showData = null;
 
-        state = showStateBack ?? 0;
-        showStateBack = null;
+        //state = showStateBack ?? 0;
+        //showStateBack = null;
     }
 
     public void EditDataCancel()
@@ -203,7 +140,7 @@
         showDataResume = null;
         showData = null;
         
-        state = showStateBack ?? 0;
-        showStateBack = null;
+        //state = showStateBack ?? 0;
+        //showStateBack = null;
     }
 }

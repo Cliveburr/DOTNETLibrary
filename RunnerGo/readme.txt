@@ -23,7 +23,7 @@ done - testar um script com input, e receber property de DataReference
 
 
 - fazer filtos de tabela
-- criar o jobschedule
+done - criar o jobschedule
 
 - criar botões de move
 - fazer limpeza de ScriptContent q não é mais usado

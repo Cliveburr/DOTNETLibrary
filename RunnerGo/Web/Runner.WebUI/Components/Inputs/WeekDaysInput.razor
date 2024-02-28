@@ -1,0 +1,85 @@
+﻿
+@foreach (var day in days)
+{
+    <div class="block">
+        <label class="checkbox">
+            <input type="checkbox" class="scale2" @bind=day.Value @bind:after="() => OnChange(day)" />
+            &nbsp;&nbsp;&nbsp;@day.Display
+        </label>
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ValueChanged { get; set; }
+
+    [Parameter]
+    public EventCallback AfterValueChanged { get; set; }
+
+    private class WeekDayControl
+    {
+        public required string Display { get; set; }
+        public DayOfWeek DayOfWeek { get; set; }
+        public bool Value { get; set; }
+    }
+
+    private WeekDayControl[] days = new WeekDayControl[7];
+
+
+    protected override void OnInitialized()
+    {
+        for (var i = 0; i < 7; i++)
+        {
+            days[i] = new WeekDayControl
+            {
+                Display = ((DayOfWeek)i).ToString(),
+                DayOfWeek = (DayOfWeek)i
+            };
+        }
+
+        if (Value is not null)
+        {
+            Assert.MustTrue(Value.Length == 7, "DaysOfWeek invalid format!");
+
+            for (var i = 0; i < 7; i++)
+            {
+                if (Value[i] == '1')
+                {
+                    days[i].Value = true;
+                }
+            }
+        }
+    }
+
+    private bool GetValue(WeekDayControl day)
+    {
+        return day.Value;
+    }
+
+    private async Task OnChange(WeekDayControl day)
+    {
+        var newValue = string.Concat(days
+            .Select(d => d.Value ? '1' : '0'));
+
+        if (newValue != Value)
+        {
+            Value = newValue;
+            await ValueChanged.InvokeAsync(Value);
+            await AfterValueChanged.InvokeAsync(Value);
+        }
+    }
+
+    // private async Task SetValue(int day, bool value)
+    // {
+    //     if (innerValue[day] != value)
+    //     {
+    //         innerValue[day] = value;
+    //         Value = innerValue;
+            
+    //     }
+    // }
+}

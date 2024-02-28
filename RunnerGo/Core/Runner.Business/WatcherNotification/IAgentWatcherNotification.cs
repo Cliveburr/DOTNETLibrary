@@ -6,7 +6,7 @@ namespace Runner.Business.WatcherNotification
     public delegate void OnJobEventDelegate(Job job);
     public delegate void OnRunEventDelegate(Run run);
     public delegate void OnActionEventDelegate(Actions.Action action);
-    public delegate void OnJobScheduleEventDelegate(JobSchedule schedule);
+    public delegate void OnJobScheduleEventDelegate(JobSchedule? schedule);
 
     public interface IAgentWatcherNotification
     {

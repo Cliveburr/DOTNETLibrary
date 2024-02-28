@@ -26,7 +26,7 @@
                         Schedule
                     </p>
                     <ul class="menu-list">
-                        @foreach (var item in items)
+                        @foreach (var item in items.Where(i => i.State != FlowScheduleListState.Deleted))
                         {
                             <li @onclick=@(() => OnSelect_Click(item))>
                                 <a>@item.Display()</a>
@@ -45,7 +45,7 @@
             }
         </div>
         <div class="column is-half">
-            <Runner.WebUI.Pages.Nodes.Flow.Schedule.FlowScheduleEditSelector View=this />
+            <Runner.WebUI.Pages.Nodes.Flow.Schedule.FlowScheduleEditSelector Schedule=this />
         </div>
     </div>
 </div>
@@ -87,20 +87,26 @@
 
     private void OnCreate_Click()
     {
-        if (items is null)
+        if (View.FlowNode is null || items is null)
         {
             return;
         }
 
         var item = new FlowScheduleList
             {
-                FlowScheduleId = MongoDB.Bson.ObjectId.Empty,
+                State = FlowScheduleListState.Added,
+                FlowSchedule = new Business.Entities.Nodes.Types.FlowSchedule
+                {
+                    NodeId = MongoDB.Bson.ObjectId.Empty,
+                    JobScheduleId = MongoDB.Bson.ObjectId.Empty
+                },
                 JobSchedule = new Business.Entities.Job.JobSchedule
                 {
                     Active = true,
                     ScheduleType = Business.Entities.Job.JobScheduleType.Single,
                     JobType = Business.Entities.Job.JobType.CreateRun,
-                    SingleDateTimeUtc = DateTime.UtcNow
+                    SingleDateTimeUtc = DateTime.UtcNow,
+                    FlowId = View.FlowNode.FlowId
                 }
             };
 
@@ -108,13 +114,43 @@
         Selected = item;
     }
 
-    public void OnSave_Click()
+    public async Task OnSave_Click()
     {
+        if (View.FlowNode is null || items is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await jobScheduleService.SaveFlowScheduleList(View.FlowNode.NodeId, items);
+        }
+        catch (Exception ex)
+        {
+            await Notification.AddError(ex);
+        }
+
+        View.BackToView();
+    }
+
+    public void OnRemoveSelected_Click()
+    {
+        if (Selected is not null && items is not null)
+        {
+            if (Selected.State == FlowScheduleListState.Added)
+            {
+                items.Remove(Selected);
+            }
+            else
+            {
+                Selected.State = FlowScheduleListState.Deleted;
+            }
+        }
         Selected = null;
     }
 
-    public void OnDelete_Click()
+    public void UpdateState()
     {
-        Selected = null;
+        StateHasChanged();
     }
 }

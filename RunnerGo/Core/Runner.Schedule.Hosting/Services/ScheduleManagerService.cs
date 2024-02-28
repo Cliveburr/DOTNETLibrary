@@ -40,16 +40,20 @@ namespace Runner.Schedule.Hosting.Services
             _agentWatcherNotification.OnJobScheduleAddOrUpdated -= OnScheduleAddOrUpdated;
         }
 
-        private async void OnScheduleAddOrUpdated(JobSchedule schedule)
+        private async void OnScheduleAddOrUpdated(JobSchedule? schedule)
         {
             _timer.Stop();
 
             using (var scope = _serviceProvider.CreateScope())
             {
                 var jobScheduleService = scope.ServiceProvider.GetRequiredService<JobScheduleService>();
-                await jobScheduleService.DeleteTickerByJobScheduleId(schedule.JobScheduleId);
 
-                await CreateNextTicker(jobScheduleService, schedule, DateTime.UtcNow);
+                if (schedule is not null)
+                {
+                    await jobScheduleService.DeleteTickerByJobScheduleId(schedule.JobScheduleId);
+
+                    await CreateNextTicker(jobScheduleService, schedule, DateTime.UtcNow);
+                }
 
                 _ = CheckTickersExpired(jobScheduleService);
             }
@@ -96,12 +100,12 @@ namespace Runner.Schedule.Hosting.Services
                 {
                     await jobScheduleService.DeleteTicker(expired.Ticker.JobTickerId);
 
-                    if (expired.Schedule is null || !expired.Schedule.Active)
+                    if (!expired.Schedule.Active)
                     {
                         continue;
                     }
 
-                    await jobScheduleService.CreateJob(expired.Schedule);
+                    await jobScheduleService.CreateJobFromTicker(expired.Schedule);
 
                     await CreateNextTicker(jobScheduleService, expired.Schedule, now);
                 }
@@ -109,7 +113,7 @@ namespace Runner.Schedule.Hosting.Services
                 var closestTicker = await jobScheduleService.FindClosestTickerToExpire();
                 if (closestTicker is not null)
                 {
-                    var interval = Math.Min((closestTicker.TargetUtc - now).TotalMilliseconds, 0);
+                    var interval = Math.Max((closestTicker.TargetUtc - now).TotalMilliseconds, 0);
                     _timer.Interval = interval;
                     _timer.Start();
                 }
@@ -120,23 +124,24 @@ namespace Runner.Schedule.Hosting.Services
             }
         }
 
-        private async Task CreateNextTicker(JobScheduleService jobScheduleService, JobSchedule schedule, DateTime from)
+        private async Task CreateNextTicker(JobScheduleService jobScheduleService, JobSchedule schedule, DateTime fromUtc)
         {
             if (!schedule.Active)
             {
                 return;
             }
 
-            var targetUtc = DefineNextTickerTimer(schedule, from);
+            var targetUtc = DefineNextTickerTimer(schedule, fromUtc);
             if (targetUtc is null)
             {
+                await jobScheduleService.DeactiveJobSchedule(schedule);
                 return;
             }
 
             await jobScheduleService.CreateTicker(schedule.JobScheduleId, targetUtc.Value);
         }
 
-        private DateTime? DefineNextTickerTimer(JobSchedule schedule, DateTime from)
+        private DateTime? DefineNextTickerTimer(JobSchedule schedule, DateTime fromUtc)
         {
             switch (schedule.ScheduleType)
             {
@@ -148,14 +153,14 @@ namespace Runner.Schedule.Hosting.Services
                 case JobScheduleType.Interval:
                     {
                         Assert.MustNotNull(schedule.IntervalSecond, "Internal - Missing IntervalSecond in JobSchedule type Interval!");
-                        return from.AddSeconds(schedule.IntervalSecond.Value);
+                        return fromUtc.AddSeconds(schedule.IntervalSecond.Value);
                     }
                 case JobScheduleType.Daily:
                     {
                         Assert.MustNotNull(schedule.DailyTime, "Internal - Missing DailyTime in JobSchedule type Daily!");
-                        Assert.MustNotNull(schedule.DailyDayNames, "Internal - Missing DailyDayNames in JobSchedule type Daily!");
+                        Assert.MustNotNull(schedule.DaysOfWeek, "Internal - Missing DailyDayNames in JobSchedule type Daily!");
 
-                        return ScheduleHelper.ComputNextTicker(schedule.DailyTime.Value, schedule.DailyDayNames, from);
+                        return ScheduleHelper.ComputNextTicker(schedule.DailyTime.Value, schedule.DaysOfWeek, fromUtc);
                     }
                 default:
                     {

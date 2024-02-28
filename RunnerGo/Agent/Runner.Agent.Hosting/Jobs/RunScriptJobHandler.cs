@@ -54,17 +54,14 @@ namespace Runner.Agent.Hosting.Jobs
                 if (sts.Value.ScriptVersion.Input?.Any() ?? false)
                 {
                     contextData.Merge(sts.Value.ScriptVersion.Input);
-                    await contextData.Resolve();
-                    var validation = contextData.Validate();
-                    if (validation.Any())
-                    {
-                        var fullMsg = string.Join(Environment.NewLine, validation.Select(v => v.Text));
-                        throw new RunnerException(fullMsg);
-                    }
                 }
-                else
+                
+                await contextData.Resolve();
+                var validation = contextData.Validate();
+                if (validation.Any())
                 {
-                    await contextData.Resolve();
+                    var fullMsg = string.Join(Environment.NewLine, validation.Select(v => v.Text));
+                    throw new RunnerException(fullMsg);
                 }
 
                 var actionTags = contextData.ReadStringList("Tags")

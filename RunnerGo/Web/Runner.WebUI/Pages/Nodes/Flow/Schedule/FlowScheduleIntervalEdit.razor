@@ -1,0 +1,144 @@
+﻿@using Runner.Business.Datas.Object
+@using Runner.Business.Model.Schedule
+
+<div class="buttons">
+    <button type="button" class="button is-danger is-small" @onclick="Schedule.OnRemoveSelected_Click">
+        <span class="icon is-small">
+            <i class="fa-solid fa-calendar-minus"></i>
+        </span>
+        <span>Remove</span>
+    </button>
+    <button type="button" class="button is-info is-small" @onclick="OnInput_Click">
+        <span class="icon is-small">
+            <i class="fa-solid fa-superscript"></i>
+        </span>
+        <span>Input</span>
+    </button>
+    <button type="button" class="button is-primary is-small" @onclick="OnChangeToSingle_Click">
+        <span class="icon is-small">
+            <i class="fa-solid fa-repeat"></i>
+        </span>
+        <span>Single</span>
+    </button>
+    <button type="button" class="button is-link is-small" @onclick="OnChangeToDaily_Click">
+        <span class="icon is-small">
+            <i class="fa-solid fa-cloud-sun"></i>
+        </span>
+        <span>Daily</span>
+    </button>
+</div>
+
+<div class="mt-3">
+    <Switch @bind-Value=Schedule.Selected!.JobSchedule.Active Label="Active" AfterValueChanged=OnValueAfterChanged />
+</div>
+
+<div class="mt-3">
+    <div class="field">
+        <label class="label">Interval in seconds</label>
+        <div class="control has-icons-left">
+            <input class="input" @bind-value:get=GetInterval @bind-value:set=SetInterval type="number">
+            <span class="icon is-left">
+                <i class="fa-solid fa-person-walking-arrow-right"></i>
+            </span>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    [CascadingParameter(Name = "View")]
+    public required FlowView View { get; set; }
+
+    [Parameter]
+    public required FlowSchedule Schedule { get; set; }
+
+    private int GetInterval
+    {
+        get
+        {
+            return Schedule.Selected?.JobSchedule.IntervalSecond ?? 0;
+        }
+    }
+
+    private Task SetInterval(int value)
+    {
+        if (Schedule.Selected is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        Schedule.Selected.JobSchedule.IntervalSecond = value;
+        OnValueAfterChanged();
+
+        return Task.CompletedTask;
+    }
+
+    private async Task OnInput_Click()
+    {
+        if (Schedule.Selected is null || View.FlowNode is null)
+        {
+            return;
+        }
+
+        var data = new DataObject(View.FlowNode.Input)
+            .Merge(Schedule.Selected.JobSchedule.RunInput);
+
+        var result = await View.EditData(data);
+        if (result is not null)
+        {
+            Schedule.Selected.JobSchedule.RunInput = result;
+        }
+    }
+
+    private void OnChangeToSingle_Click()
+    {
+        if (Schedule.Selected is null || View.FlowNode is null)
+        {
+            return;
+        }
+
+        Schedule.Selected.JobSchedule.ScheduleType = Business.Entities.Job.JobScheduleType.Single;
+        Schedule.Selected.JobSchedule.SingleDateTimeUtc = DateTime.UtcNow;
+
+        if (Schedule.Selected.State == FlowScheduleListState.Pristine)
+        {
+            Schedule.Selected.State = FlowScheduleListState.Edited;
+        }
+
+        Schedule.UpdateState();
+    }
+
+    private void OnChangeToDaily_Click()
+    {
+        if (Schedule.Selected is null || View.FlowNode is null)
+        {
+            return;
+        }
+
+        Schedule.Selected.JobSchedule.ScheduleType = Business.Entities.Job.JobScheduleType.Daily;
+        Schedule.Selected.JobSchedule.DaysOfWeek ??= "0000000";
+        Schedule.Selected.JobSchedule.DailyTime ??= DateTime.UtcNow.TimeOfDay;
+
+        if (Schedule.Selected.State == FlowScheduleListState.Pristine)
+        {
+            Schedule.Selected.State = FlowScheduleListState.Edited;
+        }
+
+        Schedule.UpdateState();
+    }
+
+    private void OnValueAfterChanged()
+    {
+        if (Schedule.Selected is null)
+        {
+            return;
+        }
+
+        if (Schedule.Selected.State == FlowScheduleListState.Pristine)
+        {
+            Schedule.Selected.State = FlowScheduleListState.Edited;
+        }
+
+        Schedule.UpdateState();
+    }
+}

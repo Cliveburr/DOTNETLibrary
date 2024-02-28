@@ -90,14 +90,14 @@ namespace Runner.Business.Jobs
                     var authenticationService = scope.ServiceProvider.GetRequiredService<AuthenticationService>();
                     authenticationService.LoginForInternalServices();
 
+                    await jobService.SetRunning(job.JobId);
+
                     var jobHandler = _jobHandlers
                         .FirstOrDefault(jh => jh.JobType == job.Type);
                     Assert.MustNotNull(jobHandler, $"JobHandler not found for JobType: {job.Type}, JobId: {job.JobId}");
 
                     var handler = scope.ServiceProvider.GetService(jobHandler.Type) as IJobHandler;
                     Assert.MustNotNull(handler, $"JobHandler service not found or invalid for Type: {jobHandler.Type}, JobId: {job.JobId}");
-
-                    await jobService.SetRunning(job.JobId);
 
                     var resolved = await handler.Execute(job);
                     if (resolved)

@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
 using Runner.Business.DataAccess.Attributes;
+using Runner.Business.Datas.Model;
 
 namespace Runner.Business.Entities.Job
 {
@@ -16,6 +17,9 @@ namespace Runner.Business.Entities.Job
         public DateTime? SingleDateTimeUtc { get; set; }
         public int? IntervalSecond { get; set; }
         public TimeSpan? DailyTime { get; set; }
-        public List<string>? DailyDayNames { get; set; }
+        public string? DaysOfWeek { get; set; }
+
+        public ObjectId? FlowId { get; set; }
+        public List<DataProperty>? RunInput { get; set; }
     }
 }

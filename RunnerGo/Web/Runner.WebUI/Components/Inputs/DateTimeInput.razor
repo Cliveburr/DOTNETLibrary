@@ -1,140 +1,36 @@
-﻿@using System.Text.Json
-@using System.Text.Json.Serialization
-@implements IDisposable
-@inject GlobalJavascript JS
-
-<input @ref=el type="date">
+﻿
+<input class="input" type="datetime-local" @bind-value:get=GetValue @bind-value:set=SetValue />
 
 @code {
 
     [Parameter]
-    public DateTime? Value
-    {
-        get
-        {
-            return innerValue;
-        }
-        set
-        {
-            if (innerValue != value)
-            {
-                innerValue = value;
-                _ = RefreshValue();
-            }
-            else
-            {
-                innerValue = value;
-            }
-        }
-    }
+    public DateTime? Value { get; set; }
 
     [Parameter]
     public EventCallback<DateTime?> ValueChanged { get; set; }
 
     [Parameter]
-    public required string DateType { get; set; }        // type = date|time|datetime
+    public EventCallback AfterValueChanged { get; set; }
 
     [Parameter]
-    public required string DisplayMode { get; set; }     // displayMode = default|dialog|inline
+    public bool FromUtc { get; set; }
 
-    private DateTime? innerValue;
-    private ElementReference el;
-    private DotNetObjectReference<DateTimeInput>? objRef;
-    private bool afterInit = false;
-
-    protected override void OnInitialized()
+    private DateTime? GetValue
     {
-        objRef = DotNetObjectReference.Create(this);
-    }
-
-    public void Dispose()
-    {
-        objRef?.Dispose();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
+        get
         {
-            var request = new ValueTransfer
-                {
-                    value = innerValue
-                };
-            var options = new JsonSerializerOptions();
-            options.Converters.Add(new DateTimeJsonConverter());
-            var requestStr = JsonSerializer.Serialize(request, options);
-
-            await JS.AttachCalendar(el, objRef, requestStr, DateType, DisplayMode);
-
-            afterInit = true;
+            return FromUtc ?
+                Value?.ToLocalTime() :
+                Value;
         }
     }
 
-    private async Task RefreshValue()
+    private async Task SetValue(DateTime? value)
     {
-        if (!afterInit)
-        {
-            return;
-        }
-
-        var request = new ValueTransfer
-            {
-                value = innerValue
-            };
-        var options = new JsonSerializerOptions();
-        options.Converters.Add(new DateTimeJsonConverter());
-        var requestStr = JsonSerializer.Serialize(request, options);
-
-        await JS.UpdateCalendar(el, requestStr);
-    }
-
-    private class ValueTransfer
-    {
-        public DateTime? value { get; set; }
-    }
-
-    private class DateTimeJsonConverter : JsonConverter<DateTime?>
-    {
-        public override DateTime? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        {
-            var dateTimeStr = reader.GetString();
-            if (DateTime.TryParse(dateTimeStr, out DateTime datetime))
-            {
-                return datetime;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        public override void Write(Utf8JsonWriter writer, DateTime? value, JsonSerializerOptions options)
-        {
-            if (value is null)
-            {
-                writer.WriteNullValue();
-            }
-            else
-            {
-                writer.WriteStringValue(value?.ToString("O"));
-            }
-        }
-    }
-
-    [JSInvokable]
-    public async Task OnSave(string responseStr)
-    {
-        var options = new JsonSerializerOptions();
-        options.Converters.Add(new DateTimeJsonConverter());
-        var response = JsonSerializer.Deserialize<ValueTransfer>(responseStr, options);
-
-        if (response is not null)
-        {
-            if (innerValue != response.value)
-            {
-                innerValue = response.value;
-                await ValueChanged.InvokeAsync(innerValue);
-            }
-        }
+        Value = FromUtc ?
+            value?.ToUniversalTime() :
+            value;
+        await ValueChanged.InvokeAsync(Value);
+        await AfterValueChanged.InvokeAsync(Value);
     }
 }

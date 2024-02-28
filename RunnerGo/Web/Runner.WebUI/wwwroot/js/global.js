@@ -34,7 +34,7 @@ class GlobalJS {
             enableMonthSwitch: true,
             enableYearSwitch: true,
             displayYearsCount: 50,
-            editTimeManually: false,
+            editTimeManually: true,
             minuteSteps: 5
         })[0];
 
@@ -59,7 +59,7 @@ class GlobalJS {
         const date = new Date(Date.parse(request.value));
 
         el.bulmaCalendar.value(date);
-        el.bulmaCalendar.refresh();
+        //el.bulmaCalendar.refresh();
     }
 }
 

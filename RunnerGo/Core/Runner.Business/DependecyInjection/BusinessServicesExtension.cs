@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Runner.Business.DataAccess;
+using Runner.Business.Entities.Job;
 using Runner.Business.Helpers;
 using Runner.Business.Jobs;
 using Runner.Business.Security;
@@ -18,7 +19,8 @@ namespace Runner.Business.DependecyInjection
                 .AddScoped<AuthenticationService>()
                 .AddSingleton<IAgentWatcherNotification, ManualAgentWatcherNotification>()
                 .AddSingleton(serviceProvider => new Database(configuration.GetConnectionString("Main")))
-                .AddSingleton<JobMediator>();
+                .AddSingleton<JobMediator>()
+                .AddScoped<CreateRunJobHandler>();
 
             var allServices = typeof(DataServiceBase)
                 .GetAllAssignableFrom();
@@ -46,7 +48,11 @@ namespace Runner.Business.DependecyInjection
             using (var scope = app.Services.CreateScope())
             {
                 var jobMediator = scope.ServiceProvider.GetRequiredService<JobMediator>();
+                jobMediator
+                    .AddJobHandler<CreateRunJobHandler>(JobType.CreateRun);
+
                 jobMediator.FlagToCheckJobsWaiting();
+
             }
         }
     }

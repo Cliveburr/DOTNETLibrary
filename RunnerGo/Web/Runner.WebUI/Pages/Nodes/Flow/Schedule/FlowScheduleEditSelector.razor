@@ -1,44 +1,23 @@
-﻿@using Runner.Business.Model.Schedule
+﻿@using Runner.Business.Entities.Job
+@using Runner.Business.Model.Schedule
 
-<div class="buttons">
-    <button type="button" class="button is-success is-small" @onclick="View.OnSave_Click">
-        <span class="icon is-small">
-            <i class="fa-solid fa-floppy-disk"></i>
-        </span>
-        <span>Save</span>
-    </button>
-    <button type="button" class="button is-danger is-small" @onclick="View.OnDelete_Click">
-        <span class="icon is-small">
-            <i class="fa-solid fa-calendar-minus"></i>
-        </span>
-        <span>Delete</span>
-    </button>
-    <button type="button" class="button is-primary is-small" @onclick="OnChangeTointerval_Click">
-        <span class="icon is-small">
-            <i class="fa-solid fa-repeat"></i>
-        </span>
-        <span>Interval</span>
-    </button>
-    <button type="button" class="button is-info is-small" @onclick="OnChangeToDaily_Click">
-        <span class="icon is-small">
-            <i class="fa-solid fa-cloud-sun"></i>
-        </span>
-        <span>Daily</span>
-    </button>
-</div>
+@if (Schedule.Selected is not null)
+@switch (Schedule.Selected.JobSchedule.ScheduleType)
+{
+    case JobScheduleType.Single:
+        <FlowScheduleSingleEdit Schedule=Schedule />
+        break;
+    case JobScheduleType.Interval:
+        <FlowScheduleIntervalEdit Schedule=Schedule />
+        break;
+    case JobScheduleType.Daily:
+        <FlowScheduleDailyEdit Schedule=Schedule />
+        break;
+}
+
 
 @code {
 
     [Parameter]
-    public required FlowSchedule View { get; set; }
-
-    private void OnChangeTointerval_Click()
-    {
-
-    }
-
-    private void OnChangeToDaily_Click()
-    {
-        
-    }
+    public required FlowSchedule Schedule { get; set; }
 }
