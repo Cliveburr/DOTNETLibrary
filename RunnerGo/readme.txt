@@ -18,6 +18,22 @@
 
 
 
+processo de build
+{
+	reservar um workspace no agent
+	dar get no git
 
+	use nodejs = vai ficar fixo no server por enquanto
+	use nuget = vai ficar fixo no server por enquanto
+
+	nuget restore
+	npm install
+
+	systemPackage
+
+	rodar msbuild
+
+	salvar pacote
+}
 
 

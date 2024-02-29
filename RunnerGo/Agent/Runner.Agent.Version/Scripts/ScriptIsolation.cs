@@ -1,5 +1,6 @@
 ﻿using Runner.Agent.Interface.Model;
 using Runner.Agent.Interface.Model.Data;
+using Runner.Agent.Version.Workspaces;
 using Runner.Script.Interface.Model.Data;
 using Runner.Script.Interface.Scripts;
 using System.Runtime.CompilerServices;
@@ -97,7 +98,8 @@ namespace Runner.Agent.Version.Scripts
             {
                 Data = new ScriptData(MapDataInput(_request.InputData)),
                 Log = _log,
-                CancellationToken = cancellationToken
+                CancellationToken = cancellationToken,
+                Workspace = new WorkspaceManager(_request.FlowId)
             };
 
             instance.Run(scriptRunContext)

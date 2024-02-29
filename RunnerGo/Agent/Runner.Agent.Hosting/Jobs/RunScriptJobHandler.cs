@@ -80,6 +80,7 @@ namespace Runner.Agent.Hosting.Jobs
 
                         await _agentManagerService.CallRunScript(agentConnected.ConnectionId, new RunScriptRequest
                         {
+                            FlowId = run.FlowId.ToString(),
                             ScriptContentId = sts.Value.ScriptVersion.ScriptContentId.ToString(),
                             Assembly = sts.Value.ScriptVersion.Assembly,
                             FullTypeName = sts.Value.ScriptVersion.FullTypeName,
