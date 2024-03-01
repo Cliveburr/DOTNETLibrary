@@ -15,4 +15,14 @@
     <ProjectReference Include="..\..\Script\Runner.Script.Interface\Runner.Script.Interface.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Nodejs\exe\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Nuget\exe\nuget.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

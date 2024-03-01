@@ -1,8 +1,8 @@
 ﻿using Runner.Agent.Interface.Model;
 using Runner.Agent.Interface.Model.Data;
-using Runner.Agent.Version.Workspaces;
 using Runner.Script.Interface.Model.Data;
 using Runner.Script.Interface.Scripts;
+using Runner.Script.Interface.Workspaces;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 
@@ -96,10 +96,11 @@ namespace Runner.Agent.Version.Scripts
 
             var scriptRunContext = new ScriptRunContext
             {
+                SiteUrl = "", //TODO    
                 Data = new ScriptData(MapDataInput(_request.InputData)),
                 Log = _log,
                 CancellationToken = cancellationToken,
-                Workspace = new WorkspaceManager(_request.FlowId)
+                Workspace = new Workspace(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "work", _request.FlowId))
             };
 
             instance.Run(scriptRunContext)

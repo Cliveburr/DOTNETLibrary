@@ -160,7 +160,7 @@ namespace Build.Scripts.Azure
 
                 var status = new GitStatus
                 {
-                    State = isSuccess ? GitStatusState.Succeeded : GitStatusState.Error,
+                    State = isSuccess ? GitStatusState.Succeeded : GitStatusState.Failed,
                     Description = description,
                     Context = new GitStatusContext
                     {

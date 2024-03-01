@@ -1,9 +1,9 @@
 
 
 
-- trazer o data final para o ParentRun
+- trazer o dataOutput final para o ParentRun
 
-
+- fazer errorHandle nos containers de actions
 
 
 
@@ -20,18 +20,18 @@
 
 processo de build
 {
-	reservar um workspace no agent
-	dar get no git
+	<done> reservar um workspace no agent
+	<done> dar get no git
 
 	use nodejs = vai ficar fixo no server por enquanto
 	use nuget = vai ficar fixo no server por enquanto
 
-	nuget restore
-	npm install
+	<done> nuget restore
+	<done> npm install
 
 	systemPackage
 
-	rodar msbuild
+	<done> rodar msbuild
 
 	salvar pacote
 }
