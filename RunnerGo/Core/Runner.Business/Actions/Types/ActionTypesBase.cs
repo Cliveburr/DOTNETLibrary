@@ -17,8 +17,8 @@ namespace Runner.Business.Actions.Types
         public abstract void BackSetRunning(CommandContext ctx);
         public abstract void SetCompleted(CommandContext ctx);
         public abstract void BackSetCompleted(CommandContext ctx, int actionChildId);
-        public abstract void SetError(CommandContext ctx);
-        public abstract void BackSetError(CommandContext ctx);
+        public abstract void SetError(CommandContext ctx, string error);
+        public abstract void BackSetError(CommandContext ctx, string error);
         public abstract void Stop(CommandContext ctx);
         public abstract void BackStop(CommandContext ctx);
         public abstract void SetStopped(CommandContext ctx);

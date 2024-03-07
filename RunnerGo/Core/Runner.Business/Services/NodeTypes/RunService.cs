@@ -450,7 +450,7 @@ namespace Runner.Business.Services.NodeTypes
             Assert.MustNotNull(run, "Run not found! " + runId);
 
             var control = ActionControl.From(run);
-            var effects = control.SetError(actionId);
+            var effects = control.SetError(actionId, fullError);
             await ProcessEffects(run, effects);
 
             var action = control.FindAction(actionId);

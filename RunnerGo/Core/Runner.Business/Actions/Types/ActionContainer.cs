@@ -1,4 +1,6 @@
 ﻿
+using Runner.Business.Datas.Model;
+
 namespace Runner.Business.Actions.Types
 {
     public class ActionContainer : ActionTypesBase
@@ -234,25 +236,53 @@ namespace Runner.Business.Actions.Types
             }
         }
 
-        public override void SetError(CommandContext ctx)
+        public override void SetError(CommandContext ctx, string error)
         {
             throw new RunnerException("ActionContainer shound't never call error!");
         }
 
-        public override void BackSetError(CommandContext ctx)
+        public override void BackSetError(CommandContext ctx, string error)
         {
-            Assert.Enum.In(Action.Status, new[] {
+            Assert.Enum.In(Action.Status, [
                 ActionStatus.Running,
                 ActionStatus.ToStop
-            }, $"Action container in wrong status to BackSetError! {Action.ActionId}-{Action.Label}");
+            ], $"Action container in wrong status to BackSetError! {Action.ActionId}-{Action.Label}");
 
             Action.Status = ActionStatus.Error;
             ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateStatus, Action));
 
+            if (Action.Childs is not null)
+            {
+                for (var i = 0; i < Action.Childs.Count; i++)
+                {
+                    var (childAction, childActionType) = ctx.Control.FindActionAndType(Action.Childs[i]);
+                    if (childAction.IsErrorHandler)
+                    {
+                        if (childAction.Data is null)
+                        {
+                            childAction.Data = new List<DataProperty>();
+                        }
+                        var hasExceptionData = childAction.Data
+                            .FirstOrDefault(d => d.Name == "Exception");
+                        if (hasExceptionData is null)
+                        {
+                            childAction.Data.Add(new DataProperty { Name = "Exception", Type = DataTypeEnum.String, Value = new DataValue { StringValue = error } });
+                        }
+                        else
+                        {
+                            hasExceptionData.Value = new DataValue { StringValue = error };
+                        }
+                        ctx.Effects.Add(new CommandEffect(ComandEffectType.ActionUpdateData, childAction));
+
+                        childActionType.Run(ctx);
+                    }
+                }
+            }
+
             if (Action.Parent.HasValue)
             {
                 var (action, actionType) = ctx.Control.FindActionAndType(Action.Parent.Value);
-                actionType.BackSetError(ctx);
+                actionType.BackSetError(ctx, error);
             }
         }
 

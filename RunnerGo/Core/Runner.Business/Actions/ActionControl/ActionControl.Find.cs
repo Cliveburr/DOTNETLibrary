@@ -13,11 +13,11 @@ namespace Runner.Business.Actions
             return action;
         }
 
-        //public Action? FindAction(string actionLabel)
-        //{
-        //    return EntityRun.Actions
-        //        .FirstOrDefault(a => a.Label == actionLabel);
-        //}
+        public Action? FindAction(string actionLabel)
+        {
+            return EntityRun.Actions
+                .FirstOrDefault(a => a.Label == actionLabel);
+        }
 
         public ActionTypesBase FindActionType(Action action)
         {

@@ -106,7 +106,7 @@ namespace Runner.Business.Actions.Types
             throw new RunnerException("ActionScript shound't never completed from back!");
         }
 
-        public override void SetError(CommandContext ctx)
+        public override void SetError(CommandContext ctx, string error)
         {
             Assert.Enum.In(Action.Status, new[] {
                 ActionStatus.Running,
@@ -120,11 +120,11 @@ namespace Runner.Business.Actions.Types
             if (Action.Parent.HasValue)
             {
                 var (action, actionType) = ctx.Control.FindActionAndType(Action.Parent.Value);
-                actionType.BackSetError(ctx);
+                actionType.BackSetError(ctx, error);
             }
         }
 
-        public override void BackSetError(CommandContext ctx)
+        public override void BackSetError(CommandContext ctx, string error)
         {
             throw new RunnerException("ActionScript shound't never error from back!");
         }

@@ -45,13 +45,13 @@ namespace Runner.Business.Actions
             return ctx.Effects;
         }
 
-        public List<CommandEffect> SetError(int actionId)
+        public List<CommandEffect> SetError(int actionId, string error)
         {
             var action = FindAction(actionId);
             var actionType = FindActionType(action);
 
             var ctx = new CommandContext(this, new List<CommandEffect>());
-            actionType.SetError(ctx);
+            actionType.SetError(ctx, error);
             return ctx.Effects;
         }
 

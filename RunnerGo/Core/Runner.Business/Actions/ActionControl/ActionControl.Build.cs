@@ -45,6 +45,7 @@ namespace Runner.Business.Actions
                 Label = flowAction.Label,
                 Status = ActionStatus.Waiting,
                 Type = flowAction.Type,
+                IsErrorHandler = flowAction.IsErrorHandler,
                 BreakPoint = false,
                 Parent = parent?.ActionId,
                 Data = flowAction.Data

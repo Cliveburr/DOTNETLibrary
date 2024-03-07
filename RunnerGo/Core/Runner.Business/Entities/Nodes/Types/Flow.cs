@@ -21,6 +21,7 @@ namespace Runner.Business.Entities.Nodes.Types
     {
         public required string Label { get; set; }
         public ActionType Type { get; set; }
+        public bool IsErrorHandler { get; set; }
         public List<FlowAction>? Childs { get; set; }
         public List<DataProperty>? Data { get; set; }
     }

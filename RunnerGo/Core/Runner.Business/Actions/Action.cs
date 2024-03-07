@@ -9,6 +9,7 @@ namespace Runner.Business.Actions
         public required string Label { get; set; }
         public ActionStatus Status { get; set; }
         public ActionType Type { get; set; }
+        public bool IsErrorHandler { get; set; }
         public bool WithCursor { get; set; }
         public bool BreakPoint { get; set; }
         public List<int>? Childs { get; set; }
