@@ -1,0 +1,77 @@
+
+/*
+bar menu color
+rgb(26, 32, 41)
+
+rgb(0, 120, 212)
+
+
+
+
+*/ 
+
+
+
+
+.abc {
+ color: rgb(48, 53, 62);
+}
+
+:root {
+    --bulma-body-background-color: rgb(35, 40, 49);
+    
+    --bulma-primary-h: 206deg;
+    --bulma-primary-s: 100%;
+    --bulma-primary-l: 42%;
+    --bulma-link-h: 210deg;
+    --bulma-link-s: 82%;
+    --bulma-link-l: 29%;
+    --bulma-info-h: 199deg;
+    --bulma-info-s: 62%;
+    --bulma-info-l: 78%;
+    --bulma-dark-h: 212deg;
+    --bulma-dark-s: 17%;
+    --bulma-dark-l: 34%;
+
+    --bulma-body-size: 0.9em;
+    --bulma-body-line-height: 1.3;
+    --bulma-code-padding: 0.2em 0.5em 0.2em;
+    --bulma-size-normal: .9rem;
+    --bulma-block-spacing: 1.0rem;
+    --bulma-radius: 0.175rem;
+
+    --bulma-control-radius: 0.175rem;
+    --bulma-control-height: 2.3em;
+    --bulma-control-line-height: 1.3;
+}
+
+.card {
+    --bulma-card-color: #fffffff2;
+    --bulma-card-background-color: #282d36;
+    --bulma-card-radius: 0.125rem;
+    --bulma-card-shadow: rgba(0, 0, 0, 0.4) 0px 3.2px 7.2px 0px, rgba(0, 0, 0, 0.32) 0px 0.6px 1.8px 0px;
+}
+
+.box {
+    --bulma-box-radius: 0.125rem;
+    --bulma-box-padding: 1rem;
+}
+
+.table {
+    --bulma-table-color: #fffffff2;
+    --bulma-table-background-color: #282d36;
+    --bulma-table-cell-border-color: rgba(128, 128, 128, 0.261);
+    --bulma-table-cell-heading-color: #fffffff2;
+    --bulma-table-head-cell-color: #fffffff2;
+    --bulma-table-row-hover-background-color: rgb(48, 53, 62);
+
+}
+
+.table.in-card {
+    --bulma-table-card-radius: 0.125rem;
+    --bulma-table-card-shadow: rgba(0, 0, 0, 0.4) 0px 3.2px 7.2px 0px, rgba(0, 0, 0, 0.32) 0px 0.6px 1.8px 0px;
+}
+
+.label {
+    --bulma-label-color: #fffffff2;
+}

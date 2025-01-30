@@ -3,6 +3,35 @@ using CSharpWeb.Kernel.Nodes.Builder;
 
 namespace CSharpWeb.Main;
 
+public class ComponentAttribute : Attribute
+{
+    public string Template { get; set; }
+
+    public ComponentAttribute(string template)
+    {
+        
+    }
+}
+
+
+[Component(@"
+<!doctype html>
+<html lang=""en"">
+<head>
+  <meta charset=""utf-8"">
+  <title>TTI Translate</title>
+  <base href=""/"">
+  <meta name=""viewport"" content=""width=device-width, initial-scale=1"">
+  <link rel=""icon"" type=""image/x-icon"" href=""favicon.ico"">
+  <link rel=""preconnect"" href=""https://fonts.gstatic.com"">
+  <link href=""https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap"" rel=""stylesheet"">
+  <link href=""https://fonts.googleapis.com/icon?family=Material+Icons"" rel=""stylesheet"">
+</head>
+<body class=""mat-typography mat-app-background"">
+</body>
+    <App />
+</html>
+")]
 public class App : ComponentBase
 {
     public override Task Build(RenderBuilder builder)
