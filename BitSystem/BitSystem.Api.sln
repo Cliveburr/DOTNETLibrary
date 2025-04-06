@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35521.163
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00 - Readme", "00 - Readme", "{63F76309-B674-4692-99B1-37DF035915DE}"
+	ProjectSection(SolutionItems) = preProject
+		..\readme.txt = ..\readme.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01 - Api", "01 - Api", "{E84202A8-1DDF-4140-93FE-549E8F5E0EE8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03 - Core", "03 - Core", "{93AD3CDC-FA57-4549-A93F-0D2A90E4AC61}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitSystem.Api", "Clients\BitSystem.Api\BitSystem.Api.csproj", "{A10FC066-54DE-4531-9200-ED0C5CC3B907}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitSystem.Core.Domain", "Modules\Core\BitSystem.Core.Domain\BitSystem.Core.Domain.csproj", "{0929410C-C257-4E38-9DA9-F77A69986934}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitSystem.Core.Application", "Modules\Core\BitSystem.Core.Application\BitSystem.Core.Application.csproj", "{5B97B85D-70C3-4EFB-A69C-862831859A18}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitSystem.Core.Infrastructure", "Modules\Core\BitSystem.Core.Infrastructure\BitSystem.Core.Infrastructure.csproj", "{04C9E20E-C89C-40A4-A5EC-FF2D4B64A396}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "02 - Shared", "02 - Shared", "{495711B7-42F5-42B5-B261-0577904F9152}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitSystem.Shared.Domain", "Shared\BitSystem.Shared.Domain\BitSystem.Shared.Domain.csproj", "{C796D2CF-5EA0-4159-A636-474C50B63510}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A10FC066-54DE-4531-9200-ED0C5CC3B907}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A10FC066-54DE-4531-9200-ED0C5CC3B907}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A10FC066-54DE-4531-9200-ED0C5CC3B907}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A10FC066-54DE-4531-9200-ED0C5CC3B907}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0929410C-C257-4E38-9DA9-F77A69986934}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0929410C-C257-4E38-9DA9-F77A69986934}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0929410C-C257-4E38-9DA9-F77A69986934}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0929410C-C257-4E38-9DA9-F77A69986934}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B97B85D-70C3-4EFB-A69C-862831859A18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B97B85D-70C3-4EFB-A69C-862831859A18}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B97B85D-70C3-4EFB-A69C-862831859A18}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B97B85D-70C3-4EFB-A69C-862831859A18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04C9E20E-C89C-40A4-A5EC-FF2D4B64A396}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04C9E20E-C89C-40A4-A5EC-FF2D4B64A396}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04C9E20E-C89C-40A4-A5EC-FF2D4B64A396}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04C9E20E-C89C-40A4-A5EC-FF2D4B64A396}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C796D2CF-5EA0-4159-A636-474C50B63510}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C796D2CF-5EA0-4159-A636-474C50B63510}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C796D2CF-5EA0-4159-A636-474C50B63510}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C796D2CF-5EA0-4159-A636-474C50B63510}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A10FC066-54DE-4531-9200-ED0C5CC3B907} = {E84202A8-1DDF-4140-93FE-549E8F5E0EE8}
+		{0929410C-C257-4E38-9DA9-F77A69986934} = {93AD3CDC-FA57-4549-A93F-0D2A90E4AC61}
+		{5B97B85D-70C3-4EFB-A69C-862831859A18} = {93AD3CDC-FA57-4549-A93F-0D2A90E4AC61}
+		{04C9E20E-C89C-40A4-A5EC-FF2D4B64A396} = {93AD3CDC-FA57-4549-A93F-0D2A90E4AC61}
+		{C796D2CF-5EA0-4159-A636-474C50B63510} = {495711B7-42F5-42B5-B261-0577904F9152}
+	EndGlobalSection
+EndGlobal

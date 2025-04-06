@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en" class="has-navbar-fixed-top">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React + TS</title>
+  </head>
+  <body>
+    <style id="init-loading-style">
+      body,html {
+        background-color: rgb(35, 40, 49);
+      }
+      .full-loading,
+      .full-loading:after {
+        box-sizing: border-box;
+      }
+      .full-loading {
+        color: rgb(0, 121, 214);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: inline-block;
+        width: 120px;
+        height: 120px;
+        z-index: 999;
+      }
+      .full-loading:after {
+        content: " ";
+        display: block;
+        border-radius: 50%;
+        width: 0;
+        height: 0;
+        margin: 8px;
+        box-sizing: border-box;
+        border: 64px solid currentColor;
+        border-color: currentColor transparent currentColor transparent;
+        animation: full-loading 1.2s infinite;
+      }
+      @keyframes full-loading {
+        0% {
+          transform: rotate(0);
+          animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+        }
+        50% {
+          transform: rotate(900deg);
+          animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+        }
+        100% {
+          transform: rotate(1800deg);
+        }
+      }
+    </style>
+    <div class="full-loading"></div>
+    <div id="app"></div>
+    <script type="module" src="/src/app/main.tsx"></script>
+  </body>
+</html>

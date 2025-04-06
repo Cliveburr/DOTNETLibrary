@@ -1,0 +1,29 @@
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+.table.in-card {
+  border-radius: var(--bulma-table-card-radius);
+  box-shadow: var(--bulma-table-card-shadow);
+}
+
+.div-line {
+  text-align: center;
+  margin: 1rem 0;
+  border: 0;
+  background-image: linear-gradient(to left, #f0f0f0, #8c8b8b, #f0f0f0);
+  height: 1px;
+
+  &:after {
+      content: '§';
+      display: inline-block;
+      position: relative;
+      top: -11px;
+      background-color: #fff;
+      color: #8c8b8b;
+      transform: rotate(90deg);
+  }
+}

@@ -1,0 +1,29 @@
+// Import the full bulma
+// @forward "bulma/sass";
+
+// Import the components you need
+@forward "bulma/sass/base";
+@forward "bulma/sass/components/card";
+@forward "bulma/sass/components/modal";
+@forward "bulma/sass/components/navbar";
+@forward "bulma/sass/elements/button";
+@forward "bulma/sass/elements/icon";
+@forward "bulma/sass/elements/table";
+// @forward "bulma/sass/elements/content";
+@forward "bulma/sass/elements/notification";
+// @forward "bulma/sass/elements/progress";
+// @forward "bulma/sass/elements/tag";
+// @forward "bulma/sass/layout/footer";
+@forward "bulma/sass/layout/container";
+@forward "bulma/sass/layout/hero";
+@forward "bulma/sass/grid/columns";
+@forward "bulma/sass/form";
+@forward "bulma/sass/helpers/spacing";
+
+// Import the themes so that all CSS variables have a value
+@forward "bulma/sass/themes";
+
+// Import the Google Font
+// @import url("https://fonts.googleapis.com/css?family=Nunito:400,700");
+
+@forward "custom";
